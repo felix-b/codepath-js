@@ -1,0 +1,60 @@
+{
+  "name": "codepath",
+  "version": "0.1.0",
+  "description": "Records, encodes, and decodes execution path in web browser",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "webpack",
+    "test": "jest",
+    "test:debug": "node --inspect node_modules/.bin/jest --runInBand",
+    "prepare": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/felix-b/codepath-js"
+  },
+  "author": "Felix Berman <felixberman76@gmail.com> (https://github.com/felix-b)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/felix-b/codepath-js/issues"
+  },
+  "homepage": "https://github.com/felix-b/codepath-js",
+  "keywords": [
+    "library",
+    "starter",
+    "es6"
+  ],
+  "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
+    "@babel/plugin-transform-runtime": "^7.5.5",
+    "@babel/polyfill": "^7.4.4",
+    "@babel/preset-env": "^7.4.5",
+    "babel-jest": "^24.9.0",
+    "babel-loader": "^8.0.6",
+    "babel-preset-minify": "^0.5.0",
+    "css-loader": "^3.0.0",
+    "file-loader": "^4.0.0",
+    "jest": "^24.8.0",
+    "prettier": "^1.18.2",
+    "prettier-webpack-plugin": "^1.2.0",
+    "style-loader": "^1.0.0",
+    "url-loader": "^2.0.0",
+    "webpack": "^4.34.0",
+    "webpack-cli": "^3.3.4"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.5.5",
+    "opentracing": "^0.14.0"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.[t|j]sx?$": "babel-jest"
+    },
+    "moduleNameMapper": {
+      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/scripts/testMock.js",
+      "\\.(css|less)$": "<rootDir>/scripts/testMock.js"
+    }
+  }
+}
