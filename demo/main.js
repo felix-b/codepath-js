@@ -1,6 +1,20 @@
-let MyLibrary = window.MyLibrary.default;
-let myLibraryInstance = new MyLibrary();
+(function() {
+  const init = () => {
+    console.log('DEMO > CodePath =', CodePath);
+    const tracer = CodePath.cre
 
-console.log("myLibraryInstance", myLibraryInstance);
 
-myLibraryInstance.myMethod();
+    const button1 = document.querySelector('.button-1');
+    button1.onclick = () => {
+
+    };
+  };
+
+  const { readyState } = document;
+  if (readyState === "complete" || readyState === "loaded" || readyState === "interactive") {
+    init(); 
+  } else {
+    window.addEventListener('DOMContentLoaded', init);
+  }
+
+})();

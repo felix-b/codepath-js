@@ -1,7 +1,7 @@
-import { 
+import {
   Reference,
   REFERENCE_FOLLOWS_FROM,
-  REFERENCE_CHILD_OF 
+  REFERENCE_CHILD_OF
 } from "opentracing";
 
 export const LOG_LEVEL = {
@@ -9,7 +9,7 @@ export const LOG_LEVEL = {
   event: 1,
   warning: 2,
   error: 3,
-  critical: 4,
+  critical: 4
 };
 
 export const createRealLowResolutionClock = () => {
@@ -18,7 +18,7 @@ export const createRealLowResolutionClock = () => {
       return new Date().getTime();
     }
   };
-}
+};
 
 export const createDefaultScopeManager = () => {
   let activeTracer = undefined;
@@ -39,9 +39,8 @@ export const createDefaultScopeManager = () => {
   };
 };
 
-export const defaultTracerFactory = (options) => new CodePathTracer(
-  `webuser${options.clock.now()}`,
-  options);
+export const defaultTracerFactory = options =>
+  new CodePathTracer(`webuser${options.clock.now()}`, options);
 
 export const GlobalCodePath = {
   configure(options) {
@@ -51,8 +50,10 @@ export const GlobalCodePath = {
 
 export function createCodePath(options) {
   const clock = (options && options.clock) || createRealLowResolutionClock();
-  const scopeManager = (options && options.scopeManager) || createDefaultScopeManager();
-  const tracerFactory = (options && options.tracerFactory) || defaultTracerFactory;
+  const scopeManager =
+    (options && options.scopeManager) || createDefaultScopeManager();
+  const tracerFactory =
+    (options && options.tracerFactory) || defaultTracerFactory;
   const spanEntries = {};
 
   const getOrCreateActiveTracer = () => {
@@ -64,9 +65,9 @@ export function createCodePath(options) {
     const newTracer = tracerFactory({ clock, scopeManager, tracerFactory });
     scopeManager.setActiveTracer(newTracer);
     return newTracer;
-  }
+  };
 
-  const getParentSpanContext = (parentContext) => {
+  const getParentSpanContext = parentContext => {
     if (parentContext) {
       return parentContext;
     }
@@ -74,18 +75,18 @@ export function createCodePath(options) {
     if (existingSpan) {
       return existingSpan.context();
     }
-  }
+  };
 
-  const logToActiveSpan = (tags) => {
+  const logToActiveSpan = tags => {
     const existingSpan = scopeManager.getActiveSpan();
     if (existingSpan) {
       existingSpan.log(tags);
     } else {
-      const tempSpan = activeTracer.startSpan('unknown-root');
+      const tempSpan = activeTracer.startSpan("unknown-root");
       tempSpan.log(tags);
       tempSpan.finish();
     }
-  }
+  };
 
   const startSpan = (id, tags, parentContext, parentReferenceType) => {
     const tracer = getOrCreateActiveTracer();
@@ -103,13 +104,15 @@ export function createCodePath(options) {
       options: spanOptions
     };
     return childSpan;
-  }
+  };
 
-  scopeManager.setActiveTracer(tracerFactory({
-    clock,
-    scopeManager,
-    tracerFactory
-  }));
+  scopeManager.setActiveTracer(
+    tracerFactory({
+      clock,
+      scopeManager,
+      tracerFactory
+    })
+  );
 
   const thisCodePath = {
     logDebug(id, tags) {
@@ -136,7 +139,7 @@ export function createCodePath(options) {
     finishSpan(tags) {
       const activeSpan = scopeManager.getActiveSpan();
       if (!activeSpan) {
-        throw new Error('Current scope has no active span');
+        throw new Error("Current scope has no active span");
       }
       activeSpan.finish();
       if (!activeSpan.doesNotifyTracerOnFinish) {

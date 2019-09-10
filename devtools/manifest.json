@@ -1,0 +1,8 @@
+{
+    "name": "codepath dev tools extension",
+    "version": "0.1.0",
+    "description": "Record and visualize code paths reported by codepath-js",
+    "manifest_version": 2,
+    "minimum_chrome_version": "10.0",
+    "devtools_page": "devtools.html"
+}

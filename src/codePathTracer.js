@@ -1,13 +1,17 @@
-import { 
-  Tracer, 
-  Span, 
-  SpanContext, 
-  Reference, 
+import {
+  Tracer,
+  Span,
+  SpanContext,
+  Reference,
   REFERENCE_FOLLOWS_FROM,
-  REFERENCE_CHILD_OF 
+  REFERENCE_CHILD_OF
 } from "opentracing";
 
-export class CodePathTracer extends Tracer {
+export function createCodePathTracer(tracerId, options) {
+  return new CodePathTracer(tracerId, options);
+}
+
+class CodePathTracer extends Tracer {
   _traceId;
   _nextSpanId;
   _clock;
@@ -44,7 +48,7 @@ export class CodePathTracer extends Tracer {
   //   return Noop.spanContext!;
   // }
   _extract(format, carrier) {
-    return new CodePathSpanContext('', '');
+    return new CodePathSpanContext("", "");
   }
 
   getTraceId() {
@@ -58,7 +62,9 @@ export class CodePathTracer extends Tracer {
 
 class CodePathSpan extends Span {
   _tracer;
-  _context;
+  _selfContext;
+  _childOfContext;
+  _followsFromContext;
   _operationName;
   _startTime;
   _endTime;
@@ -68,14 +74,35 @@ class CodePathSpan extends Span {
 
   constructor(tracer, spanId, name, options) {
     super();
+
     this._tracer = tracer;
-    this._context = new CodePathSpanContext(tracer.getTraceId(), spanId);
+    this._selfContext = new CodePathSpanContext(tracer.getTraceId(), spanId);
     this._operationName = name;
     this._startTime = (options && options.startTime) || tracer.getCurrentTime();
     this._endTime = undefined;
     this._baggageItems = {};
-    this._tags = {};
+    this._tags = (options && options.tags) || {};
     this._logs = [];
+
+    if (options) {
+      const { childOf, followsFrom } = findReferences(options.references);
+      this._childOfContext = childOf;
+      this._followsFromContext = followsFrom;
+    }
+  }
+
+  getData() {
+    return {
+      context: contextToPlain(this._selfContext),
+      childOf: contextToPlain(this._childOfContext),
+      followsFrom: contextToPlain(this._followsFromContext),
+      operationName: this._operationName,
+      startTime: this._startTime,
+      endTime: this._endTime,
+      baggageItems: this._baggageItems,
+      tags: this._tags,
+      logs: this._logs
+    };
   }
 
   // By default returns a no-op SpanContext.
@@ -83,7 +110,7 @@ class CodePathSpan extends Span {
   //     return noop.spanContext!;
   // }
   _context() {
-    return this._context;
+    return this._selfContext;
   }
 
   // By default returns a no-op tracer.
@@ -183,5 +210,36 @@ class CodePathSpanContext extends SpanContext {
    */
   toSpanId() {
     return this._spanId;
+  }
+}
+
+function findReferences(references) {
+  let childOf = undefined;
+  let followsFrom = undefined;
+
+  references &&
+    references.forEach(ref => {
+      switch (ref.type()) {
+        case REFERENCE_CHILD_OF:
+          childOf = ref.referencedContext();
+          break;
+        case REFERENCE_FOLLOWS_FROM:
+          followsFrom = ref.referencedContext();
+          break;
+      }
+    });
+
+  return {
+    childOf,
+    followsFrom
+  };
+}
+
+function contextToPlain(context) {
+  if (context) {
+    return {
+      traceId: context.toTraceId(),
+      spanId: context.toSpanId()
+    };
   }
 }
