@@ -9,7 +9,7 @@ export function createCodePathStream() {
         time,
         token: "StartTracer",
         tracerId,
-        tags
+        tags: tags || {}
       });
     },
     writeStartSpan(time, tracerId, spanId, messageId, references, tags) {
@@ -22,7 +22,7 @@ export function createCodePathStream() {
         childOf,
         followsFrom,
         messageId,
-        tags
+        tags: tags || {}
       });
     },
     writeEndSpan(time, tracerId, spanId, tags) {
@@ -31,7 +31,7 @@ export function createCodePathStream() {
         token: "EndSpan",
         tracerId,
         spanId,
-        tags
+        tags: tags || {}
       });
     },
     writeLog(time, tracerId, spanId, messageId, tags) {
@@ -41,11 +41,25 @@ export function createCodePathStream() {
         tracerId,
         spanId,
         messageId,
-        tags
+        tags: tags || {}
       });
     },
-    getEntries() {
+    writeSpanTags(time, tracerId, spanId, tags) {
+      entries.push({
+        time,
+        token: "SpanTags",
+        tracerId,
+        spanId,
+        tags: tags || {}
+      });
+    },
+    peekEntries() {
       return entries;
+    },
+    takeEntries() {
+      const copyOfEntries = entries;
+      entries = [];
+      return copyOfEntries;
     }
   };
 }

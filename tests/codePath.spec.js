@@ -67,9 +67,9 @@ const setupCodePath = () => {
   const spans = [];
   const clock = createTestClock();
   const scopeManager = createDefaultScopeManager();
-  const codePath = createCodePath({
+  const { input, output } = createCodePath({
     clock,
-    tracerFactory: (options) => {
+    tracerFactory: (stream, options) => {
       const newTracer = createMockTracer(`T#${nextTraceId++}`, options, spans);
       tracers.push(newTracer);
       return newTracer;
@@ -82,7 +82,7 @@ const setupCodePath = () => {
     scopeManager,
     tracers,
     spans,
-    codePath
+    codePath: input
   };
 }
 
@@ -171,11 +171,11 @@ describe("createCodePath", () => {
     codePath.logEvent('E2', { str: 'ghi' });
 
     expect(childSpan.testLogs()).toMatchObject([
-      { id: 'E1', str: 'def' }
+      { $id: 'E1', str: 'def' }
     ]);
     expect(parentSpan.testLogs()).toMatchObject([
-      { id: 'E0', str: 'abc' },
-      { id: 'E2', str: 'ghi' }
+      { $id: 'E0', str: 'abc' },
+      { $id: 'E2', str: 'ghi' }
     ]);
   });
 

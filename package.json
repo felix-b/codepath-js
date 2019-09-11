@@ -4,7 +4,7 @@
   "description": "Records, encodes, and decodes execution path in web browser",
   "main": "build/index.js",
   "scripts": {
-    "build": "webpack",
+    "build": "webpack && cp build/index.js devtools/codepath.js",
     "test": "jest",
     "test:debug": "node --inspect node_modules/.bin/jest --runInBand",
     "prepare": "npm run build"

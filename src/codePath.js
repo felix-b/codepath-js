@@ -1,8 +1,12 @@
 import {
+  Tracer,
   Reference,
   REFERENCE_FOLLOWS_FROM,
   REFERENCE_CHILD_OF
 } from "opentracing";
+
+import { createCodePathTracer } from "./codePathTracer";
+import { createCodePathStream } from "./codePathStream";
 
 export const LOG_LEVEL = {
   debug: 0,
@@ -39,12 +43,23 @@ export const createDefaultScopeManager = () => {
   };
 };
 
-export const defaultTracerFactory = options =>
-  new CodePathTracer(`webuser${options.clock.now()}`, options);
+export const noopTracerFactory = () => new Tracer();
+
+export const defaultTracerFactory = (stream, options) =>
+  createCodePathTracer(`webuser${options.clock.now()}`, stream, options);
 
 export const GlobalCodePath = {
   configure(options) {
-    Object.assign(GlobalCodePath, createCodePath(options));
+    const { input, output } = createCodePath(options);
+    Object.assign(GlobalCodePath, {
+      ...input,
+      getOutputStream() {
+        return output;
+      }
+    });
+  },
+  getOutputStream() {
+    throw new Error("GlobalCodePath was not configured");
   }
 };
 
@@ -54,6 +69,8 @@ export function createCodePath(options) {
     (options && options.scopeManager) || createDefaultScopeManager();
   const tracerFactory =
     (options && options.tracerFactory) || defaultTracerFactory;
+  const outputStream =
+    (options && options.outputStream) || createCodePathStream();
   const spanEntries = {};
 
   const getOrCreateActiveTracer = () => {
@@ -107,7 +124,7 @@ export function createCodePath(options) {
   };
 
   scopeManager.setActiveTracer(
-    tracerFactory({
+    tracerFactory(outputStream, {
       clock,
       scopeManager,
       tracerFactory
@@ -116,19 +133,19 @@ export function createCodePath(options) {
 
   const thisCodePath = {
     logDebug(id, tags) {
-      logToActiveSpan({ id, level: LOG_LEVEL.debug, ...tags });
+      logToActiveSpan({ $id: id, level: LOG_LEVEL.debug, ...tags });
     },
     logEvent(id, tags) {
-      logToActiveSpan({ id, level: LOG_LEVEL.event, ...tags });
+      logToActiveSpan({ $id: id, level: LOG_LEVEL.event, ...tags });
     },
     logWarning(id, tags) {
-      logToActiveSpan({ id, level: LOG_LEVEL.warning, ...tags });
+      logToActiveSpan({ $id: id, level: LOG_LEVEL.warning, ...tags });
     },
     logError(id, tags) {
-      logToActiveSpan({ id, level: LOG_LEVEL.error, ...tags });
+      logToActiveSpan({ $id: id, level: LOG_LEVEL.error, ...tags });
     },
     logCritical(id, tags) {
-      logToActiveSpan({ id, level: LOG_LEVEL.critical, ...tags });
+      logToActiveSpan({ $id: id, level: LOG_LEVEL.critical, ...tags });
     },
     spanChild(id, tags, parentContext) {
       return startSpan(id, tags, parentContext, REFERENCE_CHILD_OF);
@@ -152,7 +169,9 @@ export function createCodePath(options) {
       if (!entry) {
         throw new Error(`Trace span not found: id [${spanId}]`);
       }
-      const parentContext = entry.options.references[0].referencedContext();
+      const parentContext =
+        entry.options.references &&
+        entry.options.references[0].referencedContext();
       if (parentContext && parentContext.traceId === traceId) {
         const parentEntry = spanEntries[parentContext.spanId];
         if (parentEntry) {
@@ -163,5 +182,8 @@ export function createCodePath(options) {
     }
   };
 
-  return thisCodePath;
+  return {
+    input: thisCodePath,
+    output: outputStream
+  };
 }

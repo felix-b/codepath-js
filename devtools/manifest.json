@@ -1,8 +1,20 @@
 {
-    "name": "codepath dev tools extension",
-    "version": "0.1.0",
-    "description": "Record and visualize code paths reported by codepath-js",
-    "manifest_version": 2,
-    "minimum_chrome_version": "10.0",
-    "devtools_page": "devtools.html"
+  "name": "codepath dev tools extension",
+  "version": "0.1.0",
+  "description": "Records and visualizes code paths reported by codepath-js",
+  "manifest_version": 2,
+  "minimum_chrome_version": "10.0",
+  "devtools_page": "devtools.html",
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost:8080/*"
+      ],
+      "js": [
+        "codepath.js",
+        "contentScript.js"
+      ]
+    }
+  ],
+  "web_accessible_resources" : ["/pageScript.js"]
 }

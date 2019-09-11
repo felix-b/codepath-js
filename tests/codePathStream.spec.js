@@ -8,7 +8,7 @@ describe("codePathStream", () => {
 
     stream.writeStartTracer(123, 'T#1', { k1: 'v1', k2: 'v2' });
 
-    expect(stream.getEntries()).toEqual([
+    expect(stream.peekEntries()).toEqual([
       { 
         time: 123, 
         token: 'StartTracer', 
@@ -30,7 +30,7 @@ describe("codePathStream", () => {
       { k1: 'v1', k2: 'v2' }
     );
 
-    expect(stream.getEntries()).toEqual([
+    expect(stream.peekEntries()).toEqual([
       { 
         time: 123, 
         token: 'StartSpan', 
@@ -49,7 +49,7 @@ describe("codePathStream", () => {
 
     stream.writeEndSpan(123, 'T#1', 'S#11', { k1: 'v1', k2: 'v2' });
 
-    expect(stream.getEntries()).toEqual([
+    expect(stream.peekEntries()).toEqual([
       { 
         time: 123, 
         token: 'EndSpan', 
@@ -65,7 +65,7 @@ describe("codePathStream", () => {
 
     stream.writeLog(123, 'T#1', 'S#1', 'M#1', { k1: 'v1', k2: 'v2' });
 
-    expect(stream.getEntries()).toEqual([
+    expect(stream.peekEntries()).toEqual([
       { 
         time: 123, 
         token: 'Log', 
@@ -89,8 +89,8 @@ describe("codePathStream", () => {
     stream.writeLog(125, 'T#1', 'S#1', 'M#1', { k1: 'v1', k2: 'v2' });
     stream.writeEndSpan(126, 'T#1', 'S#11', { k1: 'v1', k2: 'v2' });
 
-    expect(stream.getEntries().length).toBe(4);
-    expect(stream.getEntries().map(e => ({ 
+    expect(stream.peekEntries().length).toBe(4);
+    expect(stream.peekEntries().map(e => ({ 
       time: e.time,
       token: e.token,
     }))).toEqual([

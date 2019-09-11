@@ -7,22 +7,26 @@ import {
   REFERENCE_CHILD_OF
 } from "opentracing";
 
-export function createCodePathTracer(tracerId, options) {
-  return new CodePathTracer(tracerId, options);
+export function createCodePathTracer(tracerId, stream, options) {
+  return new CodePathTracer(tracerId, stream, options);
 }
 
 class CodePathTracer extends Tracer {
   _traceId;
-  _nextSpanId;
   _clock;
   _scopeManager;
+  _stream;
+  _nextSpanId;
 
-  constructor(traceId, options) {
+  constructor(traceId, stream, options) {
     super();
     this._traceId = traceId;
     this._nextSpanId = 1;
     this._clock = options.clock;
     this._scopeManager = options.scopeManager;
+    this._stream = stream;
+
+    stream.writeStartTracer(options.clock.now(), traceId);
   }
 
   // NOTE: the input to this method is *always* an associative array. The
@@ -35,7 +39,14 @@ class CodePathTracer extends Tracer {
   //   return Noop.span!;
   // }
   _startSpan(name, options) {
-    return new CodePathSpan(this, this._nextSpanId++, name, options);
+    return new CodePathSpan(
+      this,
+      this._clock,
+      this._stream,
+      this._nextSpanId++,
+      name,
+      options
+    );
   }
 
   // The default behavior is a no-op.
@@ -62,48 +73,64 @@ class CodePathTracer extends Tracer {
 
 class CodePathSpan extends Span {
   _tracer;
+  _clock;
+  _stream;
   _selfContext;
-  _childOfContext;
-  _followsFromContext;
-  _operationName;
-  _startTime;
-  _endTime;
-  _baggageItems;
-  _tags;
-  _logs;
+  // _childOfContext;
+  // _followsFromContext;
+  // _operationName;
+  // _startTime;
+  // _endTime;
+  // _baggageItems;
+  // _tags;
+  // _logs;
 
-  constructor(tracer, spanId, name, options) {
+  constructor(tracer, clock, stream, spanId, name, options) {
     super();
 
+    const traceId = tracer.getTraceId();
+
     this._tracer = tracer;
-    this._selfContext = new CodePathSpanContext(tracer.getTraceId(), spanId);
-    this._operationName = name;
-    this._startTime = (options && options.startTime) || tracer.getCurrentTime();
-    this._endTime = undefined;
-    this._baggageItems = {};
-    this._tags = (options && options.tags) || {};
-    this._logs = [];
+    this._clock = clock;
+    this._stream = stream;
+    this._selfContext = new CodePathSpanContext(traceId, spanId);
 
-    if (options) {
-      const { childOf, followsFrom } = findReferences(options.references);
-      this._childOfContext = childOf;
-      this._followsFromContext = followsFrom;
-    }
+    const startTime = (options && options.startTime) || clock.now();
+    const { childOf, followsFrom } = findReferences(options);
+
+    stream.writeStartSpan(
+      startTime,
+      traceId,
+      spanId,
+      name,
+      {
+        childOf: contextToPlain(childOf),
+        followsFrom: contextToPlain(followsFrom)
+      },
+      options.tags
+    );
+
+    // this._operationName = name;
+    // this._startTime = (options && options.startTime) || tracer.getCurrentTime();
+    // this._endTime = undefined;
+    // this._baggageItems = {};
+    // this._tags = (options && options.tags) || {};
+    // this._logs = [];
   }
 
-  getData() {
-    return {
-      context: contextToPlain(this._selfContext),
-      childOf: contextToPlain(this._childOfContext),
-      followsFrom: contextToPlain(this._followsFromContext),
-      operationName: this._operationName,
-      startTime: this._startTime,
-      endTime: this._endTime,
-      baggageItems: this._baggageItems,
-      tags: this._tags,
-      logs: this._logs
-    };
-  }
+  // getData() {
+  //   return {
+  //     context: contextToPlain(this._selfContext),
+  //     childOf: contextToPlain(this._childOfContext),
+  //     followsFrom: contextToPlain(this._followsFromContext),
+  //     operationName: this._operationName,
+  //     startTime: this._startTime,
+  //     endTime: this._endTime,
+  //     baggageItems: this._baggageItems,
+  //     tags: this._tags,
+  //     logs: this._logs
+  //   };
+  // }
 
   // By default returns a no-op SpanContext.
   // protected _context(): SpanContext {
@@ -129,14 +156,16 @@ class CodePathSpan extends Span {
   // protected _setOperationName(name: string): void {
   // }
   _setOperationName(name) {
-    this._operationName = name;
+    throw new Error("Not supported: setOperationName");
+    //this._operationName = name;
   }
 
   // By default does nothing
   // protected _setBaggageItem(key: string, value: string): void {
   // }
   _setBaggageItem(key, value) {
-    this._baggageItems[key] = value;
+    throw new Error("Not supported: setBaggageItem");
+    //this._baggageItems[key] = value;
   }
 
   // By default does nothing
@@ -144,7 +173,8 @@ class CodePathSpan extends Span {
   //     return undefined;
   // }
   _getBaggageItem(key) {
-    return this._baggageItems[key];
+    return undefined;
+    //return this._baggageItems[key];
   }
 
   // By default does nothing
@@ -154,21 +184,37 @@ class CodePathSpan extends Span {
   // protected _addTags(keyValuePairs: { [key: string]: any }): void {
   // }
   _addTags(keyValuePairs) {
-    this._tags = {
-      ...this._tags,
-      ...keyValuePairs
-    };
+    const { traceId, spanId } = contextToPlain(this._selfContext);
+    this._stream.writeSpanTags(
+      this._clock.now(),
+      traceId,
+      spanId,
+      keyValuePairs
+    );
+    // this._tags = {
+    //   ...this._tags,
+    //   ...keyValuePairs
+    // };
   }
 
   // By default does nothing
   // protected _log(keyValuePairs: { [key: string]: any }, timestamp?: number): void {
   // }
   _log(keyValuePairs, timestamp) {
-    const logEntry = {
-      ...(keyValuePairs || {}),
-      $time: timestamp || this._tracer.getCurrentTime()
-    };
-    this._logs.push(logEntry);
+    const time = timestamp || this._clock.now();
+    const { traceId, spanId } = contextToPlain(this._selfContext);
+    this._stream.writeLog(
+      time,
+      traceId,
+      spanId,
+      keyValuePairs.$id,
+      keyValuePairs
+    );
+    // const logEntry = {
+    //   ...(keyValuePairs || {}),
+    //   $time: timestamp || this._tracer.getCurrentTime()
+    // };
+    // this._logs.push(logEntry);
   }
 
   // By default does nothing
@@ -177,10 +223,14 @@ class CodePathSpan extends Span {
   // protected _finish(finishTime?: number): void {
   // }
   _finish(finishTime) {
-    if (this._endTime) {
-      throw new Error("Invalid operation: span already finished");
-    }
-    this._endTime = finishTime || this._tracer.getCurrentTime();
+    const effectiveFinishTime = finishTime || this._clock.now();
+    const { traceId, spanId } = contextToPlain(this._selfContext);
+    this._stream.writeEndSpan(effectiveFinishTime, traceId, spanId);
+
+    // if (this._endTime) {
+    //   throw new Error("Invalid operation: span already finished");
+    // }
+    // this._endTime = finishTime || this._tracer.getCurrentTime();
   }
 }
 
@@ -213,12 +263,13 @@ class CodePathSpanContext extends SpanContext {
   }
 }
 
-function findReferences(references) {
+function findReferences(options) {
   let childOf = undefined;
   let followsFrom = undefined;
 
-  references &&
-    references.forEach(ref => {
+  options &&
+    options.references &&
+    options.references.forEach(ref => {
       switch (ref.type()) {
         case REFERENCE_CHILD_OF:
           childOf = ref.referencedContext();
