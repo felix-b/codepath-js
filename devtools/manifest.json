@@ -16,5 +16,13 @@
       ]
     }
   ],
-  "web_accessible_resources" : ["/pageScript.js"]
+  "background": {
+    "scripts": [
+      "backgroundScript.js"
+    ],
+    "persistent": false
+  },  
+  "web_accessible_resources" : [
+    "/pageScript.js"
+  ]
 }

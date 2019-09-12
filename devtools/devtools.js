@@ -1,5 +1,5 @@
 chrome.devtools.panels.create("CodePath",
   null,
-  "panel.html",
+  "mainPanel.html",
   null
 );
