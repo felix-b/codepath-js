@@ -6,7 +6,7 @@
   const injector = window.injectCodePathTracer;
 
   if (typeof injector !== "function") {
-    console.error('CODEPATH.DEVTOOLS.PAGE>', 'injector not found', injector);
+    console.warn('CODEPATH.DEVTOOLS.PAGE>', 'injector not found, page ignored', injector);
     return;
   }
 
@@ -27,7 +27,7 @@
         entries
       }, '*');
     }
-  }, 1000);
+  }, 250);
 
   console.info('CODEPATH.DEVTOOLS.PAGE>', 'successfully initialized');
 })();

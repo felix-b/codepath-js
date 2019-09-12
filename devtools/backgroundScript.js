@@ -14,7 +14,7 @@
         return;
       }
 
-      console.error('CODEPATH.DEVTOOLS.BKG>', 'unrecognized message', message);
+      console.warn('CODEPATH.DEVTOOLS.BKG>', 'unrecognized message', message);
     }
 
     // Listen to messages sent from the DevTools page
@@ -43,10 +43,10 @@
         connections[tabId].postMessage(request);
         console.log('CODEPATH.DEVTOOLS.BKG>', `relaying 1 message to dev tools panel`);
       } else {
-        console.error('CODEPATH.DEVTOOLS.BKG>', `tab not found in connection list: ${tabId}`);
+        console.warn('CODEPATH.DEVTOOLS.BKG>', `tab not found in connection list: ${tabId}`);
       }
     } else {
-      console.error('CODEPATH.DEVTOOLS.BKG>', 'sender.tab not defined.');
+      console.warn('CODEPATH.DEVTOOLS.BKG>', 'sender.tab not defined.');
     }
     return true;
   });
