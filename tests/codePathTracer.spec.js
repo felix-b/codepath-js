@@ -24,7 +24,7 @@ describe('CodePathTracer', () => {
       { 
         time: 123, 
         token: 'StartTracer', 
-        tracerId: 'T#1', 
+        traceId: 'T#1', 
         tags: {} 
       }
     ]);
@@ -45,7 +45,7 @@ describe('CodePathTracer', () => {
     expect(stream.peekEntries()[1]).toEqual({ 
       time: 123, 
       token: 'StartSpan', 
-      tracerId: 'T#1', 
+      traceId: 'T#1', 
       spanId: 1, 
       childOf: undefined, 
       followsFrom: undefined, 
@@ -70,7 +70,7 @@ describe('CodePathTracer', () => {
     expect(stream.peekEntries()[2]).toEqual({ 
       time: 456, 
       token: 'EndSpan', 
-      tracerId: 'T#1',
+      traceId: 'T#1',
       spanId: 1, 
       tags: {} 
     });
@@ -93,7 +93,7 @@ describe('CodePathTracer', () => {
     expect(stream.peekEntries()[2]).toEqual({ 
       time: 456, 
       token: 'StartSpan', 
-      tracerId: 'T#1', 
+      traceId: 'T#1', 
       spanId: 2, 
       childOf: { traceId: 'T#1', spanId: 1 }, 
       followsFrom: undefined, 
@@ -121,7 +121,7 @@ describe('CodePathTracer', () => {
     expect(stream.peekEntries()[3]).toEqual({ 
       time: 789, 
       token: 'EndSpan', 
-      tracerId: 'T#1',
+      traceId: 'T#1',
       spanId: 2, 
       tags: {} 
     });
@@ -143,7 +143,7 @@ describe('CodePathTracer', () => {
     expect(stream.peekEntries()[1]).toEqual({ 
       time: 123, 
       token: 'StartSpan', 
-      tracerId: 'T#1', 
+      traceId: 'T#1', 
       spanId: 1, 
       messageId: 'S#1',  
       tags: { k1: 'v1', k2: 'v2' }
@@ -167,7 +167,7 @@ describe('CodePathTracer', () => {
     expect(stream.peekEntries()[2]).toEqual({ 
       time: 456, 
       token: 'SpanTags', 
-      tracerId: 'T#1',
+      traceId: 'T#1',
       spanId: 1, 
       tags: { k2: 'U2', k3: 'v3' }
     });
@@ -225,7 +225,7 @@ describe('CodePathTracer', () => {
     expect(stream.peekEntries()[2]).toMatchObject({ 
       token: 'Log', 
       time: 456,
-      tracerId: 'T#1', 
+      traceId: 'T#1', 
       spanId: 1, 
       messageId: 'm1', 
       tags: { k1: 'v1', k2: 'v2' }

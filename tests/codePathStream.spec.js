@@ -12,7 +12,7 @@ describe("codePathStream", () => {
       { 
         time: 123, 
         token: 'StartTracer', 
-        tracerId: 'T#1', 
+        traceId: 'T#1', 
         tags: { k1: 'v1', k2: 'v2' } 
       }
     ]);
@@ -24,8 +24,8 @@ describe("codePathStream", () => {
     stream.writeStartSpan(
       123, 'T#1', 'S#11', 'M#11', 
       { 
-        childOf: { tracerId: 'T#1', spanId: 'S#10' }, 
-        followsFrom: { tracerId: 'T#1', spanId: 'S#9' }
+        childOf: { traceId: 'T#1', spanId: 'S#10' }, 
+        followsFrom: { traceId: 'T#1', spanId: 'S#9' }
       },
       { k1: 'v1', k2: 'v2' }
     );
@@ -34,11 +34,11 @@ describe("codePathStream", () => {
       { 
         time: 123, 
         token: 'StartSpan', 
-        tracerId: 'T#1', 
+        traceId: 'T#1', 
         spanId: 'S#11', 
         messageId: 'M#11', 
-        childOf: { tracerId: 'T#1', spanId: 'S#10' }, 
-        followsFrom: { tracerId: 'T#1', spanId: 'S#9' }, 
+        childOf: { traceId: 'T#1', spanId: 'S#10' }, 
+        followsFrom: { traceId: 'T#1', spanId: 'S#9' }, 
         tags: { k1: 'v1', k2: 'v2' } 
       }
     ]);
@@ -53,7 +53,7 @@ describe("codePathStream", () => {
       { 
         time: 123, 
         token: 'EndSpan', 
-        tracerId: 'T#1', 
+        traceId: 'T#1', 
         spanId: 'S#11', 
         tags: { k1: 'v1', k2: 'v2' } 
       }
@@ -69,7 +69,7 @@ describe("codePathStream", () => {
       { 
         time: 123, 
         token: 'Log', 
-        tracerId: 'T#1', 
+        traceId: 'T#1', 
         spanId: 'S#1', 
         messageId: 'M#1', 
         tags: { k1: 'v1', k2: 'v2' } 
@@ -83,7 +83,7 @@ describe("codePathStream", () => {
     stream.writeStartTracer(123, 'T#1', { k1: 'v1', k2: 'v2' });
     stream.writeStartSpan(
       124, 'T#1', 'S#11', 'M#11', 
-      { childOf: { tracerId: 'T#1', spanId: 'S#10' } }, 
+      { childOf: { traceId: 'T#1', spanId: 'S#10' } }, 
       { k1: 'v1', k2: 'v2' }
     );
     stream.writeLog(125, 'T#1', 'S#1', 'M#1', { k1: 'v1', k2: 'v2' });

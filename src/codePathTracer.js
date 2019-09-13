@@ -7,8 +7,8 @@ import {
   REFERENCE_CHILD_OF
 } from "opentracing";
 
-export function createCodePathTracer(tracerId, stream, options) {
-  return new CodePathTracer(tracerId, stream, options);
+export function createCodePathTracer(traceId, stream, options) {
+  return new CodePathTracer(traceId, stream, options);
 }
 
 class CodePathTracer extends Tracer {

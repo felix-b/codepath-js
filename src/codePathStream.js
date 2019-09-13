@@ -4,20 +4,20 @@ export function createCodePathStream() {
   let entries = [];
 
   return {
-    writeStartTracer(time, tracerId, tags) {
+    writeStartTracer(time, traceId, tags) {
       entries.push({
         time,
         token: "StartTracer",
-        tracerId,
+        traceId,
         tags: tags || {}
       });
     },
-    writeStartSpan(time, tracerId, spanId, messageId, references, tags) {
+    writeStartSpan(time, traceId, spanId, messageId, references, tags) {
       const { childOf, followsFrom } = references;
       entries.push({
         time,
         token: "StartSpan",
-        tracerId,
+        traceId,
         spanId,
         childOf,
         followsFrom,
@@ -25,30 +25,30 @@ export function createCodePathStream() {
         tags: tags || {}
       });
     },
-    writeEndSpan(time, tracerId, spanId, tags) {
+    writeEndSpan(time, traceId, spanId, tags) {
       entries.push({
         time,
         token: "EndSpan",
-        tracerId,
+        traceId,
         spanId,
         tags: tags || {}
       });
     },
-    writeLog(time, tracerId, spanId, messageId, tags) {
+    writeLog(time, traceId, spanId, messageId, tags) {
       entries.push({
         time,
         token: "Log",
-        tracerId,
+        traceId,
         spanId,
         messageId,
         tags: tags || {}
       });
     },
-    writeSpanTags(time, tracerId, spanId, tags) {
+    writeSpanTags(time, traceId, spanId, tags) {
       entries.push({
         time,
         token: "SpanTags",
-        tracerId,
+        traceId,
         spanId,
         tags: tags || {}
       });
