@@ -52,5 +52,6 @@ module.exports = {
   plugins: [
     new PrettierPlugin(),
     new webpack.BannerPlugin(banner)
-  ]
+  ],
+  devtool: "inline-source-map"
 };
