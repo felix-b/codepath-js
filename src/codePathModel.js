@@ -1,4 +1,4 @@
-export function createCodePathModel(subscriber) {
+export function createCodePathModel() {
 
   const traceNodeMap = createTraceNodeMap();
 
@@ -13,6 +13,7 @@ export function createCodePathModel(subscriber) {
   };
 
   let nextNodeId = 1;
+  let subscriber = undefined;
 
   const getParentContext = (entry) => {
     if (entry.token === 'StartSpan') {
@@ -66,11 +67,18 @@ export function createCodePathModel(subscriber) {
   }
 
   return {
+    getRootNode() {
+      return rootNode;
+    },
     publish(entries) {
       const insertedNodes = entries
         .filter(entry => entry.token !== 'EndSpan')
         .map(insertNode);
-      subscriber(insertedNodes);
+      
+        subscriber && subscriber(insertedNodes);
+    },
+    subscribe(newSubscriber) {
+      subscriber = newSubscriber;
     },
     // expandRow(id) {
 

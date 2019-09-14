@@ -17,7 +17,8 @@ describe('CodePathModel', () => {
   
   beforeEach(() => {
     subscriber = jest.fn();
-    model = createCodePathModel(subscriber);
+    model = createCodePathModel();
+    model.subscribe(subscriber);
   });
 
   it('can start first root span', () => {
