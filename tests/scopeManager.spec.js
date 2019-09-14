@@ -40,7 +40,7 @@ describe("scopeManager", () => {
     return new Promise((resolve , reject) => {
       originalPromise.then(value => {
         globalAmbientContext = saveContext;
-        resolve(value)
+        resolve(value);
       }).catch(err => {
         globalAmbientContext = saveContext;
         reject(err);

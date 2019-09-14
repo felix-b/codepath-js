@@ -17,11 +17,18 @@ define(function (require) {
 
   const createAllInPageTracer = () => {
     const traceTable = document.querySelector('.trace-table');
+    const indentSizePx = 30;
     const traceColumns = [
       { 
         renderCell(node, controller, trIndex) {
+          const renderIndent = (size) => {
+            const span = document.createElement('span');
+            span.style.cssText = `width:${size * indentSizePx}px;display:inline-block;`;
+            return span;
+          };
           const renderToggleAnchor = () => {
             const anchor = document.createElement('a');
+            anchor.style.cssText = `width:${indentSizePx}px;display:inline-block;`;
             anchor.onclick = () => {
               controller.toggle(node.id);
             };
@@ -29,6 +36,7 @@ define(function (require) {
             return anchor;
           };
           return [
+            renderIndent(node.firstChild ? node.depth : node.depth + 1),
             node.firstChild ? renderToggleAnchor() : undefined,
             `${node.entry.messageId}`
           ];
