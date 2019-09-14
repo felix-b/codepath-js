@@ -286,11 +286,15 @@ function findReferences(options) {
   };
 }
 
-function contextToPlain(context) {
+export function contextToPlain(context) {
   if (context) {
     return {
       traceId: context.toTraceId(),
       spanId: context.toSpanId()
     };
   }
+}
+
+export function plainToContext({ traceId, spanId }) {
+  return new CodePathSpanContext(traceId, spanId);
 }

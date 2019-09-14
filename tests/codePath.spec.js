@@ -1,5 +1,14 @@
 import { childOf, followsFrom } from 'opentracing';
-import { createCodePath, createDefaultScopeManager } from '../src/index';
+import { createCodePath, createDefaultScopeManager, contextToPlain, plainToContext } from '../src/index';
+
+const referenceToPlain = (reference) => {
+  if (reference) {
+    return {
+      type: reference.type(),
+      referencedContext: contextToPlain(reference.referencedContext())
+    };
+  }
+}
 
 const createMockSpan = (traceId, spanId, spanOptions) => {
   const logs = [];
@@ -7,8 +16,8 @@ const createMockSpan = (traceId, spanId, spanOptions) => {
   return {
     context() {
       return {
-        traceId,
-        spanId
+        toTraceId: () => traceId,
+        toSpanId: () => spanId
       };
     },
     log(message) {
@@ -18,7 +27,12 @@ const createMockSpan = (traceId, spanId, spanOptions) => {
       finishCount++;
     },
     testOptions() {
-      return spanOptions;
+      return {
+        ...spanOptions,
+        references: spanOptions.references 
+          ? spanOptions.references.map(referenceToPlain)
+          : undefined
+      };
     },
     testLogs() {
       return logs;
@@ -105,7 +119,7 @@ describe("createCodePath", () => {
     expect(tracers.length).toBe(1);
     expect(spans.length).toBe(1);
     expect(spans[0]).toBe(span);
-    expect(span.context()).toMatchObject({traceId: 'T#11', spanId: 'S#1001'});
+    expect(contextToPlain(span.context())).toMatchObject({traceId: 'T#11', spanId: 'S#1001'});
     expect(span.testOptions().tags).toMatchObject({
       id: 'ROOT-1',
       abc: 123
@@ -126,13 +140,13 @@ describe("createCodePath", () => {
     expect(spans.length).toBe(2);
     expect(spans[1]).toBe(childSpan);
 
-    expect(childSpan.context()).toMatchObject({
+    expect(contextToPlain(childSpan.context())).toMatchObject({
       traceId: 'T#11', 
       spanId: 'S#1002'
     });
     expect(childSpan.testOptions()).toMatchObject({
       references: [
-        childOf({ traceId: 'T#11', spanId: 'S#1001' })
+        referenceToPlain(childOf(plainToContext({ traceId: 'T#11', spanId: 'S#1001' })))
       ],
       tags: {
         id: 'CHILD',
@@ -147,13 +161,23 @@ describe("createCodePath", () => {
 
     expect(scopeManager.getActiveSpan()).toBe(parentSpan);
 
+    codePath.logDebug('HEAD');
+
     const childSpan = codePath.spanChild('CHILD', { def: 456 });
 
     expect(scopeManager.getActiveSpan()).toBe(childSpan);
 
+    codePath.logDebug('MIDDLE');
+
     codePath.finishSpan();
 
     expect(scopeManager.getActiveSpan()).toBe(parentSpan);
+
+    codePath.logDebug('TAIL');
+
+    expect(spans.length).toBe(2);
+    expect(spans[0].testLogs().map(log => log.$id)).toEqual(['HEAD', 'TAIL']);
+    expect(spans[1].testLogs().map(log => log.$id)).toEqual(['MIDDLE']);
   });
 
   it("adds logs to active span", () => {

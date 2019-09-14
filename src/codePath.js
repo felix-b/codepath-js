@@ -116,7 +116,8 @@ export function createCodePath(options) {
     };
     const childSpan = tracer.startSpan(id, spanOptions);
     scopeManager.setActiveSpan(childSpan);
-    spanEntries[childSpan.context().spanId] = {
+    const childSpanId = childSpan.context().toSpanId();
+    spanEntries[childSpanId] = {
       span: childSpan,
       options: spanOptions
     };
@@ -164,7 +165,9 @@ export function createCodePath(options) {
       }
     },
     notifySpanFinished(span) {
-      const { spanId, traceId } = span.context();
+      const spanContext = span.context();
+      const spanId = spanContext.toSpanId();
+      const traceId = spanContext.toTraceId();
       const entry = spanEntries[spanId];
       if (!entry) {
         throw new Error(`Trace span not found: id [${spanId}]`);
@@ -172,8 +175,8 @@ export function createCodePath(options) {
       const parentContext =
         entry.options.references &&
         entry.options.references[0].referencedContext();
-      if (parentContext && parentContext.traceId === traceId) {
-        const parentEntry = spanEntries[parentContext.spanId];
+      if (parentContext && parentContext.toTraceId() === traceId) {
+        const parentEntry = spanEntries[parentContext.toSpanId()];
         if (parentEntry) {
           scopeManager.setActiveSpan(parentEntry.span);
         }

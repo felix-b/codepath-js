@@ -82,6 +82,7 @@ describe('TreeGridController', () => {
       { token: 'StartSpan', messageId: 456, traceId: 'T1', spanId: 102, childOf: {
         traceId: 'T1', spanId: 101  
       } },
+      { token: 'Log', messageId: 789, traceId: 'T1', spanId: 102 },
     ];
 
     model.publish(entries);

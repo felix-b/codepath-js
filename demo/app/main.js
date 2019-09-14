@@ -20,7 +20,18 @@ define(function (require) {
     const traceColumns = [
       { 
         renderCell(node, controller, trIndex) {
-          return [`${node.entry.messageId}`];
+          const renderToggleAnchor = () => {
+            const anchor = document.createElement('a');
+            anchor.onclick = () => {
+              controller.toggle(node.id);
+            };
+            anchor.innerHTML = '[+]';
+            return anchor;
+          };
+          return [
+            node.firstChild ? renderToggleAnchor() : undefined,
+            `${node.entry.messageId}`
+          ];
         }
       },
       {
@@ -43,11 +54,12 @@ define(function (require) {
     setInterval(() => {
       if (output.peekEntries().length > 0) {
         const entries = output.takeEntries();
+        console.log('DEMO>ENTRIES>', entries);
         model.publish(entries);
       }
     }, 250);
   
-    console.info('CODEPATH.DEVTOOLS.PAGE>', 'successfully initialized all-in-page');
+    console.info('DEMO>', 'successfully initialized all-in-page');
     return input;
   };
 
@@ -64,7 +76,13 @@ define(function (require) {
     const button1 = document.querySelector('.button-1');
     button1.onclick = (e) => {
       tracer.spanChild('button-1-click', { x: e.clientX, y: e.clientY });
-      tracer.logDebug('button-1-clicked');
+      tracer.logDebug('first-message', { a: 1, b: 2 } );
+      tracer.logDebug('second-message');
+      tracer.spanChild('third-sub-span', { abc: 123 });
+      tracer.logDebug('fifth-message');
+      tracer.finishSpan();
+      tracer.logDebug('sixth-message', { c: 3, d: 4 } );
+      tracer.logDebug('seventh-message');
       tracer.finishSpan();
     };
   };

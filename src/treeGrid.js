@@ -203,9 +203,13 @@ export function createTreeGridController(view, model) {
     function endCurrentGroup(index) {
       if (currentGroup && currentGroup.startIndex < index) {
         const parentRow = rowById[currentGroup.parentId];
-        parentRow.showSubNodes(
-          insertedNodes.slice(currentGroup.startIndex, index)
-        );
+        if (parentRow) {
+          const nodesInGroup = insertedNodes.slice(
+            currentGroup.startIndex,
+            index
+          );
+          parentRow.showSubNodes(nodesInGroup);
+        }
       }
     }
   }
@@ -244,8 +248,9 @@ export function createTreeGridView(table, columns) {
             index + i
           );
           tdContents
+            .filter(htmlNode => !!htmlNode)
             .map(stringToTextNode)
-            .forEach(element => td.appendChild(element));
+            .forEach(htmlNode => td.appendChild(htmlNode));
         }
       }
     },
