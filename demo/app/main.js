@@ -1,5 +1,6 @@
 define(function (require) {
   const CodePath = require('build/index');
+  const trace = CodePath.trace;
 
   const createFallbackTracer = () => {
     return {
@@ -71,6 +72,26 @@ define(function (require) {
     return input;
   };
 
+  const createdDeferredPromise = () => {
+    let resolve = undefined;
+    let reject = undefined;
+    const promise = new Promise((theResolve, theReject) => {
+      resolve = theResolve;
+      reject = theReject;
+    });
+    return {
+      promise,
+      resolve,
+      reject
+    };
+  };
+  
+  const delay = (ms) => {
+    const { promise, resolve } = createdDeferredPromise();
+    setTimeout(resolve, ms);
+    return promise;
+  }
+  
   const init = () => {
     console.log('DEMO> CodePath =', CodePath);
 
@@ -98,6 +119,47 @@ define(function (require) {
       tracer.finishSpan();
       tracer.logDebug('sixth-message', { c: 3, d: 4 } );
       tracer.logDebug('seventh-message');
+      tracer.finishSpan();
+    };
+
+    const button2 = document.querySelector('.button-2');
+    button2.onclick = async (e) => {
+      const asyncTaskOne = async () => {
+        tracer.spanChild('AT1-S1');
+        await trace(delay(1000));
+        tracer.logEvent('AT1-E1');
+        tracer.finishSpan();
+        return 111;
+      }
+  
+      const asyncTaskTwo = async () => {
+        tracer.spanChild('AT2-S1');
+        await trace(delay(100));
+        tracer.logEvent('AT2-E1');
+        tracer.finishSpan();
+        return 222;
+      }
+      
+      tracer.spanChild('R0');
+  
+      const taskPromiseOne = trace(() => asyncTaskOne()).then(value => {
+        tracer.spanChild('AT1-S2');
+        tracer.logEvent('AT1-E2', {value});
+        tracer.finishSpan();
+        return value;
+      });
+  
+      const taskPromiseTwo = trace(() => asyncTaskTwo()).then(value => {
+        tracer.spanChild('AT2-S2');
+        tracer.logEvent('AT2-E2', {value});
+        tracer.finishSpan();
+        return value;
+      });
+  
+      const valueOne = await trace(taskPromiseOne);
+      const valueTwo = await trace(taskPromiseTwo);
+  
+      tracer.logEvent('E1', {valueOne, valueTwo});
       tracer.finishSpan();
     };
   };

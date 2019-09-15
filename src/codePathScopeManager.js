@@ -3,20 +3,20 @@ let currentScopeManager = createInternalScopeManager();
 export function trace(promiseOrFunc) {
   const callerScopeManager = currentScopeManager.clone();
 
-  const originalPromise = (
-    typeof promiseOrFunc === 'function'
-    ? promiseOrFunc()
-    : promiseOrFunc);
+  const originalPromise =
+    typeof promiseOrFunc === "function" ? promiseOrFunc() : promiseOrFunc;
 
   const saveScopeManager = currentScopeManager;
   const wrapperPromise = new Promise((resolve, reject) => {
-    originalPromise.then(value => {
-      currentScopeManager = saveScopeManager;
-      resolve(value);
-    }).catch(err => {
-      currentScopeManager = saveScopeManager;
-      reject(err);
-    });
+    originalPromise
+      .then(value => {
+        currentScopeManager = saveScopeManager;
+        resolve(value);
+      })
+      .catch(err => {
+        currentScopeManager = saveScopeManager;
+        reject(err);
+      });
   });
 
   currentScopeManager = callerScopeManager;
@@ -36,7 +36,7 @@ export function createDefaultScopeManager() {
     },
     setActiveSpan(span) {
       currentScopeManager.setActiveSpan(span);
-    },
+    }
   };
 }
 
@@ -66,4 +66,3 @@ function createInternalScopeManager(source) {
   };
   return thisScopeManager;
 }
-
