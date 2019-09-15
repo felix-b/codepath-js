@@ -1,0 +1,90 @@
+body {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.panels-container {
+  height: 100%;
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 8px 200px;
+  grid-template-rows: 30px auto;
+  padding: 0;
+}
+
+.panel-top {
+  grid-column: 1 / span 3;
+  grid-row: 1;
+}
+
+.panel-main {
+  grid-column: 1;
+  grid-row: 2;
+  border: 0;
+  padding: 0;
+  background-color: white;
+  overflow: scroll;
+}
+
+.panel-resizer-h {
+  grid-column: 2;
+  grid-row: 2;
+  background-color: red;
+}
+ 
+.panel-right {
+  grid-column: 3;
+  grid-row: 2;
+  border: 0;
+  padding: 3px;
+  background-color: lightyellow;
+}
+
+#trace-grid {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+#trace-grid td, #trace-grid th  {
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: normal;
+  text-overflow: ellipsis;
+  border-right: 1px solid #b3b3b3;
+}
+
+#trace-grid th {
+  position: sticky;
+  top: 0;
+  background-color: #f3f3f3;
+  padding: 0px;
+  height: 20px;
+}
+
+#trace-grid th div {
+  width: 100%;
+  margin: 0;
+  padding: 2px;
+  text-align: center;
+  border-bottom: 1px solid #cfcfcf;
+}
+
+#trace-grid td  {
+  padding: 2px;
+}
+
+#trace-grid th.message-column {
+  width: 300px;
+}
+
+#trace-grid th.time-column {
+  width: 100px;
+}
+
+#trace-grid th.details-column {
+  width: 400px;
+}

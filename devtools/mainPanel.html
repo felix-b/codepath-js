@@ -1,24 +1,34 @@
 <html>
 <head>
+  <link rel="stylesheet" type="text/css" href="mainPanel.css">
   <script data-main="mainPanel" src="require.js"></script>
 </head>
 <body>
-  <h1>CodePath Main Panel</h1>
-  <hr />
-  <table id="codepath_tree_grid">
-    <thead>
-      <tr>
-        <th style="width:500px;">
-          Message
-        </th>
-        <th style="width:100px;">
-          Time
-        </th>
-        <th style="width:400px;">
-          Details
-        </th>
-      </tr>
-    </thead>
-  </table>
+  <div class="panels-container">
+    <div class="panel-top">
+      top controls go here...
+    </div>
+    <div class="panel-main">
+      <table id="trace-grid">
+          <thead>
+            <tr>
+              <th class="message-column">
+                <div>Message</div>
+              </th>
+              <th class="time-column">
+                <div>Time</div>
+              </th>
+              <th class="details-column">
+                <div>Details</div>
+              </th>
+            </tr>
+          </thead>
+        </table>
+    </div>
+    <div class="panel-resizer-h"></div>
+    <div class="panel-right">
+      <h1>Log entry details go here...</h1>
+    </div>
+  </div>
 </body>
 </html>

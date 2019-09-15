@@ -3,7 +3,7 @@ requirejs.config({ });
 requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid) {
   console.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'loaded, initializing...');
 
-  const tableElement = document.querySelector('#codepath_tree_grid');
+  const tableElement = document.querySelector('#trace-grid');
   const treeGridController = CodePathTreeGrid.initMvc(tableElement);
 
   const backgroundConnection = chrome.runtime.connect({
