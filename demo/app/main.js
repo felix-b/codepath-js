@@ -74,12 +74,19 @@ define(function (require) {
   const init = () => {
     console.log('DEMO> CodePath =', CodePath);
 
-    let tracer = createAllInPageTracer(); //createFallbackTracer();
+    let tracer = createFallbackTracer(); //createAllInPageTracer(); 
 
-    // window.injectCodePathTracer = (newTracer) => {
-    //   tracer = newTracer;
-    // };
-    // console.log('DEMO> injector installed');
+    window.__CODEPATH_INJECTOR__ = (newTracer) => {
+      tracer = newTracer;
+    };
+
+    window.CodePath = CodePath;
+
+    if (typeof window.__CODEPATH_INJECTOR_READY__ === 'function') {
+      window.__CODEPATH_INJECTOR_READY__();
+    }
+
+    console.log('DEMO> injector installed');
 
     const button1 = document.querySelector('.button-1');
     button1.onclick = (e) => {

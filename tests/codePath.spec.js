@@ -155,7 +155,7 @@ describe("createCodePath", () => {
     });
   });
 
-  it("resets active span to parent of span that finished", () => {
+  it("resets active span to parent of nested span that finished", () => {
     const { tracers, spans, codePath, scopeManager } = setupCodePath();
     const parentSpan = codePath.spanChild('PARENT', { abc: 123 });
 
@@ -178,6 +178,20 @@ describe("createCodePath", () => {
     expect(spans.length).toBe(2);
     expect(spans[0].testLogs().map(log => log.$id)).toEqual(['HEAD', 'TAIL']);
     expect(spans[1].testLogs().map(log => log.$id)).toEqual(['MIDDLE']);
+  });
+
+  it("resets active span to undefined when root span is finished", () => {
+    const { codePath, scopeManager } = setupCodePath();
+    
+    expect(scopeManager.getActiveSpan()).toBeUndefined();
+    
+    const parentSpan = codePath.spanChild('PARENT');
+
+    expect(scopeManager.getActiveSpan()).toBe(parentSpan);
+
+    codePath.finishSpan();
+
+    expect(scopeManager.getActiveSpan()).toBeUndefined();
   });
 
   it("adds logs to active span", () => {

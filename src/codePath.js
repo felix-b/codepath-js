@@ -180,6 +180,8 @@ export function createCodePath(options) {
         if (parentEntry) {
           scopeManager.setActiveSpan(parentEntry.span);
         }
+      } else {
+        scopeManager.setActiveSpan(undefined);
       }
       delete spanEntries[spanId];
     }

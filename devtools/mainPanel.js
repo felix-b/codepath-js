@@ -1,18 +1,10 @@
-(function() {
+requirejs.config({ });
 
-  console.log('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'loading');
+requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid) {
+  console.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'loaded, initializing...');
 
-  const renderEntry = (entry) => {
-    const div = document.createElement('div');
-    div.innerHTML = `${entry.time}:${entry.token}:${entry.messageId || ''}`;
-    return div;
-  };
-
-  const receiveEntries = (entries) => {
-    for (element of entries.map(renderEntry)) {
-      document.body.appendChild(element);
-    }
-  }
+  const tableElement = document.querySelector('#codepath_tree_grid');
+  const treeGridController = CodePathTreeGrid.initMvc(tableElement);
 
   const backgroundConnection = chrome.runtime.connect({
     name: 'codePathMainPanel'
@@ -23,7 +15,7 @@
       message.type === 'codePath/devTools/publishEntries' &&
       Array.isArray(message.entries)) 
     {
-      receiveEntries(message.entries);
+      CodePathTreeGrid.receiveEntries(message.entries);
     }
   });
 
@@ -33,5 +25,4 @@
   });
 
   console.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'successfully initialized');
-
-})();
+});
