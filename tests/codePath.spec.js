@@ -1,5 +1,11 @@
 import { childOf, followsFrom } from 'opentracing';
-import { createCodePath, createDefaultScopeManager, contextToPlain, plainToContext } from '../src/index';
+import { 
+  createCodePath, 
+  createDefaultScopeManager, 
+  resetCurrentScope,
+  contextToPlain, 
+  plainToContext 
+} from '../src/index';
 
 const referenceToPlain = (reference) => {
   if (reference) {
@@ -76,6 +82,8 @@ const createTestClock = () => {
 };
 
 const setupCodePath = () => {
+  resetCurrentScope();
+
   let nextTraceId = 11;
   const tracers = [];
   const spans = [];

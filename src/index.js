@@ -1,4 +1,10 @@
-export { createCodePath, createDefaultScopeManager } from "./codePath";
+export { createCodePath } from "./codePath";
+export { 
+  createDefaultScopeManager, 
+  trace, 
+  getCurrentScope,
+  resetCurrentScope 
+} from "./codePathScopeManager";
 export { createCodePathStream } from "./codePathStream";
 export {
   createCodePathTracer,

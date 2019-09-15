@@ -7,6 +7,7 @@ import {
 
 import { createCodePathTracer } from "./codePathTracer";
 import { createCodePathStream } from "./codePathStream";
+import { createDefaultScopeManager } from "./codePathScopeManager";
 
 export const LOG_LEVEL = {
   debug: 0,
@@ -24,24 +25,24 @@ export const createRealLowResolutionClock = () => {
   };
 };
 
-export const createDefaultScopeManager = () => {
-  let activeTracer = undefined;
-  let activeSpan = undefined;
-  return {
-    getActiveTracer() {
-      return activeTracer;
-    },
-    getActiveSpan() {
-      return activeSpan;
-    },
-    setActiveTracer(tracer) {
-      activeTracer = tracer;
-    },
-    setActiveSpan(span) {
-      activeSpan = span;
-    }
-  };
-};
+// export const createDefaultScopeManager = () => {
+//   let activeTracer = undefined;
+//   let activeSpan = undefined;
+//   return {
+//     getActiveTracer() {
+//       return activeTracer;
+//     },
+//     getActiveSpan() {
+//       return activeSpan;
+//     },
+//     setActiveTracer(tracer) {
+//       activeTracer = tracer;
+//     },
+//     setActiveSpan(span) {
+//       activeSpan = span;
+//     }
+//   };
+// };
 
 export const noopTracerFactory = () => new Tracer();
 
