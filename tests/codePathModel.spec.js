@@ -139,22 +139,89 @@ describe('CodePathModel', () => {
       { 
         id: 2, 
         entry: { messageId: 'm2' }, 
+        parent: { id: 1 },
+        firstChild: undefined,
+        lastChild: undefined,
+        prevSibling: undefined,
+        nextSibling: { entry: { messageId: 'm3' } },
       },
       { 
         id: 3, 
         entry: { messageId: 'm3' }, 
+        parent: { id: 1 },
+        firstChild: { entry: { messageId: 'm4' } },
+        lastChild: { entry: { messageId: 'm5' } },
+        prevSibling: { entry: { messageId: 'm2' } },
+        nextSibling: { entry: { messageId: 'm6' } },
       },
       { 
         id: 4, 
         entry: { messageId: 'm4' }, 
+        parent: { id: 3 },
+        firstChild: undefined,
+        lastChild: undefined,
+        prevSibling: undefined,
+        nextSibling: { entry: { messageId: 'm5' } },
       },
       { 
         id: 5, 
         entry: { messageId: 'm5' }, 
+        parent: { id: 3 },
+        firstChild: undefined,
+        lastChild: undefined,
+        prevSibling: { entry: { messageId: 'm4' } },
+        nextSibling: undefined,
       },
       { 
         id: 6, 
         entry: { messageId: 'm6' }, 
+        parent: { id: 1 },
+        firstChild: undefined,
+        lastChild: undefined,
+        prevSibling: { entry: { messageId: 'm3' } },
+        nextSibling: undefined,
+      },
+    ]);
+  });
+
+  it('can tolerate missing parent nodes', () => {
+    const entries = [
+      { token: 'Log', messageId: 'm4', traceId: 'T1', spanId: 102 },
+      { token: 'Log', messageId: 'm5', traceId: 'T1', spanId: 102 },
+      { token: 'EndSpan', traceId: 'T1', spanId: 102 },
+      { token: 'Log', messageId: 'm6', traceId: 'T1', spanId: 101 },
+      { token: 'EndSpan', traceId: 'T1', spanId: 101 },
+    ];
+
+    model.publish(entries);
+
+    expectSubscriberCalls([
+      { 
+        id: 1, 
+        entry: { messageId: 'm4' }, 
+        parent: { id: 0 },
+        firstChild: undefined,
+        lastChild: undefined,
+        prevSibling: undefined,
+        nextSibling: { entry: { messageId: 'm5' } },
+      },
+      { 
+        id: 2, 
+        entry: { messageId: 'm5' }, 
+        parent: { id: 0 },
+        firstChild: undefined,
+        lastChild: undefined,
+        prevSibling: { entry: { messageId: 'm4' } },
+        nextSibling: { entry: { messageId: 'm6' } },
+      },
+      { 
+        id: 3, 
+        entry: { messageId: 'm6' }, 
+        parent: { id: 0 },
+        firstChild: undefined,
+        lastChild: undefined,
+        prevSibling: { entry: { messageId: 'm5' } },
+        nextSibling: undefined,
       },
     ]);
   });

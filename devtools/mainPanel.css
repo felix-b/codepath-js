@@ -2,13 +2,14 @@ body {
   height: 100vh;
   margin: 0;
   padding: 0;
+  color: #474c52;
 }
 
 .panels-container {
   height: 100%;
   margin: 0;
   display: grid;
-  grid-template-columns: auto 8px 200px;
+  grid-template-columns: auto 4px 250px;
   grid-template-rows: 30px auto;
   padding: 0;
 }
@@ -16,6 +17,10 @@ body {
 .panel-top {
   grid-column: 1 / span 3;
   grid-row: 1;
+  background-color: #fdfdfd;
+  padding: 3px;  
+  line-height: 24px;
+  border-bottom: 1px solid #aeaecc;
 }
 
 .panel-main {
@@ -30,15 +35,43 @@ body {
 .panel-resizer-h {
   grid-column: 2;
   grid-row: 2;
-  background-color: red;
+  background-color: #e4e4e4;
 }
  
 .panel-right {
   grid-column: 3;
   grid-row: 2;
   border: 0;
-  padding: 3px;
-  background-color: lightyellow;
+  padding: 0;
+  background-color: #fdfdfd;
+}
+
+.panel-right h1 {
+  margin: 0;
+  padding: 2px;
+  height: 14px;
+  font-size: 12px;
+  font-weight: normal;
+  background-color: #f3f3f3;
+  border-bottom: 1px solid #cfcfcf;
+}
+
+.panel-right pre {
+  margin: 0;
+  padding: 8px;
+  font-family: menlo, Courier New, monospace;
+  font-size: 11px;
+  color: #881280;
+}
+
+.panel-top a {
+  color: blue;
+  cursor: pointer;
+}
+
+.panel-top a:hover {
+  color: orange;
+  text-decoration: underline;
 }
 
 #trace-grid {
@@ -55,6 +88,7 @@ body {
   font-weight: normal;
   text-overflow: ellipsis;
   border-right: 1px solid #b3b3b3;
+  cursor: default;
 }
 
 #trace-grid th {
@@ -77,6 +111,15 @@ body {
   padding: 2px;
 }
 
+#trace-grid td a {
+  color: #c3c3c3;
+  cursor: pointer;
+}
+
+#trace-grid td a:hover {
+  color: blue;
+}
+
 #trace-grid th.message-column {
   width: 300px;
 }
@@ -87,4 +130,16 @@ body {
 
 #trace-grid th.details-column {
   width: 400px;
+}
+
+#trace-grid tr {
+  cursor: default;
+}
+
+#trace-grid tr:hover, #trace-grid tr.selected:hover {
+  background-color: lightyellow;
+}
+
+#trace-grid tr.selected {
+  background-color: lightsteelblue;
 }

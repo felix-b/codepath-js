@@ -102,4 +102,68 @@ describe("codePathStream", () => {
 
   });
 
+  it("ignores written entries when disabled", () => {
+    const stream = createCodePathStream({ enabled: false });
+
+    stream.writeStartTracer(123, 'T#1');
+    stream.writeStartSpan(124, 'T#1', 'S#11', 'M#11', {});
+    stream.writeStartSpan(
+      125, 'T#1', 'S#22', 'M#22', 
+      { childOf: { traceId: 'T#1', spanId: 'S#11' } }
+    );
+    stream.writeLog(126, 'T#1', 'S#22', 'M#33');
+    stream.writeEndSpan(127, 'T#1', 'S#22');
+    stream.writeLog(128, 'T#1', 'S#11', 'M#44');
+    stream.writeEndSpan(129, 'T#1', 'S#11');
+
+    expect(stream.peekEntries().length).toBe(0);
+  });
+
+  it("starts accepting entries once enabled", () => {
+    const stream = createCodePathStream({ enabled: false });
+
+    stream.writeStartTracer(123, 'T#1');
+    stream.writeStartSpan(124, 'T#1', 'S#11', 'M#11', {});
+    stream.writeStartSpan(
+      125, 'T#1', 'S#22', 'M#22', 
+      { childOf: { traceId: 'T#1', spanId: 'S#11' } }
+    );
+
+    stream.enable();
+
+    stream.writeLog(126, 'T#1', 'S#22', 'M#33');
+    stream.writeEndSpan(127, 'T#1', 'S#22');
+    stream.writeLog(128, 'T#1', 'S#11', 'M#44');
+    stream.writeEndSpan(129, 'T#1', 'S#11');
+
+    expect(stream.peekEntries().map(e => ({ 
+      token: e.token, 
+      messageId: e.messageId 
+    }))).toMatchObject([
+      { token: 'Log', messageId: 'M#33' },
+      { token: 'EndSpan' },
+      { token: 'Log', messageId: 'M#44' },
+      { token: 'EndSpan' },
+    ]);
+
+  });
+
+  it("stops accepting entries once disabled", () => {
+    const stream = createCodePathStream();
+
+    stream.writeStartTracer(123, 'T#1');
+    stream.writeStartSpan(124, 'T#1', 'S#11', 'M#11', {});
+
+    stream.enable(false);
+
+    stream.writeLog(128, 'T#1', 'S#11', 'M#44');
+    stream.writeEndSpan(129, 'T#1', 'S#11');
+
+    expect(stream.peekEntries().map(e => e.token)).toMatchObject([
+      'StartTracer',
+      'StartSpan'
+    ]);
+
+  });
+
 });

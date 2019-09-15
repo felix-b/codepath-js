@@ -4,7 +4,7 @@ export function createTreeGridController(view, model) {
 
   const controller = {
     toggle(id) {
-      rowById[id].toggle();
+      return rowById[id].toggle();
     },
     expand(id) {
       rowById[id].expand();
@@ -12,10 +12,24 @@ export function createTreeGridController(view, model) {
     collapse(id) {
       rowById[id].collapse();
     },
-    clearAll() {}
+    getIsExpanded(id) {
+      return rowById[id].getIsExpanded();
+    },
+    getIsVisible(id) {
+      return rowById[id].getIsVisible();
+    },
+    clearAll() {
+      rowById = {};
+      masterIndexVersion = 1;
+      initRootNode();
+      view.clearAll();
+    },
+    onNodeSelected(callback) {
+      view.onNodeSelected(callback);
+    }
   };
 
-  initRootNode();
+  controller.clearAll();
   view.attachController(controller);
   model.subscribe(subscriber);
 
@@ -90,18 +104,22 @@ export function createTreeGridController(view, model) {
       if (!getIsVisible() || !getIsExpanded()) {
         return;
       }
+      const thisRowIndex = findAbsoluteIndex();
       createSubNodesRowControllers(subNodes);
-      view.insertNodes(findAbsoluteIndex() + subTreeHeight + 1, subNodes);
+      view.insertNodes(thisRowIndex + subTreeHeight + 1, subNodes);
       masterIndexVersion++;
       updateSubTreeHeight(+subNodes.length);
+      view.updateNode(thisRowIndex, node);
     };
     const hideSubNodes = () => {
       if (!getIsVisible() || subTreeHeight === 0) {
         return;
       }
-      view.removeNodes(findAbsoluteIndex() + 1, subTreeHeight);
+      const thisRowIndex = findAbsoluteIndex();
+      view.removeNodes(thisRowIndex + 1, subTreeHeight);
       masterIndexVersion++;
       updateSubTreeHeight(-subTreeHeight);
+      view.updateNode(thisRowIndex, node);
     };
     const toggle = () => {
       if (isExpanded) {
@@ -109,6 +127,9 @@ export function createTreeGridController(view, model) {
       } else {
         expand();
       }
+      return {
+        isExpanded
+      };
     };
     const expand = () => {
       if (isExpanded || !node.firstChild) {
@@ -221,10 +242,11 @@ export function createTreeGridController(view, model) {
 }
 
 export function createTreeGridView(table, columns) {
-  const tbody = document.createElement("tbody");
+  let tbody = document.createElement("tbody");
   table.appendChild(tbody);
 
   let controller = undefined;
+  let nodeSelectedCallback = undefined;
 
   const stringToTextNode = element => {
     if (typeof element === "string") {
@@ -233,31 +255,64 @@ export function createTreeGridView(table, columns) {
     return element;
   };
 
-  return {
-    attachController(theController) {
-      controller = theController;
-    },
-    insertNodes(index, nodes) {
-      for (let i = 0; i < nodes.length; i++) {
-        const tr = tbody.insertRow(index + i);
-        for (let j = 0; j < columns.length; j++) {
-          const td = tr.insertCell(j);
-          const tdContents = columns[j].renderCell(
-            nodes[i],
-            controller,
-            index + i
-          );
-          tdContents
-            .filter(htmlNode => !!htmlNode)
-            .map(stringToTextNode)
-            .forEach(htmlNode => td.appendChild(htmlNode));
-        }
-      }
-    },
-    removeNodes(index, count) {
-      for (let i = count - 1; i >= 0; i--) {
-        tbody.deleteRow(index + i);
+  const renderCell = (node, rowIndex, colIndex, tr, td) => {
+    const tdContents = columns[colIndex].renderCell(node, controller, rowIndex);
+    tdContents
+      .filter(htmlNode => !!htmlNode)
+      .map(stringToTextNode)
+      .forEach(htmlNode => td.appendChild(htmlNode));
+  };
+
+  const attachController = theController => {
+    controller = theController;
+  };
+
+  const updateNode = (index, node) => {
+    const tr = tbody.rows[index];
+    for (let colIndex = 0; colIndex < columns.length; colIndex++) {
+      const td = tr.cells[colIndex];
+      td.innerHTML = "";
+      renderCell(node, index, colIndex, tr, td);
+    }
+  };
+
+  const insertNodes = (index, nodes) => {
+    for (let i = 0; i < nodes.length; i++) {
+      const rowIndex = index + i;
+      const tr = tbody.insertRow(index + i);
+      tr.onclick = () => {
+        nodeSelectedCallback && nodeSelectedCallback(nodes[i]);
+      };
+      for (let colIndex = 0; colIndex < columns.length; colIndex++) {
+        const td = tr.insertCell(colIndex);
+        renderCell(nodes[i], rowIndex, colIndex, tr, td);
       }
     }
+  };
+
+  const removeNodes = (index, count) => {
+    for (let i = count - 1; i >= 0; i--) {
+      tbody.deleteRow(index + i);
+    }
+  };
+
+  const clearAll = () => {
+    const newTbody = document.createElement("tbody");
+    table.replaceChild(newTbody, tbody);
+    tbody = newTbody;
+    nodeSelectedCallback && nodeSelectedCallback(undefined);
+  };
+
+  const onNodeSelected = callback => {
+    nodeSelectedCallback = callback;
+  };
+
+  return {
+    attachController,
+    updateNode,
+    insertNodes,
+    removeNodes,
+    clearAll,
+    onNodeSelected
   };
 }

@@ -33,7 +33,9 @@ describe('TreeGridController', () => {
   const resetViewCalls = () => {
     view.insertNodes.mockClear();
     view.removeNodes.mockClear();
+    view.updateNode.mockClear();
     view.attachController.mockClear();
+    view.clearAll.mockClear();
   };
 
   beforeEach(() => {
@@ -42,6 +44,8 @@ describe('TreeGridController', () => {
       attachController: jest.fn(),
       insertNodes: jest.fn(),
       removeNodes: jest.fn(),
+      updateNode: jest.fn(),
+      clearAll: jest.fn(),
     };
     controller = createTreeGridController(view, model);
   });

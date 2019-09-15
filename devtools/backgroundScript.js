@@ -6,15 +6,29 @@
 
   chrome.runtime.onConnect.addListener(function (port) {
     var extensionListener = function (message, sender, sendResponse) {
+      if (typeof message.tabId === 'number' && typeof message.name === 'string') {
+        switch (message.name) {
+          case 'init': 
+            connections[message.tabId] = port;
+            console.log('CODEPATH.DEVTOOLS.BKG>', `dev tool page registered for tab ${message.tabId}`);
+            break;
+          case 'start':
+            break;
+          case 'stop': 
+            break;
+          default:
+            console.warn('CODEPATH.DEVTOOLS.BKG>', 'unrecognized message', message);
+        }
+      }
       // The original connection event doesn't include the tab ID of the
       // DevTools page, so we need to send it explicitly.
-      if (message.name === 'init') {
-        connections[message.tabId] = port;
-        console.log('CODEPATH.DEVTOOLS.BKG>', `dev tool page registered for tab ${message.tabId}`);
-        return;
-      }
+      // if (message.name === 'init') {
+      //   return;
+      // }
+      // else if (message.name === 'start' || message.name === 'stop') {
 
-      console.warn('CODEPATH.DEVTOOLS.BKG>', 'unrecognized message', message);
+      // }
+
     }
 
     // Listen to messages sent from the DevTools page

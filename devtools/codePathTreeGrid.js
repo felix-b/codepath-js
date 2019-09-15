@@ -18,7 +18,7 @@ define(function (require) {
   };
 
   function createColumns() {
-    const indentSizePx = 30;
+    const indentSizePx = 20;
     const columns = [
       createMessageColumn(),
       createTimeColumn(),
@@ -29,7 +29,8 @@ define(function (require) {
 
     function createMessageColumn() {
       return {
-        renderCell(node, controller, trIndex) {
+        renderCell(node, controller, rowIndex) {
+          const isExpanded = controller.getIsExpanded(node.id);
           const renderIndent = (size) => {
             const span = document.createElement('span');
             span.style.cssText = `width:${size * indentSizePx}px;display:inline-block;`;
@@ -41,7 +42,7 @@ define(function (require) {
             anchor.onclick = () => {
               controller.toggle(node.id);
             };
-            anchor.innerHTML = '[+]';
+            anchor.innerHTML = isExpanded ? '[-]' : '[+]';
             return anchor;
           };
           return [

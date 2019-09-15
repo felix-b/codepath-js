@@ -6,7 +6,9 @@
 <body>
   <div class="panels-container">
     <div class="panel-top">
-      top controls go here...
+      <a id="start-button" style="display:inline">Start</a>
+      <a id="stop-button" style="display:none">Stop</a>
+      <a id="clear-all-button">Clear All</a>
     </div>
     <div class="panel-main">
       <table id="trace-grid">
@@ -27,7 +29,9 @@
     </div>
     <div class="panel-resizer-h"></div>
     <div class="panel-right">
-      <h1>Log entry details go here...</h1>
+      <h1>Activity details</h1>
+      <pre id="entry-json-text">
+      </pre>
     </div>
   </div>
 </body>

@@ -1,10 +1,14 @@
 import { REFERENCE_FOLLOWS_FROM, REFERENCE_CHILD_OF } from "opentracing";
 
-export function createCodePathStream() {
+export function createCodePathStream(options) {
   let entries = [];
+  let isEnabled = options ? !!options.enabled : true;
 
   return {
     writeStartTracer(time, traceId, tags) {
+      if (!isEnabled) {
+        return;
+      }
       entries.push({
         time,
         token: "StartTracer",
@@ -13,6 +17,9 @@ export function createCodePathStream() {
       });
     },
     writeStartSpan(time, traceId, spanId, messageId, references, tags) {
+      if (!isEnabled) {
+        return;
+      }
       const { childOf, followsFrom } = references;
       entries.push({
         time,
@@ -26,6 +33,9 @@ export function createCodePathStream() {
       });
     },
     writeEndSpan(time, traceId, spanId, tags) {
+      if (!isEnabled) {
+        return;
+      }
       entries.push({
         time,
         token: "EndSpan",
@@ -35,6 +45,9 @@ export function createCodePathStream() {
       });
     },
     writeLog(time, traceId, spanId, messageId, tags) {
+      if (!isEnabled) {
+        return;
+      }
       entries.push({
         time,
         token: "Log",
@@ -45,6 +58,9 @@ export function createCodePathStream() {
       });
     },
     writeSpanTags(time, traceId, spanId, tags) {
+      if (!isEnabled) {
+        return;
+      }
       entries.push({
         time,
         token: "SpanTags",
@@ -52,6 +68,10 @@ export function createCodePathStream() {
         spanId,
         tags: tags || {}
       });
+    },
+    enable(value) {
+      const effectiveValue = typeof value === "undefined" ? true : !!value;
+      isEnabled = effectiveValue;
     },
     peekEntries() {
       return entries;

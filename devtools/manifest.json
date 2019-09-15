@@ -8,7 +8,7 @@
   "content_scripts": [
     {
       "matches": [
-        "http://localhost:8080/*"
+        "http://localhost:9090/*"
       ],
       "js": [
         "codepath.js",
@@ -22,6 +22,12 @@
     ],
     "persistent": false
   },  
+  "permissions": [
+    "tabs",
+    "notifications",
+    "http://*/",
+    "https://*/"    
+  ],
   "web_accessible_resources" : [
     "/pageScript.js"
   ]

@@ -70,7 +70,8 @@ export function createCodePath(options) {
   const tracerFactory =
     (options && options.tracerFactory) || defaultTracerFactory;
   const outputStream =
-    (options && options.outputStream) || createCodePathStream();
+    (options && options.outputStream) ||
+    createCodePathStream(options ? options.stream : undefined);
   const spanEntries = {};
 
   const getOrCreateActiveTracer = () => {
