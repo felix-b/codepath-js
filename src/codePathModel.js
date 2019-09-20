@@ -44,6 +44,9 @@ export function createCodePathModel() {
     getRootNode() {
       return rootNode;
     },
+    getNodesFlat() {
+      return getNodesAsFlatArray(rootNode);
+    },
     publish(entries) {
       const insertedNodes = entries
         .filter(
@@ -106,6 +109,25 @@ export function appendChildNodeToParent(newChild, parent) {
     parent.firstChild = newChild;
   }
   parent.lastChild = newChild;
+}
+
+export function getNodesAsFlatArray(rootNode) {
+  if (!rootNode) {
+    return [];
+  }
+  const flatNodes = [];
+  const pushSubTreeNodes = (node) => {
+    for (
+      let subNode = node.firstChild ; 
+      !!subNode ; 
+      subNode = subNode.nextSibling) 
+    {
+      flatNodes.push(subNode);
+      pushSubTreeNodes(subNode);
+    }
+  };
+  pushSubTreeNodes(rootNode);
+  return flatNodes;
 }
 
 function createTraceNodeMap() {

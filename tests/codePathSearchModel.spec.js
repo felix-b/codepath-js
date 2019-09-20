@@ -98,17 +98,6 @@ const createSearchModel = (sourceModel, includedMessageIds) => {
   return searchModel;
 };
 
-const expectSearchResults = (search, expectedIdMatchedPairs) => {
-  const resultNodesFlat = search.getResultNodesFlat();
-  const actualIdMatchedPairs = resultNodesFlat.map(node => {
-    return {
-      messageId: node.entry.messageId,
-      matched: node.matched
-    };
-  });
-  expect(actualIdMatchedPairs).toEqual(expectedIdMatchedPairs);
-};
-
 describe("CodePathSearchModel", () => {
 
   it("can find root span node", () => {
@@ -116,7 +105,7 @@ describe("CodePathSearchModel", () => {
 
     const search = createSearchModel(source, ['R0']);
 
-    expect(search.getResultNodesFlat()).toMatchObject([
+    expect(search.getNodesFlat()).toMatchObject([
       { matched: true, entry: { messageId: 'R0' }, parent: { id: 0 } }
     ]);
   });
@@ -126,7 +115,7 @@ describe("CodePathSearchModel", () => {
 
     const search = createSearchModel(source, ['M2']);
 
-    expect(search.getResultNodesFlat()).toMatchObject([
+    expect(search.getNodesFlat()).toMatchObject([
       { matched: false, entry: { messageId: 'R0' }, parent: { id: 0 } },
       { matched: false, entry: { messageId: 'S1' }, parent: { entry: { messageId: 'R0' } } },
       { matched: true, entry: { messageId: 'M2' }, parent: { entry: { messageId: 'S1' } } },
@@ -138,7 +127,7 @@ describe("CodePathSearchModel", () => {
 
     const search = createSearchModel(source, ['M2', 'S2', 'M4', 'M6', 'M8']);
 
-    expect(search.getResultNodesFlat()).toMatchObject([
+    expect(search.getNodesFlat()).toMatchObject([
       { matched: false, entry: { messageId: 'R0' }, parent: { id: 0 } },
       { matched: false, entry: { messageId: 'S1' }, parent: { entry: { messageId: 'R0' } } },
       { matched: true, entry: { messageId: 'M2' }, parent: { entry: { messageId: 'S1' } } },
@@ -156,7 +145,7 @@ describe("CodePathSearchModel", () => {
 
     const search = createSearchModel(source, ['ZZZ']);
 
-    expect(search.getResultNodesFlat().length).toBe(0);
+    expect(search.getNodesFlat().length).toBe(0);
   });
 
   it("can find all root spans", () => {
@@ -164,7 +153,7 @@ describe("CodePathSearchModel", () => {
 
     const search = createSearchModel(source, ['R0', 'R1']);
 
-    expect(search.getResultNodesFlat()).toMatchObject([
+    expect(search.getNodesFlat()).toMatchObject([
       { matched: true, entry: { messageId: 'R0' }, parent: { id: 0 } },
       { matched: true, entry: { messageId: 'R1' }, parent: { id: 0 } },
     ]);

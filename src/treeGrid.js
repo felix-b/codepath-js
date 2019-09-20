@@ -31,6 +31,7 @@ export function createTreeGridController(view, model) {
 
   controller.clearAll();
   view.attachController(controller);
+  subscriber(model.getNodesFlat());
   model.subscribe(subscriber);
 
   return controller;
@@ -315,4 +316,5 @@ export function createTreeGridView(table, columns) {
     clearAll,
     onNodeSelected
   };
+
 }

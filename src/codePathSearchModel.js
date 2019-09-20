@@ -1,7 +1,8 @@
 import { 
   createRootNode, 
   createRegularNode, 
-  appendChildNodeToParent 
+  appendChildNodeToParent,
+  getNodesAsFlatArray
 } from './codePathModel';
 
 export function createCodePathSearchModel(sourceModel, predicate) {
@@ -9,27 +10,12 @@ export function createCodePathSearchModel(sourceModel, predicate) {
   const resultRootNode = performSearch();
 
   return {
-    getResultRootNode() {
+    getRootNode() {
       return resultRootNode;
     },
-    getResultNodesFlat() {
-      if (!resultRootNode) {
-        return [];
-      }
-      const resultNodes = [];
-      const pushSubTreeNodes = (node) => {
-        for (
-          let subNode = node.firstChild ; 
-          !!subNode ; 
-          subNode = subNode.nextSibling) 
-        {
-          resultNodes.push(subNode);
-          pushSubTreeNodes(subNode);
-        }
-      };
-      pushSubTreeNodes(resultRootNode);
-      return resultNodes;
-    },
+    getNodesFlat() {
+      return getNodesAsFlatArray(resultRootNode);
+    }
   };
 
   function performSearch() {

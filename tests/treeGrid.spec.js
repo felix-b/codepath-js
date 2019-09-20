@@ -38,8 +38,9 @@ describe('TreeGridController', () => {
     view.clearAll.mockClear();
   };
 
-  beforeEach(() => {
+  const setupMvc = (populateInitialModel) => {
     model = createCodePathModel();
+    populateInitialModel && populateInitialModel(model);
     view = {
       attachController: jest.fn(),
       insertNodes: jest.fn(),
@@ -48,9 +49,13 @@ describe('TreeGridController', () => {
       clearAll: jest.fn(),
     };
     controller = createTreeGridController(view, model);
+  };
+  
+  beforeEach(() => {
+    setupMvc();
   });
 
-  it('is initially empty', () => {
+  it('is initially empty for empty model', () => {
     expect(view.insertNodes).not.toBeCalled();
     expect(view.removeNodes).not.toBeCalled();
   });
@@ -156,6 +161,32 @@ describe('TreeGridController', () => {
     expectCalls(view.removeNodes, 
       [1, 3]
     );
+  });
+
+  it('initially displays root spans of non-empty model', () => {
+    const initialEntries = [
+      { token: 'StartSpan', messageId: 'S1', traceId: 'T1', spanId: 101 },
+      { token: 'Log', messageId: 'M1', traceId: 'T1', spanId: 101 },
+      { token: 'EndSpan', traceId: 'T1', spanId: 101 },
+      { token: 'StartSpan', messageId: 'S2', traceId: 'T1', spanId: 102 },
+      { token: 'Log', messageId: 'M2', traceId: 'T1', spanId: 102 },
+      { token: 'EndSpan', traceId: 'T1', spanId: 102 },
+      { token: 'StartSpan', messageId: 'S3', traceId: 'T1', spanId: 103 },
+      { token: 'Log', messageId: 'M3', traceId: 'T1', spanId: 103 },
+      { token: 'EndSpan', traceId: 'T1', spanId: 103 },
+    ];
+
+    setupMvc(() => {
+      model.publish(initialEntries);
+    });
+
+    expectCalls(view.insertNodes, 
+      [0, [{ entry: { messageId: 'S1' } }]],
+      [1, [{ entry: { messageId: 'S2' } }]],
+      [2, [{ entry: { messageId: 'S3' } }]]
+    );
+
+    expect(view.removeNodes).not.toBeCalled();
   });
 
 });
