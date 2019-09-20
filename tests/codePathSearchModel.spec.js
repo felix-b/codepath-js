@@ -19,8 +19,8 @@ import { createCodePathSearchModel } from '../src';
   |     +- M6 [*]
   |
   +- S4
-  |  |
-  |  +- M7
+     |
+     +- M7
   
 - R1
   |    
@@ -156,6 +156,47 @@ describe("CodePathSearchModel", () => {
     expect(search.getNodesFlat()).toMatchObject([
       { matched: true, entry: { messageId: 'R0' }, parent: { id: 0 } },
       { matched: true, entry: { messageId: 'R1' }, parent: { id: 0 } },
+    ]);
+  });
+
+  it("can display new matching node under existing result parent", () => {
+    const source = createSourceModel();
+    const search = createSearchModel(source, ['M2', 'M22']);
+
+    source.publish([
+      { token: 'Log', messageId: 'M22', traceId: 'T1', spanId: 101 },
+    ]);
+
+    expect(search.getNodesFlat()).toMatchObject([
+      { matched: false, entry: { messageId: 'R0' }, parent: { id: 0 } },
+      { matched: false, entry: { messageId: 'S1' }, parent: { entry: { messageId: 'R0' } } },
+      { matched: true, entry: { messageId: 'M2' }, parent: { entry: { messageId: 'S1' } } },
+      { matched: true, entry: { messageId: 'M22' }, parent: { entry: { messageId: 'S1' } } },
+    ]);
+  });
+
+  it("can display new matching nodes under non-existing result parents", () => {
+    const source = createSourceModel();
+    const search = createSearchModel(source, ['M2', 'M22', 'M44', 'M88']);
+
+    source.publish([
+      { token: 'Log', messageId: 'M22', traceId: 'T1', spanId: 103 },
+      { token: 'Log', messageId: 'M44', traceId: 'T1', spanId: 1001 },
+      { token: 'StartSpan', messageId: 'R2', traceId: 'T1', spanId: 1002 },
+      { token: 'Log', messageId: 'M88', traceId: 'T1', spanId: 1002 },
+    ]);
+
+    expect(search.getNodesFlat()).toMatchObject([
+      { matched: false, entry: { messageId: 'R0' }, parent: { id: 0 } },
+      { matched: false, entry: { messageId: 'S1' }, parent: { entry: { messageId: 'R0' } } },
+      { matched: true, entry: { messageId: 'M2' }, parent: { entry: { messageId: 'S1' } } },
+      { matched: false, entry: { messageId: 'S2' }, parent: { entry: { messageId: 'R0' } } },
+      { matched: false, entry: { messageId: 'S3' }, parent: { entry: { messageId: 'S2' } } },
+      { matched: true, entry: { messageId: 'M22' }, parent: { entry: { messageId: 'S3' } } },
+      { matched: false, entry: { messageId: 'R1' }, parent: { id: 0 } },
+      { matched: true, entry: { messageId: 'M44' }, parent: { entry: { messageId: 'R1' } } },
+      { matched: false, entry: { messageId: 'R2' }, parent: { id: 0 } },
+      { matched: true, entry: { messageId: 'M88' }, parent: { entry: { messageId: 'R2' } } },
     ]);
   });
 

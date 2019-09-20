@@ -6,7 +6,11 @@ import {
 } from "./codePathModel";
 
 export function createCodePathSearchModel(sourceModel, predicate) {
+  let subscriber = undefined;
+  let resultNodeById = {};
+
   const resultRootNode = performSearch();
+  sourceModel.subscribe(sourceModelSubscriber);
 
   return {
     getRootNode() {
@@ -16,16 +20,19 @@ export function createCodePathSearchModel(sourceModel, predicate) {
       return getNodesAsFlatArray(resultRootNode);
     },
     subscribe(callback) {
-      //TODO
+      subscriber = callback;
     },
     unsubscribe(callback) {
-      //TODO
+      if (subscriber === callback) {
+        subscriber = undefined;
+      }
     }
   };
 
   function performSearch() {
     const sourceRootNode = sourceModel.getRootNode();
     const resultRootNode = createRootNode();
+    resultNodeById[resultRootNode.id] = resultRootNode;
 
     depthFirstSearchSubTree(sourceRootNode, () => resultRootNode);
 
@@ -66,8 +73,37 @@ export function createCodePathSearchModel(sourceModel, predicate) {
       resultParentNode,
       sourceNode.entry
     );
+    resultNodeById[resultNode.id] = resultNode;
     appendChildNodeToParent(resultNode, resultParentNode);
     resultNode.matched = matched;
     return resultNode;
+  }
+
+  function getOrCreateResultParentNode(sourceChildNode) {
+    if (!sourceChildNode.parent) {
+      return;
+    }
+    const existingParent = resultNodeById[sourceChildNode.parent.id];
+    if (existingParent) {
+      return existingParent;
+    }
+    return createResultNode(sourceChildNode.parent, false, () =>
+      getOrCreateResultParentNode(sourceChildNode.parent)
+    );
+  }
+
+  function sourceModelSubscriber(insertedNodes) {
+    const matchingNodes = insertedNodes.filter(predicate);
+    const newResultNodes = [];
+
+    matchingNodes.forEach(sourceNode => {
+      const getParentNode = () => {
+        return getOrCreateResultParentNode(sourceNode);
+      };
+      const resultNode = createResultNode(sourceNode, true, getParentNode);
+      newResultNodes.push(resultNode);
+    });
+
+    subscriber && subscriber(newResultNodes);
   }
 }
