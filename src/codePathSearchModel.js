@@ -1,12 +1,11 @@
-import { 
-  createRootNode, 
-  createRegularNode, 
+import {
+  createRootNode,
+  createRegularNode,
   appendChildNodeToParent,
   getNodesAsFlatArray
-} from './codePathModel';
+} from "./codePathModel";
 
 export function createCodePathSearchModel(sourceModel, predicate) {
-
   const resultRootNode = performSearch();
 
   return {
@@ -15,6 +14,12 @@ export function createCodePathSearchModel(sourceModel, predicate) {
     },
     getNodesFlat() {
       return getNodesAsFlatArray(resultRootNode);
+    },
+    subscribe(callback) {
+      //TODO
+    },
+    unsubscribe(callback) {
+      //TODO
     }
   };
 
@@ -28,24 +33,24 @@ export function createCodePathSearchModel(sourceModel, predicate) {
   }
 
   function depthFirstSearchSubTree(node, getResultParentNode) {
-    const createThisResultNode = (matched) => {
+    const createThisResultNode = matched => {
       return createResultNode(node, matched, getResultParentNode);
-    }      
+    };
 
     const isRootNode = !node.parent;
     const thisNodeMatched = !isRootNode && predicate(node);
     let thisResultNode = thisNodeMatched
       ? createThisResultNode(true)
       : undefined;
-    
+
     for (
-      let subNode = node.firstChild ; 
-      !!subNode ; 
-      subNode = subNode.nextSibling) 
-    {
+      let subNode = node.firstChild;
+      !!subNode;
+      subNode = subNode.nextSibling
+    ) {
       depthFirstSearchSubTree(subNode, () => {
         if (!thisResultNode) {
-          thisResultNode = isRootNode 
+          thisResultNode = isRootNode
             ? getResultParentNode()
             : createThisResultNode(false);
         }
@@ -56,9 +61,13 @@ export function createCodePathSearchModel(sourceModel, predicate) {
 
   function createResultNode(sourceNode, matched, getResultParentNode) {
     const resultParentNode = getResultParentNode();
-    let resultNode = createRegularNode(sourceNode.id, resultParentNode, sourceNode.entry);
+    let resultNode = createRegularNode(
+      sourceNode.id,
+      resultParentNode,
+      sourceNode.entry
+    );
     appendChildNodeToParent(resultNode, resultParentNode);
     resultNode.matched = matched;
     return resultNode;
-  };
-} 
+  }
+}

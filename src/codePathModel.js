@@ -31,7 +31,7 @@ export function createCodePathModel() {
     const { traceId, spanId } = entry;
     const parent = findParentNode(entry);
     const newNode = createRegularNode(nextNodeId++, parent, entry);
- 
+
     appendChildNodeToParent(newNode, parent);
     if (entry.token === "StartSpan") {
       traceNodeMap.setSpanNode(traceId, spanId, newNode);
@@ -56,11 +56,11 @@ export function createCodePathModel() {
 
       subscriber && subscriber(insertedNodes);
     },
-    subscribe(newSubscriber) {
-      subscriber = newSubscriber;
+    subscribe(callback) {
+      subscriber = callback;
     },
-    unsubscribe(existingSubscriber) {
-      if (subscriber === existingSubscriber) {
+    unsubscribe(callback) {
+      if (subscriber === callback) {
         subscriber = undefined;
       }
     },
@@ -121,12 +121,12 @@ export function getNodesAsFlatArray(rootNode) {
     return [];
   }
   const flatNodes = [];
-  const pushSubTreeNodes = (node) => {
+  const pushSubTreeNodes = node => {
     for (
-      let subNode = node.firstChild ; 
-      !!subNode ; 
-      subNode = subNode.nextSibling) 
-    {
+      let subNode = node.firstChild;
+      !!subNode;
+      subNode = subNode.nextSibling
+    ) {
       flatNodes.push(subNode);
       pushSubTreeNodes(subNode);
     }

@@ -325,5 +325,4 @@ export function createTreeGridView(table, columns) {
     clearAll,
     onNodeSelected
   };
-
 }

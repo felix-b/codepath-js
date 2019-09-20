@@ -3,17 +3,42 @@ define(function (require) {
 
   const CodePath = require('codepath');
   const model = CodePath.createCodePathModel();
+  let controller = undefined;
+  let searchModel = undefined;
 
   return {
     initMvc(gridTableElement) {
       console.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "initMvc");
       const view = CodePath.createTreeGridView(gridTableElement, createColumns());
-      const controller = CodePath.createTreeGridController(view, model);
+      controller = CodePath.createTreeGridController(view, model);
       return controller;
     },
     receiveEntries(entries) {
       console.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "receiveEntries", entries);
       model.publish(entries);
+    },
+    search(text) {
+      if (searchModel) {
+        //searchModel.unsubscribeFromSource();
+        searchModel = undefined;
+      }
+      const trimmedText = text.trim();
+      if (trimmedText.length > 0) {
+        const predicate = (node) => {
+          if (!node.entry) {
+            return false;
+          }
+          const messageId = node.entry.messageId;
+          if (typeof messageId !== 'string') {
+            return false;
+          }
+          return (messageId.indexOf(trimmedText) >= 0);
+        };
+        searchModel = CodePath.createCodePathSearchModel(model, predicate);
+        controller.replaceModel(searchModel);
+      } else {
+        controller.replaceModel(model);
+      }
     }
   };
 

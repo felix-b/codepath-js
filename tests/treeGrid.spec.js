@@ -226,15 +226,6 @@ describe('TreeGridController', () => {
         { entry: { messageId: 'M23' } }
       ]],
     );
-    
-    // insertNodes, 
-    //   [0, [{ entry: { messageId: 'S1' } }]],
-    //   [1, [{ entry: { messageId: 'S2' } }]],
-    //   [2, [{ entry: { messageId: 'S3' } }]]
-    // );
-
-    
-    
   });
 
 });

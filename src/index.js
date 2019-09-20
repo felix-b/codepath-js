@@ -12,5 +12,5 @@ export {
   plainToContext
 } from "./codePathTracer";
 export { createCodePathModel } from "./codePathModel";
-export { createCodePathSearchModel } from './codePathSearchModel';
+export { createCodePathSearchModel } from "./codePathSearchModel";
 export { createTreeGridController, createTreeGridView } from "./treeGrid";
