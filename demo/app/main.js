@@ -123,7 +123,7 @@ define(function (require) {
     };
 
     const button2 = document.querySelector('.button-2');
-    button2.onclick = async (e) => {
+    button2.onclick = async () => {
       const asyncTaskOne = async () => {
         tracer.spanChild('AT1-S1');
         await trace(delay(1000));

@@ -1,6 +1,5 @@
 import { createCodePathModel } from '../src';
 
-
 describe('CodePathModel', () => {
 
   let model;

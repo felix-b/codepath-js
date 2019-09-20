@@ -1,17 +1,6 @@
 export function createCodePathModel() {
   const traceNodeMap = createTraceNodeMap();
-
-  const rootNode = {
-    id: 0,
-    entry: undefined,
-    parent: undefined,
-    depth: -1,
-    firstChild: undefined,
-    lastChild: undefined,
-    prevSibling: undefined,
-    nextSibling: undefined
-  };
-
+  const rootNode = createRootNode();
   let nextNodeId = 1;
   let subscriber = undefined;
 
@@ -38,31 +27,12 @@ export function createCodePathModel() {
     return rootNode;
   };
 
-  const appendChildToParent = (newChild, parent) => {
-    if (parent.lastChild) {
-      newChild.prevSibling = parent.lastChild;
-      parent.lastChild.nextSibling = newChild;
-    } else {
-      parent.firstChild = newChild;
-    }
-    parent.lastChild = newChild;
-  };
-
   const insertNode = entry => {
     const { traceId, spanId } = entry;
     const parent = findParentNode(entry);
-    const newNode = {
-      id: nextNodeId++,
-      entry,
-      parent,
-      depth: parent.depth + 1,
-      firstChild: undefined,
-      lastChild: undefined,
-      prevSibling: undefined,
-      nextSibling: undefined
-    };
-
-    appendChildToParent(newNode, parent);
+    const newNode = createRegularNode(nextNodeId++, parent, entry);
+ 
+    appendChildNodeToParent(newNode, parent);
     if (entry.token === "StartSpan") {
       traceNodeMap.setSpanNode(traceId, spanId, newNode);
     }
@@ -100,6 +70,42 @@ export function createCodePathModel() {
     // },
     clearAllRows() {}
   };
+}
+
+export function createRootNode() {
+  return {
+    id: 0,
+    entry: undefined,
+    parent: undefined,
+    depth: -1,
+    firstChild: undefined,
+    lastChild: undefined,
+    prevSibling: undefined,
+    nextSibling: undefined
+  };
+}
+
+export function createRegularNode(id, parent, entry) {
+  return {
+    id,
+    entry,
+    parent,
+    depth: parent.depth + 1,
+    firstChild: undefined,
+    lastChild: undefined,
+    prevSibling: undefined,
+    nextSibling: undefined
+  };
+}
+
+export function appendChildNodeToParent(newChild, parent) {
+  if (parent.lastChild) {
+    newChild.prevSibling = parent.lastChild;
+    parent.lastChild.nextSibling = newChild;
+  } else {
+    parent.firstChild = newChild;
+  }
+  parent.lastChild = newChild;
 }
 
 function createTraceNodeMap() {
