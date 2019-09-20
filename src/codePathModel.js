@@ -59,6 +59,11 @@ export function createCodePathModel() {
     subscribe(newSubscriber) {
       subscriber = newSubscriber;
     },
+    unsubscribe(existingSubscriber) {
+      if (subscriber === existingSubscriber) {
+        subscriber = undefined;
+      }
+    },
     // expandRow(id) {
 
     // },

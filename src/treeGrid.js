@@ -18,6 +18,11 @@ export function createTreeGridController(view, model) {
     getIsVisible(id) {
       return rowById[id].getIsVisible();
     },
+    replaceModel(newModel) {
+      model.unsubscribe(subscriber);
+      model = newModel;
+      initWithCurrentModel();
+    },
     clearAll() {
       rowById = {};
       masterIndexVersion = 1;
@@ -29,12 +34,16 @@ export function createTreeGridController(view, model) {
     }
   };
 
-  controller.clearAll();
   view.attachController(controller);
-  subscriber(model.getNodesFlat());
-  model.subscribe(subscriber);
+  initWithCurrentModel();
 
   return controller;
+
+  function initWithCurrentModel() {
+    controller.clearAll();
+    subscriber(model.getNodesFlat());
+    model.subscribe(subscriber);
+  }
 
   function createSubNodesRowControllers(subNodes) {
     for (let node of subNodes) {

@@ -189,4 +189,52 @@ describe('TreeGridController', () => {
     expect(view.removeNodes).not.toBeCalled();
   });
 
+  it('can replace model', () => {
+    const initialEntries = [
+      { token: 'StartSpan', messageId: 'S1', traceId: 'T1', spanId: 101 },
+      { token: 'Log', messageId: 'M1', traceId: 'T1', spanId: 101 },
+      { token: 'Log', messageId: 'M2', traceId: 'T1', spanId: 101 },
+    ];
+    const newEntries = [
+      { token: 'StartSpan', messageId: 'S21', traceId: 'T2', spanId: 201 },
+      { token: 'Log', messageId: 'M21', traceId: 'T2', spanId: 201 },
+      { token: 'Log', messageId: 'M22', traceId: 'T2', spanId: 201 },
+      { token: 'Log', messageId: 'M23', traceId: 'T2', spanId: 201 },
+    ];
+
+    model.publish(initialEntries);
+    controller.expand(1);
+    resetViewCalls();
+
+    const newModel = createCodePathModel();
+    newModel.publish(newEntries);
+
+    controller.replaceModel(newModel);
+    
+    expectCalls(view.clearAll, []);
+    expectCalls(view.insertNodes, 
+      [0, [{ entry: { messageId: 'S21' } }]],
+    );
+    resetViewCalls();
+
+    controller.expand(1);
+
+    expectCalls(view.insertNodes, 
+      [1, [
+        { entry: { messageId: 'M21' } },
+        { entry: { messageId: 'M22' } },
+        { entry: { messageId: 'M23' } }
+      ]],
+    );
+    
+    // insertNodes, 
+    //   [0, [{ entry: { messageId: 'S1' } }]],
+    //   [1, [{ entry: { messageId: 'S2' } }]],
+    //   [2, [{ entry: { messageId: 'S3' } }]]
+    // );
+
+    
+    
+  });
+
 });
