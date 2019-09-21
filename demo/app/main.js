@@ -5,7 +5,10 @@ define(function (require) {
   const createFallbackTracer = () => {
     return {
       spanChild(id, tags) {
-        console.log('DEMO > FALLBACK-TRACE(start-span)>', id, tags);
+        console.log('DEMO > FALLBACK-TRACE(span-child)>', id, tags);
+      },
+      spanRoot(id, tags) {
+        console.log('DEMO > FALLBACK-TRACE(span-root)>', id, tags);
       },
       logDebug(id, tags) {
         console.log('DEMO > FALLBACK-TRACE(log-debug)>', id, tags);
@@ -109,9 +112,13 @@ define(function (require) {
 
     console.log('DEMO> injector installed');
 
+    let demoCounter1 = 0;
+    let demoCounter2 = 0;
+    
     const button1 = document.querySelector('.button-1');
     button1.onclick = (e) => {
-      tracer.spanChild('button-1-click', { x: e.clientX, y: e.clientY });
+      demoCounter1++;
+      tracer.spanChild(`button-1-click#${demoCounter1}`, { x: e.clientX, y: e.clientY, demoCounter1 });
       tracer.logDebug('first-message', { a: 1, b: 2 } );
       tracer.logDebug('second-message');
       tracer.spanChild('third-sub-span', { abc: 123 });
@@ -124,6 +131,8 @@ define(function (require) {
 
     const button2 = document.querySelector('.button-2');
     button2.onclick = async () => {
+      demoCounter2++;
+
       const asyncTaskOne = async () => {
         tracer.spanChild('AT1-S1');
         await trace(delay(1000));
@@ -140,7 +149,7 @@ define(function (require) {
         return 222;
       }
       
-      tracer.spanChild('R0');
+      tracer.spanRoot(`R0#${demoCounter2}`, {  demoCounter2 });
   
       const taskPromiseOne = trace(() => asyncTaskOne()).then(value => {
         tracer.spanChild('AT1-S2');

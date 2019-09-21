@@ -138,6 +138,20 @@ describe("createCodePath", () => {
     expect(spanOptions.references).toBeUndefined();
   });
 
+  it("can create root span over current one", () => {
+    const { tracers, spans, codePath, scopeManager } = setupCodePath();
+
+    codePath.spanRoot('ROOT-1', { abc: 123 });
+    const root2 = codePath.spanRoot('ROOT-2', { abc: 456 });
+
+    expect(scopeManager.getActiveSpan()).toBe(root2);
+    expect(root2.testOptions().references).toBeUndefined();
+    expect(root2.testOptions().tags).toMatchObject({
+      id: 'ROOT-2',
+      abc: 456
+    });
+  });
+
   it("can create child span of current active span", () => {
     const { tracers, spans, codePath } = setupCodePath();
     const parentSpan = codePath.spanChild('PARENT', { abc: 123 });

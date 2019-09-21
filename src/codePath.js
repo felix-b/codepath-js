@@ -150,6 +150,10 @@ export function createCodePath(options) {
     logCritical(id, tags) {
       logToActiveSpan({ $id: id, level: LOG_LEVEL.critical, ...tags });
     },
+    spanRoot(id, tags) {
+      scopeManager.setActiveSpan(undefined);
+      return startSpan(id, tags);
+    },
     spanChild(id, tags, parentContext) {
       return startSpan(id, tags, parentContext, REFERENCE_CHILD_OF);
     },
