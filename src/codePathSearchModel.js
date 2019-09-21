@@ -8,6 +8,7 @@ import {
 export function createCodePathSearchModel(sourceModel, predicate) {
   let subscriber = undefined;
   let resultNodeById = {};
+  let newlyCreatedResultNodes = undefined;
 
   const resultRootNode = performSearch();
   sourceModel.subscribe(sourceModelSubscriber);
@@ -74,6 +75,9 @@ export function createCodePathSearchModel(sourceModel, predicate) {
       sourceNode.entry
     );
     resultNodeById[resultNode.id] = resultNode;
+    if (newlyCreatedResultNodes) {
+      newlyCreatedResultNodes.push(resultNode);
+    }
     appendChildNodeToParent(resultNode, resultParentNode);
     resultNode.matched = matched;
     return resultNode;
@@ -93,17 +97,19 @@ export function createCodePathSearchModel(sourceModel, predicate) {
   }
 
   function sourceModelSubscriber(insertedNodes) {
+    newlyCreatedResultNodes = [];
     const matchingNodes = insertedNodes.filter(predicate);
-    const newResultNodes = [];
 
     matchingNodes.forEach(sourceNode => {
       const getParentNode = () => {
         return getOrCreateResultParentNode(sourceNode);
       };
-      const resultNode = createResultNode(sourceNode, true, getParentNode);
-      newResultNodes.push(resultNode);
+      createResultNode(sourceNode, true, getParentNode);
     });
 
-    subscriber && subscriber(newResultNodes);
+    if (newlyCreatedResultNodes.length > 0) {
+      subscriber && subscriber(newlyCreatedResultNodes);
+    }
+    newlyCreatedResultNodes = undefined;
   }
 }
