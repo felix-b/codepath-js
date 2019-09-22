@@ -7,8 +7,13 @@ import {
   walkNodesDepthFirst
 } from "./codePathModel";
 
+import { createMulticastDelegate } from "./multicastDelegate";
+
 export function createCodePathSearchModel(sourceModel, predicate) {
-  let subscriber = undefined;
+  const subscribers = createMulticastDelegate(
+    "CodePathSearchModel.EntriesPublished"
+  );
+
   let resultNodeById = {};
   let newlyCreatedResultNodes = undefined;
 
@@ -58,12 +63,10 @@ export function createCodePathSearchModel(sourceModel, predicate) {
       }
     },
     subscribe(callback) {
-      subscriber = callback;
+      subscribers.add(callback);
     },
     unsubscribe(callback) {
-      if (subscriber === callback) {
-        subscriber = undefined;
-      }
+      subscribers.remove(callback);
     },
     unsubscribeFromSource() {
       sourceModel.unsubscribe(sourceModelSubscriber);
@@ -148,7 +151,7 @@ export function createCodePathSearchModel(sourceModel, predicate) {
     });
 
     if (newlyCreatedResultNodes.length > 0) {
-      subscriber && subscriber(newlyCreatedResultNodes);
+      subscribers.invoke(newlyCreatedResultNodes);
     }
     newlyCreatedResultNodes = undefined;
   }

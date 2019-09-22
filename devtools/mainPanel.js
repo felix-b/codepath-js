@@ -8,11 +8,12 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   const stopButton = document.querySelector('#stop-button');
   const clearAllButton = document.querySelector('#clear-all-button');
   const entryJsonText = document.querySelector('#entry-json-text');
-  const searchText = document.querySelector('#search-text');
-  const searchButton = document.querySelector('#search-button');
+  const filterText = document.querySelector('#filter-text');
+  const filterButton = document.querySelector('#filter-button');
+  const findNextButton = document.querySelector('#find-next-button');
 
   const treeGridController = CodePathTreeGrid.initMvc(treeGridTable);
-  
+  let selectedNode = undefined;
   
   clearAllButton.onclick = () => {
     treeGridController.clearAll();
@@ -41,10 +42,14 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
       }
     );
   };
-  searchButton.onclick = () => {
-    CodePathTreeGrid.search(searchText.value);
+  filterButton.onclick = () => {
+    CodePathTreeGrid.applyFilter(filterText.value);
+  };
+  findNextButton.onclick = () => {
+    CodePathTreeGrid.goToNode('', 'next');
   };
   treeGridController.onNodeSelected((node) => {
+    selectedNode = node;
     entryJsonText.innerHTML = (node ? `[${node.id}]: ${JSON.stringify(node.entry, null, 2)}` : ''); 
   });
 

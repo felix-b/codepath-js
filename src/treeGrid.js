@@ -1,3 +1,5 @@
+import { createMulticastDelegate } from "./multicastDelegate";
+
 export function createTreeGridController(view, model) {
   let rowById = {};
   let masterIndexVersion = 1;
@@ -263,11 +265,14 @@ export function createTreeGridController(view, model) {
 }
 
 export function createTreeGridView(table, columns) {
+  const nodeSelectedCallbacks = createMulticastDelegate(
+    "TreeGridView.NodeSelected"
+  );
+
   let tbody = document.createElement("tbody");
   table.appendChild(tbody);
 
   let controller = undefined;
-  let nodeSelectedCallback = undefined;
   let selectedTr = undefined;
 
   const stringToTextNode = element => {
@@ -298,12 +303,25 @@ export function createTreeGridView(table, columns) {
     }
   };
 
+  const selectNode = (index, node) => {
+    if (selectedTr) {
+      selectedTr.classList.remove("selected");
+    }
+    selectedTr = undefined;
+    if (typeof index === "number" && index >= 0) {
+      selectedTr = tbody.rows[index];
+      selectedTr.classList.add("selected");
+      nodeSelectedCallbacks.invoke(node);
+      selectedTr.scrollIntoViewIfNeeded(); //TODO
+    }
+  };
+
   const insertNodes = (index, nodes) => {
     for (let i = 0; i < nodes.length; i++) {
       const rowIndex = index + i;
       const tr = tbody.insertRow(index + i);
       tr.onclick = () => {
-        nodeSelectedCallback && nodeSelectedCallback(nodes[i]);
+        selectNode(tr.rowIndex - 1, nodes[i]);
       };
       for (let colIndex = 0; colIndex < columns.length; colIndex++) {
         const td = tr.insertCell(colIndex);
@@ -315,11 +333,11 @@ export function createTreeGridView(table, columns) {
   const removeNodes = (index, count) => {
     if (
       selectedTr &&
-      selectedTr.rowIndex >= index &&
-      selectedTr.rowIndex < index + count
+      selectedTr.rowIndex - 1 >= index &&
+      selectedTr.rowIndex - 1 < index + count
     ) {
       selectedTr = undefined;
-      nodeSelectedCallback && nodeSelectedCallback(undefined);
+      nodeSelectedCallbacks.invoke(undefined);
     }
     for (let i = count - 1; i >= 0; i--) {
       tbody.deleteRow(index + i);
@@ -330,24 +348,11 @@ export function createTreeGridView(table, columns) {
     const newTbody = document.createElement("tbody");
     table.replaceChild(newTbody, tbody);
     tbody = newTbody;
-    nodeSelectedCallback && nodeSelectedCallback(undefined);
-  };
-
-  const selectNode = (index, node) => {
-    if (selectedTr) {
-      selectedTr.classList.remove("selected");
-    }
-    selectedTr = undefined;
-    if (typeof index === "number" && index >= 0) {
-      const selectedTr = tbody.rows[index];
-      selectedTr.classList.add("selected");
-      nodeSelectedCallback && nodeSelectedCallback(node);
-      selectedTr.scrollIntoViewIfNeeded(); //TODO
-    }
+    nodeSelectedCallbacks.invoke(undefined);
   };
 
   const onNodeSelected = callback => {
-    nodeSelectedCallback = callback;
+    nodeSelectedCallbacks.add(callback);
   };
 
   return {

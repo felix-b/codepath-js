@@ -1,8 +1,11 @@
+import { createMulticastDelegate } from "./multicastDelegate";
+
 export function createCodePathModel() {
   const traceNodeMap = createTraceNodeMap();
   const rootNode = createRootNode();
+  const subscribers = createMulticastDelegate("CodePathModel.EntriesPublished");
+
   let nextNodeId = 1;
-  let subscriber = undefined;
 
   const getParentContext = entry => {
     if (entry.token === "StartSpan") {
@@ -60,15 +63,13 @@ export function createCodePathModel() {
         )
         .map(insertNode);
 
-      subscriber && subscriber(insertedNodes);
+      subscribers.invoke(insertedNodes);
     },
     subscribe(callback) {
-      subscriber = callback;
+      subscribers.add(callback);
     },
     unsubscribe(callback) {
-      if (subscriber === callback) {
-        subscriber = undefined;
-      }
+      subscribers.remove(callback);
     },
     // deleteRow(id) {
     // },

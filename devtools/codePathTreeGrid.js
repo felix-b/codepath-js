@@ -5,47 +5,60 @@ define(function (require) {
   const model = CodePath.createCodePathModel();
   let controller = undefined;
   let searchModel = undefined;
+  let selectedNode = undefined;
 
   return {
     initMvc(gridTableElement) {
       console.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "initMvc");
       const view = CodePath.createTreeGridView(gridTableElement, createColumns());
       controller = CodePath.createTreeGridController(view, model);
+      controller.onNodeSelected(node => {
+        selectedNode = node;
+      });
       return controller;
     },
     receiveEntries(entries) {
       console.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "receiveEntries", entries);
       model.publish(entries);
     },
-    search(text) {
+    applyFilter(text) {
       if (searchModel) {
         searchModel.unsubscribeFromSource();
         searchModel = undefined;
       }
       const trimmedText = text.trim();
       if (trimmedText.length > 0) {
-        const predicate = (node) => {
-          if (!node.entry) {
-            return false;
-          }
-          const messageId = node.entry.messageId;
-          if (typeof messageId !== 'string') {
-            return false;
-          }
-          return (messageId.indexOf(trimmedText) >= 0);
-        };
-        searchModel = CodePath.createCodePathSearchModel(model, predicate);
+        searchModel = performSearch(trimmedText);
         controller.replaceModel(searchModel);
+        const firstMatchedNode = searchModel.getFirstMatchedNode();
+        controller.selectNode(firstMatchedNode);
       } else {
         controller.replaceModel(model);
       }
     },
-    goToSearchResult(option) {
-      switch(option) {
-        
-      };
+    goToNode(text, nextOrPrev) {
+      if (searchModel) {
+        const nextNode = selectedNode 
+          ? searchModel.getNextMatchedNode(selectedNode)
+          : searchModel.getFirstMatchedNode();
+        controller.selectNode(nextNode);
+      }
     }
   };
+
+  function performSearch(trimmedText) {
+    const predicate = (node) => {
+      if (!node.entry) {
+        return false;
+      }
+      const messageId = node.entry.messageId;
+      if (typeof messageId !== 'string') {
+        return false;
+      }
+      return (messageId.indexOf(trimmedText) >= 0);
+    };
+    return CodePath.createCodePathSearchModel(model, predicate);
+  }
 
   function createColumns() {
     const indentSizePx = 20;
