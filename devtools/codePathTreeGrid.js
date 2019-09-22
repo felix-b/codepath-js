@@ -19,7 +19,7 @@ define(function (require) {
     },
     search(text) {
       if (searchModel) {
-        //searchModel.unsubscribeFromSource();
+        searchModel.unsubscribeFromSource();
         searchModel = undefined;
       }
       const trimmedText = text.trim();
@@ -39,6 +39,11 @@ define(function (require) {
       } else {
         controller.replaceModel(model);
       }
+    },
+    goToSearchResult(option) {
+      switch(option) {
+        
+      };
     }
   };
 

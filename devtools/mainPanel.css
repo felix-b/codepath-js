@@ -136,10 +136,20 @@ body {
   cursor: default;
 }
 
-#trace-grid tr:hover, #trace-grid tr.selected:hover {
+#trace-grid tr:hover {
   background-color: lightyellow;
 }
 
-#trace-grid tr.selected {
-  background-color: lightsteelblue;
+#trace-grid tr.highlighted,
+#trace-grid tr.highlighted:hover {
+  color: black;
+  background-color: yellow;
+}
+
+#trace-grid tr.selected, 
+#trace-grid tr.selected:hover, 
+#trace-grid tr.highlighted.selected, 
+#trace-grid tr.highlighted.selected:hover {
+  color: white;
+  background-color: rgb(0, 117, 242);
 }

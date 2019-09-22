@@ -2,7 +2,9 @@ import {
   createRootNode,
   createRegularNode,
   appendChildNodeToParent,
-  getNodesAsFlatArray
+  getNodesAsFlatArray,
+  getTopLevelNodesAsArray,
+  walkNodesDepthFirst
 } from "./codePathModel";
 
 export function createCodePathSearchModel(sourceModel, predicate) {
@@ -20,6 +22,41 @@ export function createCodePathSearchModel(sourceModel, predicate) {
     getNodesFlat() {
       return getNodesAsFlatArray(resultRootNode);
     },
+    getTopLevelNodes() {
+      return getTopLevelNodesAsArray(resultRootNode);
+    },
+    getFirstMatchedNode() {
+      let firstMatchedNode = undefined;
+      walkNodesDepthFirst(resultRootNode, node => {
+        if (node.matched) {
+          firstMatchedNode = node;
+          return false;
+        }
+      });
+      return firstMatchedNode;
+    },
+    getNextMatchedNode(matchedNode) {
+      let currentNode = matchedNode;
+      let finishedSubTree = false;
+
+      while (currentNode) {
+        if (!finishedSubTree && currentNode.firstChild) {
+          currentNode = currentNode.firstChild;
+        } else {
+          finishedSubTree = false;
+          if (currentNode.nextSibling) {
+            currentNode = currentNode.nextSibling;
+          } else {
+            finishedSubTree = true;
+            currentNode = currentNode.parent;
+          }
+        }
+
+        if (!finishedSubTree && currentNode.matched) {
+          return currentNode;
+        }
+      }
+    },
     subscribe(callback) {
       subscriber = callback;
     },
@@ -27,6 +64,9 @@ export function createCodePathSearchModel(sourceModel, predicate) {
       if (subscriber === callback) {
         subscriber = undefined;
       }
+    },
+    unsubscribeFromSource() {
+      sourceModel.unsubscribe(sourceModelSubscriber);
     }
   };
 

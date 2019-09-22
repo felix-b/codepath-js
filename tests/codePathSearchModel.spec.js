@@ -256,4 +256,30 @@ describe("CodePathSearchModel", () => {
     expect(subscriber.mock.calls.length).toBe(0);
   });
 
+  it("can find first matched node", () => {
+    const source = createSourceModel();
+    const search = createSearchModel(source, ['M2','M4','M6']);
+
+    const firstMatchedNode = search.getFirstMatchedNode();
+
+    expect(firstMatchedNode.entry.messageId).toBe('M2');
+  });
+
+  it("can find next matched node", () => {
+    const source = createSourceModel();
+    const search = createSearchModel(source, ['M2','S2','M4','M8']);
+
+    const first = search.getFirstMatchedNode();
+    const second = search.getNextMatchedNode(first);
+    const third = search.getNextMatchedNode(second);
+    const fourth = search.getNextMatchedNode(third);
+    const fifth = search.getNextMatchedNode(fourth);
+
+    expect(first.entry.messageId).toBe('M2');
+    expect(second.entry.messageId).toBe('S2');
+    expect(third.entry.messageId).toBe('M4');
+    expect(fourth.entry.messageId).toBe('M8');
+    expect(fifth).toBeUndefined();
+  });
+
 });

@@ -47,6 +47,12 @@ export function createCodePathModel() {
     getNodesFlat() {
       return getNodesAsFlatArray(rootNode);
     },
+    getTopLevelNodes() {
+      return getTopLevelNodesAsArray(rootNode);
+    },
+    walkNodesDepthFirst(callback) {
+      walkNodesDepthFirst(rootNode, callback);
+    },
     publish(entries) {
       const insertedNodes = entries
         .filter(
@@ -64,17 +70,7 @@ export function createCodePathModel() {
         subscriber = undefined;
       }
     },
-    // expandRow(id) {
-
-    // },
-    // collapseRow(id) {
-
-    // },
-    // filterRows(query) {
-
-    // },
     // deleteRow(id) {
-
     // },
     clearAllRows() {}
   };
@@ -121,18 +117,39 @@ export function getNodesAsFlatArray(rootNode) {
     return [];
   }
   const flatNodes = [];
-  const pushSubTreeNodes = node => {
-    for (
-      let subNode = node.firstChild;
-      !!subNode;
-      subNode = subNode.nextSibling
-    ) {
-      flatNodes.push(subNode);
-      pushSubTreeNodes(subNode);
-    }
-  };
-  pushSubTreeNodes(rootNode);
+  walkNodesDepthFirst(rootNode, node => flatNodes.push(node));
   return flatNodes;
+}
+
+export function getTopLevelNodesAsArray(rootNode) {
+  const topLevelNodes = [];
+  walkImmediateSubNodes(rootNode, node => {
+    topLevelNodes.push(node);
+  });
+  return topLevelNodes;
+}
+
+export function walkNodesDepthFirst(rootNode, callback) {
+  return walkImmediateSubNodes(rootNode, node => {
+    if (callback(node) === false) {
+      return false;
+    }
+    if (node.firstChild) {
+      if (walkNodesDepthFirst(node, callback) === false) {
+        return false;
+      }
+    }
+  });
+}
+
+export function walkImmediateSubNodes(parentNode, callback) {
+  if (parentNode) {
+    for (let node = parentNode.firstChild; !!node; node = node.nextSibling) {
+      if (callback(node) === false) {
+        return false;
+      }
+    }
+  }
 }
 
 function createTraceNodeMap() {

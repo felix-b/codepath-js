@@ -12,6 +12,18 @@ export function createTreeGridController(view, model) {
     collapse(id) {
       rowById[id].collapse();
     },
+    selectNode(node) {
+      controller.expandToNode(node);
+      const nodeRow = rowById[node.id];
+      const nodeRowIndex = nodeRow.findAbsoluteIndex();
+      view.selectNode(nodeRowIndex, node);
+    },
+    expandToNode(node) {
+      if (!rowById[node.id]) {
+        controller.expandToNode(node.parent);
+        controller.expand(node.parent.id);
+      }
+    },
     getIsExpanded(id) {
       return rowById[id].getIsExpanded();
     },
@@ -41,7 +53,7 @@ export function createTreeGridController(view, model) {
 
   function initWithCurrentModel() {
     controller.clearAll();
-    subscriber(model.getNodesFlat());
+    subscriber(model.getTopLevelNodes());
     model.subscribe(subscriber);
   }
 
@@ -213,10 +225,9 @@ export function createTreeGridController(view, model) {
     let currentGroup = undefined;
 
     for (let i = 0; i < insertedNodes.length; i++) {
-      if (
-        !currentGroup ||
-        currentGroup.parentId !== insertedNodes[i].parent.id
-      ) {
+      const parentId = insertedNodes[i].parent.id;
+      const parentRow = rowById[parentId];
+      if (!currentGroup || currentGroup.parentId !== parentId) {
         beginNewGroup(i);
       }
     }
@@ -247,7 +258,7 @@ export function createTreeGridController(view, model) {
 
   function initRootNode() {
     const rootNode = model.getRootNode();
-    rowById[rootNode.id] = createRootNodeController();
+    rowById[rootNode.id] = createRootNodeController(rootNode);
   }
 }
 
@@ -257,6 +268,7 @@ export function createTreeGridView(table, columns) {
 
   let controller = undefined;
   let nodeSelectedCallback = undefined;
+  let selectedTr = undefined;
 
   const stringToTextNode = element => {
     if (typeof element === "string") {
@@ -301,6 +313,14 @@ export function createTreeGridView(table, columns) {
   };
 
   const removeNodes = (index, count) => {
+    if (
+      selectedTr &&
+      selectedTr.rowIndex >= index &&
+      selectedTr.rowIndex < index + count
+    ) {
+      selectedTr = undefined;
+      nodeSelectedCallback && nodeSelectedCallback(undefined);
+    }
     for (let i = count - 1; i >= 0; i--) {
       tbody.deleteRow(index + i);
     }
@@ -313,6 +333,19 @@ export function createTreeGridView(table, columns) {
     nodeSelectedCallback && nodeSelectedCallback(undefined);
   };
 
+  const selectNode = (index, node) => {
+    if (selectedTr) {
+      selectedTr.classList.remove("selected");
+    }
+    selectedTr = undefined;
+    if (typeof index === "number" && index >= 0) {
+      const selectedTr = tbody.rows[index];
+      selectedTr.classList.add("selected");
+      nodeSelectedCallback && nodeSelectedCallback(node);
+      selectedTr.scrollIntoViewIfNeeded(); //TODO
+    }
+  };
+
   const onNodeSelected = callback => {
     nodeSelectedCallback = callback;
   };
@@ -322,6 +355,7 @@ export function createTreeGridView(table, columns) {
     updateNode,
     insertNodes,
     removeNodes,
+    selectNode,
     clearAll,
     onNodeSelected
   };

@@ -11,6 +11,10 @@ export {
   contextToPlain,
   plainToContext
 } from "./codePathTracer";
-export { createCodePathModel } from "./codePathModel";
+export {
+  createCodePathModel,
+  walkNodesDepthFirst,
+  walkImmediateSubNodes
+} from "./codePathModel";
 export { createCodePathSearchModel } from "./codePathSearchModel";
 export { createTreeGridController, createTreeGridView } from "./treeGrid";

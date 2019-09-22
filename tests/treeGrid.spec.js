@@ -180,11 +180,11 @@ describe('TreeGridController', () => {
       model.publish(initialEntries);
     });
 
-    expectCalls(view.insertNodes, 
-      [0, [{ entry: { messageId: 'S1' } }]],
-      [1, [{ entry: { messageId: 'S2' } }]],
-      [2, [{ entry: { messageId: 'S3' } }]]
-    );
+    expectCalls(view.insertNodes, [0, [
+      { entry: { messageId: 'S1' } },
+      { entry: { messageId: 'S2' } },
+      { entry: { messageId: 'S3' } },
+    ]]);
 
     expect(view.removeNodes).not.toBeCalled();
   });
@@ -226,6 +226,123 @@ describe('TreeGridController', () => {
         { entry: { messageId: 'M23' } }
       ]],
     );
+  });
+
+  const expandToNodeTestEntries = [
+    { token: 'StartSpan', messageId: 'S1', traceId: 'T1', spanId: 101 },
+    { token: 'Log', messageId: 'M1', traceId: 'T1', spanId: 101 },
+    { token: 'StartSpan', messageId: 'S2', traceId: 'T1', spanId: 102, childOf: {
+      traceId: 'T1', spanId: 101
+    } },
+    { token: 'Log', messageId: 'M2', traceId: 'T1', spanId: 102 },
+    { token: 'StartSpan', messageId: 'S3', traceId: 'T1', spanId: 103, childOf: {
+      traceId: 'T1', spanId: 102
+    } },
+    { token: 'Log', messageId: 'M31', traceId: 'T1', spanId: 103 },
+    { token: 'Log', messageId: 'M32', traceId: 'T1', spanId: 103 },
+    { token: 'Log', messageId: 'M33', traceId: 'T1', spanId: 103 },
+    { token: 'EndSpan', traceId: 'T1', spanId: 102 },
+    { token: 'EndSpan', traceId: 'T1', spanId: 103 },
+    { token: 'EndSpan', traceId: 'T1', spanId: 101 },
+    { token: 'StartSpan', messageId: 'S4', traceId: 'T1', spanId: 104 },
+  ];
+
+  it('can expand to show specific node - from root', () => {
+    let nodeByMessageId = {};
+    setupMvc(() => {
+      model.publish(expandToNodeTestEntries);
+      model.walkNodesDepthFirst(node => nodeByMessageId[node.entry.messageId] = node);
+    });
+    expectCalls(view.insertNodes, 
+      [0, [
+        { entry: { messageId: 'S1' } },
+        { entry: { messageId: 'S4' } }
+      ]],
+    );
+    resetViewCalls();
+    expect(nodeByMessageId['M32']).toBeDefined();
+
+    controller.expandToNode(nodeByMessageId['M32']);
+
+    expectCalls(view.insertNodes,
+      [1, [
+        { entry: { messageId: 'M1' } },
+        { entry: { messageId: 'S2' } },
+      ]],
+      [3, [
+        { entry: { messageId: 'M2' } },
+        { entry: { messageId: 'S3' } },
+      ]],
+      [5, [
+        { entry: { messageId: 'M31' } },
+        { entry: { messageId: 'M32' } },
+        { entry: { messageId: 'M33' } },
+      ]],
+    );
+  });
+
+  it('can expand to show specific node - from half way', () => {
+    let nodeByMessageId = {};
+    setupMvc(() => {
+      model.publish(expandToNodeTestEntries);
+      model.walkNodesDepthFirst(node => nodeByMessageId[node.entry.messageId] = node);
+    });
+    controller.expand(nodeByMessageId['S1'].id);
+    controller.expand(nodeByMessageId['S2'].id);
+    expectCalls(view.insertNodes, 
+      [0, [
+        { entry: { messageId: 'S1' } },
+        { entry: { messageId: 'S4' } }
+      ]],
+      [1, [
+        { entry: { messageId: 'M1' } },
+        { entry: { messageId: 'S2' } },
+      ]],
+      [3, [
+        { entry: { messageId: 'M2' } },
+        { entry: { messageId: 'S3' } },
+      ]],
+    );
+    resetViewCalls();
+
+    controller.expandToNode(nodeByMessageId['M33']);
+
+    expectCalls(view.insertNodes,
+      [5, [
+        { entry: { messageId: 'M31' } },
+        { entry: { messageId: 'M32' } },
+        { entry: { messageId: 'M33' } },
+      ]],
+    );
+  });
+
+  it('do nothing on expand to node that is already visible', () => {
+    let nodeByMessageId = {};
+    setupMvc(() => {
+      model.publish(expandToNodeTestEntries);
+      model.walkNodesDepthFirst(node => nodeByMessageId[node.entry.messageId] = node);
+    });
+    controller.expand(nodeByMessageId['S1'].id);
+    controller.expand(nodeByMessageId['S2'].id);
+    expectCalls(view.insertNodes, 
+      [0, [
+        { entry: { messageId: 'S1' } },
+        { entry: { messageId: 'S4' } },
+      ]],
+      [1, [
+        { entry: { messageId: 'M1' } },
+        { entry: { messageId: 'S2' } },
+      ]],
+      [3, [
+        { entry: { messageId: 'M2' } },
+        { entry: { messageId: 'S3' } },
+      ]],
+    );
+    resetViewCalls();
+
+    controller.expandToNode(nodeByMessageId['M2']);
+
+    expect(view.insertNodes).not.toHaveBeenCalled();
   });
 
 });

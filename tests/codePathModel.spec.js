@@ -225,4 +225,34 @@ describe('CodePathModel', () => {
     ]);
   });
 
+  it('can walk nodes depth-first', () => {
+    const entries = [
+      { token: 'StartSpan', messageId: 'S1', traceId: 'T1', spanId: 101 },
+      { token: 'Log', messageId: 'M11', traceId: 'T1', spanId: 101 },
+      { token: 'StartSpan', messageId: 'S2', traceId: 'T1', spanId: 102, childOf: {
+        traceId: 'T1', spanId: 101
+      } },
+      { token: 'Log', messageId: 'M21', traceId: 'T1', spanId: 102 },
+      { token: 'StartSpan', messageId: 'S3', traceId: 'T1', spanId: 103, childOf: {
+        traceId: 'T1', spanId: 102
+      } },
+      { token: 'Log', messageId: 'M31', traceId: 'T1', spanId: 103 },
+      { token: 'Log', messageId: 'M32', traceId: 'T1', spanId: 103 },
+      { token: 'EndSpan', traceId: 'T1', spanId: 103 },
+      { token: 'Log', messageId: 'M22', traceId: 'T1', spanId: 102 },
+      { token: 'EndSpan', traceId: 'T1', spanId: 102 },
+      { token: 'Log', messageId: 'M12', traceId: 'T1', spanId: 101 },
+      { token: 'EndSpan', traceId: 'T1', spanId: 101 },
+      { token: 'StartSpan', messageId: 'S4', traceId: 'T1', spanId: 104 },
+    ];
+    model.publish(entries);
+    const walkList = [];
+
+    model.walkNodesDepthFirst(node => walkList.push(node.entry.messageId));
+
+    expect(walkList).toEqual([
+      'S1','M11','S2','M21','S3','M31','M32','M22','M12','S4'
+    ]);
+  });
+
 });
