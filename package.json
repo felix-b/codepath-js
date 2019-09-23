@@ -5,6 +5,7 @@
   "main": "build/index.js",
   "scripts": {
     "build": "webpack && cp build/index.js devtools/codepath.js",
+    "build:debug": "webpack --mode=development && cp build/index.js devtools/codepath.js",
     "test": "jest",
     "test:debug": "node --inspect node_modules/.bin/jest --runInBand",
     "prepare": "npm run build"

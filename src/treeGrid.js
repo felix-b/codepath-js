@@ -5,6 +5,12 @@ export function createTreeGridController(view, model) {
   let masterIndexVersion = 1;
 
   const controller = {
+    getNodeById(id) {
+      const row = rowById[id];
+      if (row) {
+        return row.getNode();
+      }
+    },
     toggle(id) {
       return rowById[id].toggle();
     },
@@ -50,7 +56,6 @@ export function createTreeGridController(view, model) {
 
   view.attachController(controller);
   initWithCurrentModel();
-
   return controller;
 
   function initWithCurrentModel() {
@@ -268,6 +273,16 @@ export function createTreeGridView(table, columns) {
   const nodeSelectedCallbacks = createMulticastDelegate(
     "TreeGridView.NodeSelected"
   );
+  const keyPressedCallbacks = createMulticastDelegate(
+    "TreeGridView.KeyPressed"
+  );
+
+  table.onkeydown = e => {
+    if (handleTableKeyboardEvent(e) === true) {
+      e.stopPropagation();
+      return false;
+    }
+  };
 
   let tbody = document.createElement("tbody");
   table.appendChild(tbody);
@@ -320,6 +335,7 @@ export function createTreeGridView(table, columns) {
     for (let i = 0; i < nodes.length; i++) {
       const rowIndex = index + i;
       const tr = tbody.insertRow(index + i);
+      tr.setAttribute("data-nid", nodes[i].id);
       tr.onclick = () => {
         selectNode(tr.rowIndex - 1, nodes[i]);
       };
@@ -348,11 +364,15 @@ export function createTreeGridView(table, columns) {
     const newTbody = document.createElement("tbody");
     table.replaceChild(newTbody, tbody);
     tbody = newTbody;
-    nodeSelectedCallbacks.invoke(undefined);
+    selectNode();
   };
 
   const onNodeSelected = callback => {
     nodeSelectedCallbacks.add(callback);
+  };
+
+  const onKeyPressed = callback => {
+    keyPressedCallbacks.add(callback);
   };
 
   return {
@@ -362,6 +382,111 @@ export function createTreeGridView(table, columns) {
     removeNodes,
     selectNode,
     clearAll,
-    onNodeSelected
+    onNodeSelected,
+    onKeyPressed
   };
+
+  function handleTableKeyboardEvent(e) {
+    if (e.ctrlKey || e.shiftKey || e.altKey) {
+      return false;
+    }
+
+    if (!selectedTr) {
+      if (tbody.rows.length > 0) {
+        selectNode(0, getTrNode(tbody.rows[0]));
+      }
+      return true;
+    }
+
+    const selectedNodeId = getTrNodeId(selectedTr);
+
+    switch (e.key) {
+      case "ArrowLeft":
+        if (controller.getIsExpanded(selectedNodeId)) {
+          controller.collapse(selectedNodeId);
+          return true;
+        }
+        break;
+      case "ArrowRight":
+        if (!controller.getIsExpanded(selectedNodeId)) {
+          controller.expand(selectedNodeId);
+          return true;
+        }
+        break;
+    }
+
+    const trToGo = getTrToGo(e.key);
+    if (trToGo) {
+      selectNode(getTrIndex(trToGo), getTrNode(trToGo));
+      return true;
+    }
+
+    return false;
+  }
+
+  function getTrToGo(keyCode) {
+    switch (keyCode) {
+      case "ArrowUp":
+        if (getTrIndex(selectedTr) > 0) {
+          return tbody.rows[getTrIndex(selectedTr) - 1];
+        }
+        break;
+      case "ArrowDown":
+        if (getTrIndex(selectedTr) < tbody.rows.length - 1) {
+          return tbody.rows[getTrIndex(selectedTr) + 1];
+        }
+        break;
+      case "ArrowLeft":
+        return findParentTr(selectedTr);
+      case "ArrowRight":
+        return findExpandableChildTr(selectedTr);
+    }
+  }
+
+  function getTrIndex(tr) {
+    return tr.sectionRowIndex;
+  }
+
+  function getTrNodeId(tr) {
+    const nodeId = parseInt(tr.getAttribute("data-nid"));
+    return !isNaN(nodeId) ? nodeId : undefined;
+  }
+
+  function getTrNode(tr) {
+    const nodeId = getTrNodeId(tr);
+    if (nodeId) {
+      return controller.getNodeById(nodeId);
+    }
+  }
+
+  function findParentTr(childTr) {
+    const childNode = getTrNode(childTr);
+    const parentNodeId = childNode.parent.id;
+    if (parentNodeId) {
+      for (let index = getTrIndex(childTr) - 1; index >= 0; index--) {
+        const tr = tbody.rows[index];
+        if (getTrNodeId(tr) === parentNodeId) {
+          return tr;
+        }
+      }
+    }
+  }
+
+  function findExpandableChildTr(parentTr) {
+    const parentNode = getTrNode(parentTr);
+    for (
+      let index = getTrIndex(parentTr) + 1;
+      index < tbody.rows.length;
+      index++
+    ) {
+      const childTr = tbody.rows[index];
+      const childNode = getTrNode(childTr);
+      if (childNode.parent !== parentNode) {
+        break;
+      }
+      if (childNode.firstChild) {
+        return childTr;
+      }
+    }
+  }
 }
