@@ -79,6 +79,7 @@ body {
   table-layout: fixed;
   border-collapse: collapse;
   white-space: nowrap;
+  outline: none;
 }
 
 #trace-grid td, #trace-grid th  {
@@ -134,6 +135,7 @@ body {
 
 #trace-grid tr {
   cursor: default;
+  border-bottom: 1px solid #fafafa;
 }
 
 #trace-grid tr:hover {

@@ -16,9 +16,16 @@ export function createCodePathSearchModel(sourceModel, predicate) {
 
   let resultNodeById = {};
   let newlyCreatedResultNodes = undefined;
+  let resultRootNode = undefined;
 
-  const resultRootNode = performSearch();
+  const initializeFromSourceModel = () => {
+    resultNodeById = {};
+    newlyCreatedResultNodes = undefined;
+    resultRootNode = performSearch();
+  };
+
   sourceModel.subscribe(sourceModelSubscriber);
+  initializeFromSourceModel();
 
   return {
     getRootNode() {
@@ -70,6 +77,10 @@ export function createCodePathSearchModel(sourceModel, predicate) {
     },
     unsubscribeFromSource() {
       sourceModel.unsubscribe(sourceModelSubscriber);
+    },
+    clearAll() {
+      sourceModel.clearAll();
+      initializeFromSourceModel();
     }
   };
 

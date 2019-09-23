@@ -1,8 +1,7 @@
-export { createCodePath } from "./codePath";
+export { createCodePath, createRealLowResolutionClock } from "./codePath";
 export {
   createDefaultScopeManager,
   trace,
-  getCurrentScope,
   resetCurrentScope
 } from "./codePathScopeManager";
 export { createCodePathStream } from "./codePathStream";
@@ -19,3 +18,4 @@ export {
 export { createCodePathSearchModel } from "./codePathSearchModel";
 export { createTreeGridController, createTreeGridView } from "./treeGrid";
 export { createMulticastDelegate } from "./multicastDelegate";
+export { createDebounce } from "./debounce";

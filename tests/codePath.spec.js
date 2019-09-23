@@ -6,6 +6,7 @@ import {
   contextToPlain, 
   plainToContext 
 } from '../src/index';
+import { createTestClock } from './testClock';
 
 const referenceToPlain = (reference) => {
   if (reference) {
@@ -65,18 +66,6 @@ const createMockTracer = (traceId, options, spans) => {
     },
     testGetOptions() {
       return options;
-    }
-  };
-};
-
-const createTestClock = () => {
-  let time = 0;
-  return {
-    now() {
-      return time;
-    },
-    testSetTime(newTime) {
-      time = newTime;
     }
   };
 };

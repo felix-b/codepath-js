@@ -1,4 +1,5 @@
 import { createMulticastDelegate } from "./multicastDelegate";
+import { createCodePathModel } from "./codePathModel";
 
 export function createTreeGridController(view, model) {
   let rowById = {};
@@ -44,10 +45,8 @@ export function createTreeGridController(view, model) {
       initWithCurrentModel();
     },
     clearAll() {
-      rowById = {};
-      masterIndexVersion = 1;
-      initRootNode();
-      view.clearAll();
+      model.clearAll();
+      controller.replaceModel(model);
     },
     onNodeSelected(callback) {
       view.onNodeSelected(callback);
@@ -59,7 +58,10 @@ export function createTreeGridController(view, model) {
   return controller;
 
   function initWithCurrentModel() {
-    controller.clearAll();
+    rowById = {};
+    masterIndexVersion = 1;
+    initRootNode();
+    view.clearAll();
     subscriber(model.getTopLevelNodes());
     model.subscribe(subscriber);
   }

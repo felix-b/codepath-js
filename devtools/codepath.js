@@ -1573,7 +1573,19 @@ var createRealLowResolutionClock = function createRealLowResolutionClock() {
   return {
     now: function now() {
       return new Date().getTime();
-    } };
+    },
+    setInterval: function (_setInterval) {function setInterval(_x, _x2) {return _setInterval.apply(this, arguments);}setInterval.toString = function () {return _setInterval.toString();};return setInterval;}(function (func, delay) {
+      return setInterval(func, delay);
+    }),
+    clearInterval: function (_clearInterval) {function clearInterval(_x3) {return _clearInterval.apply(this, arguments);}clearInterval.toString = function () {return _clearInterval.toString();};return clearInterval;}(function (id) {
+      clearInterval(id);
+    }),
+    setTimeout: function (_setTimeout) {function setTimeout(_x4, _x5) {return _setTimeout.apply(this, arguments);}setTimeout.toString = function () {return _setTimeout.toString();};return setTimeout;}(function (func, delay) {
+      return setTimeout(func, delay);
+    }),
+    clearTimeout: function (_clearTimeout) {function clearTimeout(_x6) {return _clearTimeout.apply(this, arguments);}clearTimeout.toString = function () {return _clearTimeout.toString();};return clearTimeout;}(function (id) {
+      clearTimeout(id);
+    }) };
 
 };
 
@@ -1774,11 +1786,16 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function createCodePathModel() {
-  var traceNodeMap = createTraceNodeMap();
-  var rootNode = createRootNode();
   var subscribers = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_0__["createMulticastDelegate"])("CodePathModel.EntriesPublished");
 
+  var traceNodeMap = undefined;
+  var rootNode = undefined;
   var nextNodeId = 1;
+
+  var initializeModel = function initializeModel() {
+    traceNodeMap = createTraceNodeMap();
+    rootNode = createRootNode();
+  };
 
   var getParentContext = function getParentContext(entry) {
     if (entry.token === "StartSpan") {
@@ -1816,6 +1833,8 @@ function createCodePathModel() {
     return newNode;
   };
 
+  initializeModel();
+
   return {
     getRootNode: function getRootNode() {
       return rootNode;
@@ -1846,7 +1865,9 @@ function createCodePathModel() {
     },
     // deleteRow(id) {
     // },
-    clearAllRows: function clearAllRows() {} };
+    clearAll: function clearAll() {
+      initializeModel();
+    } };
 
 }
 
@@ -2073,9 +2094,16 @@ function createCodePathSearchModel(sourceModel, predicate) {
 
   var resultNodeById = {};
   var newlyCreatedResultNodes = undefined;
+  var resultRootNode = undefined;
 
-  var resultRootNode = performSearch();
+  var initializeFromSourceModel = function initializeFromSourceModel() {
+    resultNodeById = {};
+    newlyCreatedResultNodes = undefined;
+    resultRootNode = performSearch();
+  };
+
   sourceModel.subscribe(sourceModelSubscriber);
+  initializeFromSourceModel();
 
   return {
     getRootNode: function getRootNode() {
@@ -2127,6 +2155,10 @@ function createCodePathSearchModel(sourceModel, predicate) {
     },
     unsubscribeFromSource: function unsubscribeFromSource() {
       sourceModel.unsubscribe(sourceModelSubscriber);
+    },
+    clearAll: function clearAll() {
+      sourceModel.clearAll();
+      initializeFromSourceModel();
     } };
 
 
@@ -2640,11 +2672,43 @@ function plainToContext(_ref) {var traceId = _ref.traceId,spanId = _ref.spanId;
 
 /***/ }),
 
+/***/ "./src/debounce.js":
+/*!*************************!*\
+  !*** ./src/debounce.js ***!
+  \*************************/
+/*! exports provided: createDebounce */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createDebounce", function() { return createDebounce; });
+/* harmony import */ var _codePath__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./codePath */ "./src/codePath.js");
+
+
+function createDebounce(consumer, interval, optionalClock) {
+  var clock = optionalClock || Object(_codePath__WEBPACK_IMPORTED_MODULE_0__["createRealLowResolutionClock"])();
+  var timeoutId = undefined;
+
+  return {
+    bounce: function bounce() {
+      if (timeoutId) {
+        clock.clearTimeout(timeoutId);
+      }
+      timeoutId = clock.setTimeout(function () {
+        timeoutId = undefined;
+        consumer();
+      }, interval);
+    } };
+
+}
+
+/***/ }),
+
 /***/ "./src/index.js":
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
-/*! exports provided: createCodePath, createDefaultScopeManager, trace, getCurrentScope, resetCurrentScope, createCodePathStream, createCodePathTracer, contextToPlain, plainToContext, createCodePathModel, walkNodesDepthFirst, walkImmediateSubNodes, createCodePathSearchModel, createTreeGridController, createTreeGridView, createMulticastDelegate */
+/*! exports provided: createCodePath, createRealLowResolutionClock, createDefaultScopeManager, trace, resetCurrentScope, createCodePathStream, createCodePathTracer, contextToPlain, plainToContext, createCodePathModel, walkNodesDepthFirst, walkImmediateSubNodes, createCodePathSearchModel, createTreeGridController, createTreeGridView, createMulticastDelegate, createDebounce */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2652,12 +2716,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _codePath__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./codePath */ "./src/codePath.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createCodePath", function() { return _codePath__WEBPACK_IMPORTED_MODULE_0__["createCodePath"]; });
 
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createRealLowResolutionClock", function() { return _codePath__WEBPACK_IMPORTED_MODULE_0__["createRealLowResolutionClock"]; });
+
 /* harmony import */ var _codePathScopeManager__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./codePathScopeManager */ "./src/codePathScopeManager.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createDefaultScopeManager", function() { return _codePathScopeManager__WEBPACK_IMPORTED_MODULE_1__["createDefaultScopeManager"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "trace", function() { return _codePathScopeManager__WEBPACK_IMPORTED_MODULE_1__["trace"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getCurrentScope", function() { return _codePathScopeManager__WEBPACK_IMPORTED_MODULE_1__["getCurrentScope"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "resetCurrentScope", function() { return _codePathScopeManager__WEBPACK_IMPORTED_MODULE_1__["resetCurrentScope"]; });
 
@@ -2688,6 +2752,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony import */ var _multicastDelegate__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./multicastDelegate */ "./src/multicastDelegate.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createMulticastDelegate", function() { return _multicastDelegate__WEBPACK_IMPORTED_MODULE_7__["createMulticastDelegate"]; });
+
+/* harmony import */ var _debounce__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./debounce */ "./src/debounce.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createDebounce", function() { return _debounce__WEBPACK_IMPORTED_MODULE_8__["createDebounce"]; });
+
 
 
 
@@ -2749,6 +2817,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createTreeGridController", function() { return createTreeGridController; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createTreeGridView", function() { return createTreeGridView; });
 /* harmony import */ var _multicastDelegate__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./multicastDelegate */ "./src/multicastDelegate.js");
+/* harmony import */ var _codePathModel__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./codePathModel */ "./src/codePathModel.js");
+
 
 
 function createTreeGridController(view, model) {
@@ -2795,10 +2865,8 @@ function createTreeGridController(view, model) {
       initWithCurrentModel();
     },
     clearAll: function clearAll() {
-      rowById = {};
-      masterIndexVersion = 1;
-      initRootNode();
-      view.clearAll();
+      model.clearAll();
+      controller.replaceModel(model);
     },
     onNodeSelected: function onNodeSelected(callback) {
       view.onNodeSelected(callback);
@@ -2810,7 +2878,10 @@ function createTreeGridController(view, model) {
   return controller;
 
   function initWithCurrentModel() {
-    controller.clearAll();
+    rowById = {};
+    masterIndexVersion = 1;
+    initRootNode();
+    view.clearAll();
     subscriber(model.getTopLevelNodes());
     model.subscribe(subscriber);
   }

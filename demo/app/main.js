@@ -118,7 +118,7 @@ define(function (require) {
     const button1 = document.querySelector('.button-1');
     button1.onclick = (e) => {
       demoCounter1++;
-      tracer.spanChild(`button-1-click#${demoCounter1}`, { x: e.clientX, y: e.clientY, demoCounter1 });
+      tracer.spanRoot(`button-1-click#${demoCounter1}`, { x: e.clientX, y: e.clientY, demoCounter1 });
       tracer.logDebug('first-message', { a: 1, b: 2 } );
       tracer.logDebug('second-message');
       tracer.spanChild('third-sub-span', { abc: 123 });

@@ -8,11 +8,16 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   const stopButton = document.querySelector('#stop-button');
   const clearAllButton = document.querySelector('#clear-all-button');
   const entryJsonText = document.querySelector('#entry-json-text');
-  const filterText = document.querySelector('#filter-text');
-  const filterButton = document.querySelector('#filter-button');
+  const filterTextInput = document.querySelector('#filter-text');
+  const filterClearButton = document.querySelector('#filter-clear-button');
+  const findTextInput = document.querySelector('#find-text');
+  const findPrevButton = document.querySelector('#find-prev-button');
   const findNextButton = document.querySelector('#find-next-button');
 
   const treeGridController = CodePathTreeGrid.initMvc(treeGridTable);
+  const filterTextDebounce = CodePath.createDebounce(applyFilter, 500);
+  const nodeSelectedDebounce = CodePath.createDebounce(onNodeSelectedDebounced, 100);
+    
   let selectedNode = undefined;
   
   clearAllButton.onclick = () => {
@@ -42,15 +47,19 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
       }
     );
   };
-  filterButton.onclick = () => {
-    CodePathTreeGrid.applyFilter(filterText.value);
+  filterTextInput.oninput = () => {
+    filterTextDebounce.bounce();
+  };
+  filterClearButton.onclick = () => {
+    filterTextInput.value = '';
+    applyFilter();
   };
   findNextButton.onclick = () => {
     CodePathTreeGrid.goToNode('', 'next');
   };
   treeGridController.onNodeSelected((node) => {
     selectedNode = node;
-    entryJsonText.innerHTML = (node ? `[${node.id}]: ${JSON.stringify(node.entry, null, 2)}` : ''); 
+    nodeSelectedDebounce.bounce();
   });
 
   const backgroundConnection = chrome.runtime.connect({
@@ -72,4 +81,16 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   });
 
   console.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'successfully initialized');
+
+  function applyFilter() {
+    CodePathTreeGrid.applyFilter(filterTextInput.value);
+  }
+
+  function onNodeSelectedDebounced() {
+    entryJsonText.innerHTML = 
+      selectedNode 
+        ? `[${selectedNode.id}]: ${JSON.stringify(selectedNode.entry, null, 2)}` 
+        : ''; 
+  }
+
 });

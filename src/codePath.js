@@ -21,6 +21,18 @@ export const createRealLowResolutionClock = () => {
   return {
     now() {
       return new Date().getTime();
+    },
+    setInterval(func, delay) {
+      return setInterval(func, delay);
+    },
+    clearInterval(id) {
+      clearInterval(id);
+    },
+    setTimeout(func, delay) {
+      return setTimeout(func, delay);
+    },
+    clearTimeout(id) {
+      clearTimeout(id);
     }
   };
 };
