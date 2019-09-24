@@ -26,7 +26,27 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
     leftSideElement: mainPanelDiv,
     rightSideElement: rightPanelDiv
   });
-    
+  CodePath.createResizer({
+    gripElement: document.getElementById('message-column-resizer-right'),
+    leftSideElement: document.getElementById('message-column-header'),
+    rightSideElement: document.getElementById('time-column-header')
+  });
+  CodePath.createResizer({
+    gripElement: document.getElementById('time-column-resizer-left'),
+    leftSideElement: document.getElementById('message-column-header'),
+    rightSideElement: document.getElementById('time-column-header')
+  });
+  CodePath.createResizer({
+    gripElement: document.getElementById('time-column-resizer-right'),
+    leftSideElement: document.getElementById('time-column-header'),
+    rightSideElement: document.getElementById('details-column-header')
+  });
+  CodePath.createResizer({
+    gripElement: document.getElementById('details-column-resizer-left'),
+    leftSideElement: document.getElementById('time-column-header'),
+    rightSideElement: document.getElementById('details-column-header')
+  });
+
   let selectedNode = undefined;
   
   clearAllButton.onclick = () => {

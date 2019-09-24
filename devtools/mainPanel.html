@@ -27,21 +27,25 @@
       <table id="trace-grid" tabindex="0">
           <thead>
             <tr>
-              <th class="message-column" style="width:300px">
+              <th id="message-column-header" class="message-column" style="width:300px">
                 <div>
-                  <span class="column-title">Message</span>
+                  <div class="column-title">Message</div>
+                  <div id="message-column-resizer-right" class="column-resizer-right"></div>
                 </div>
               </th>
-              <th class="time-column" style="width:100px">
+              <th id="time-column-header" class="time-column" style="width:100px">
                 <div>
-                    <span class="column-title">Time</span>
+                  <div id="time-column-resizer-left" class="column-resizer-left"></div>
+                  <div class="column-title">Time</div>
+                  <div id="time-column-resizer-right" class="column-resizer-right"></div>
                 </div>
               </th>
-              <th class="details-column" style="width:400px">
+              <th id="details-column-header" class="details-column" style="width:400px">
                 <div>
-                  <span class="column-title">Details</span>
+                  <div id="details-column-resizer-left" class="column-resizer-left"></div>
+                  <div class="column-title">Details</div>
                 </div>
-              </th>
+            </th>
             </tr>
           </thead>
         </table>

@@ -98,15 +98,39 @@ body {
   top: 0;
   background-color: #f3f3f3;
   padding: 0px;
-  height: 20px;
+  height: 18px;
 }
 
 #trace-grid th div {
-  width: 100%;
-  margin: 0;
-  padding: 2px;
-  text-align: center;
+  height: 100%;
   border-bottom: 1px solid #cfcfcf;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 3px auto 3px;
+  grid-template-rows: 18px;
+}
+
+#trace-grid th div div.column-title {
+  grid-column: 2;
+  grid-row: 1;  
+  padding: 0;
+  line-height: 19px;
+  text-align: center;
+}
+
+#trace-grid th div div.column-resizer-left,
+#trace-grid th div div.column-resizer-right {
+  grid-row: 1;  
+  padding: 0;
+  cursor: ew-resize;
+}
+
+#trace-grid th div div.column-resizer-left {
+  grid-column: 1;
+}
+
+#trace-grid th div div.column-resizer-right {
+  grid-column: 3;
 }
 
 #trace-grid td  {
@@ -134,25 +158,25 @@ body {
   width: 400px;
 } */
 
-#trace-grid tr {
+#trace-grid tbody tr {
   cursor: default;
   border-bottom: 1px solid #fafafa;
 }
 
-#trace-grid tr:hover {
+#trace-grid tbody tr:hover {
   background-color: lightyellow;
 }
 
-#trace-grid tr.highlighted,
-#trace-grid tr.highlighted:hover {
+#trace-grid tbody tr.highlighted,
+#trace-grid tbody tr.highlighted:hover {
   color: black;
   background-color: yellow;
 }
 
-#trace-grid tr.selected, 
-#trace-grid tr.selected:hover, 
-#trace-grid tr.highlighted.selected, 
-#trace-grid tr.highlighted.selected:hover {
+#trace-grid tbody tr.selected, 
+#trace-grid tbody tr.selected:hover, 
+#trace-grid tbody tr.highlighted.selected, 
+#trace-grid tbody tr.highlighted.selected:hover {
   color: white;
   background-color: rgb(0, 117, 242);
 }
