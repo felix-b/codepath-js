@@ -1537,12 +1537,11 @@ exports.default = Tracer;
 /*!*************************!*\
   !*** ./src/codePath.js ***!
   \*************************/
-/*! exports provided: LOG_LEVEL, createRealLowResolutionClock, noopTracerFactory, defaultTracerFactory, GlobalCodePath, createCodePath */
+/*! exports provided: createRealLowResolutionClock, noopTracerFactory, defaultTracerFactory, GlobalCodePath, createCodePath */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LOG_LEVEL", function() { return LOG_LEVEL; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createRealLowResolutionClock", function() { return createRealLowResolutionClock; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "noopTracerFactory", function() { return noopTracerFactory; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultTracerFactory", function() { return defaultTracerFactory; });
@@ -1555,18 +1554,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _codePathTracer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./codePathTracer */ "./src/codePathTracer.js");
 /* harmony import */ var _codePathStream__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./codePathStream */ "./src/codePathStream.js");
 /* harmony import */ var _codePathScopeManager__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./codePathScopeManager */ "./src/codePathScopeManager.js");
+/* harmony import */ var _logLevel__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./logLevel */ "./src/logLevel.js");
 function ownKeys(object, enumerableOnly) {var keys = Object.keys(object);if (Object.getOwnPropertySymbols) {var symbols = Object.getOwnPropertySymbols(object);if (enumerableOnly) symbols = symbols.filter(function (sym) {return Object.getOwnPropertyDescriptor(object, sym).enumerable;});keys.push.apply(keys, symbols);}return keys;}function _objectSpread(target) {for (var i = 1; i < arguments.length; i++) {var source = arguments[i] != null ? arguments[i] : {};if (i % 2) {ownKeys(source, true).forEach(function (key) {_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0___default()(target, key, source[key]);});} else if (Object.getOwnPropertyDescriptors) {Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));} else {ownKeys(source).forEach(function (key) {Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));});}}return target;}
 
 
 
 
-
-var LOG_LEVEL = {
-  debug: 0,
-  event: 1,
-  warning: 2,
-  error: 3,
-  critical: 4 };
 
 
 var createRealLowResolutionClock = function createRealLowResolutionClock() {
@@ -1700,19 +1693,19 @@ function createCodePath(options) {
 
   var thisCodePath = {
     logDebug: function logDebug(id, tags) {
-      logToActiveSpan(_objectSpread({ $id: id, level: LOG_LEVEL.debug }, tags));
+      logToActiveSpan(_objectSpread({ $id: id, level: _logLevel__WEBPACK_IMPORTED_MODULE_5__["LOG_LEVEL"].debug }, tags));
     },
     logEvent: function logEvent(id, tags) {
-      logToActiveSpan(_objectSpread({ $id: id, level: LOG_LEVEL.event }, tags));
+      logToActiveSpan(_objectSpread({ $id: id, level: _logLevel__WEBPACK_IMPORTED_MODULE_5__["LOG_LEVEL"].event }, tags));
     },
     logWarning: function logWarning(id, tags) {
-      logToActiveSpan(_objectSpread({ $id: id, level: LOG_LEVEL.warning }, tags));
+      logToActiveSpan(_objectSpread({ $id: id, level: _logLevel__WEBPACK_IMPORTED_MODULE_5__["LOG_LEVEL"].warning }, tags));
     },
     logError: function logError(id, tags) {
-      logToActiveSpan(_objectSpread({ $id: id, level: LOG_LEVEL.error }, tags));
+      logToActiveSpan(_objectSpread({ $id: id, level: _logLevel__WEBPACK_IMPORTED_MODULE_5__["LOG_LEVEL"].error }, tags));
     },
     logCritical: function logCritical(id, tags) {
-      logToActiveSpan(_objectSpread({ $id: id, level: LOG_LEVEL.critical }, tags));
+      logToActiveSpan(_objectSpread({ $id: id, level: _logLevel__WEBPACK_IMPORTED_MODULE_5__["LOG_LEVEL"].critical }, tags));
     },
     spanRoot: function spanRoot(id, tags) {
       scopeManager.setActiveSpan(undefined);
@@ -2000,23 +1993,46 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "trace", function() { return trace; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createDefaultScopeManager", function() { return createDefaultScopeManager; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "resetCurrentScope", function() { return resetCurrentScope; });
+/* harmony import */ var _logLevel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./logLevel */ "./src/logLevel.js");
+
+
 var currentScopeManager = createInternalScopeManager();
 
 function trace(promiseOrFunc) {
+  var logToActiveSpan = function logToActiveSpan(tags) {
+    var activeSpan = currentScopeManager.getActiveSpan();
+    if (activeSpan) {
+      activeSpan.log(tags);
+    }
+  };
+
   var callerScopeManager = currentScopeManager.clone();
 
   var originalPromise =
   typeof promiseOrFunc === "function" ? promiseOrFunc() : promiseOrFunc;
 
   var saveScopeManager = currentScopeManager;
+
   var wrapperPromise = new Promise(function (resolve, reject) {
     originalPromise.
     then(function (value) {
       currentScopeManager = saveScopeManager;
+      logToActiveSpan({
+        $id: "async-then",
+        $async: "then",
+        level: _logLevel__WEBPACK_IMPORTED_MODULE_0__["LOG_LEVEL"].debug,
+        value: value });
+
       resolve(value);
     })["catch"](
     function (err) {
       currentScopeManager = saveScopeManager;
+      logToActiveSpan({
+        $id: "async-catch",
+        $async: "catch",
+        level: _logLevel__WEBPACK_IMPORTED_MODULE_0__["LOG_LEVEL"].error,
+        error: err });
+
       reject(err);
     });
   });
@@ -2769,6 +2785,25 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+/***/ }),
+
+/***/ "./src/logLevel.js":
+/*!*************************!*\
+  !*** ./src/logLevel.js ***!
+  \*************************/
+/*! exports provided: LOG_LEVEL */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LOG_LEVEL", function() { return LOG_LEVEL; });
+var LOG_LEVEL = {
+  debug: 0,
+  event: 1,
+  warning: 2,
+  error: 3,
+  critical: 4 };
 
 /***/ }),
 

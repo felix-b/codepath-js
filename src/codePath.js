@@ -8,14 +8,7 @@ import {
 import { createCodePathTracer } from "./codePathTracer";
 import { createCodePathStream } from "./codePathStream";
 import { createDefaultScopeManager } from "./codePathScopeManager";
-
-export const LOG_LEVEL = {
-  debug: 0,
-  event: 1,
-  warning: 2,
-  error: 3,
-  critical: 4
-};
+import { LOG_LEVEL } from "./logLevel";
 
 export const createRealLowResolutionClock = () => {
   return {

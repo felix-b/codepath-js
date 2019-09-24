@@ -1,20 +1,42 @@
+import { LOG_LEVEL } from "./logLevel";
+
 let currentScopeManager = createInternalScopeManager();
 
 export function trace(promiseOrFunc) {
+  const logToActiveSpan = tags => {
+    const activeSpan = currentScopeManager.getActiveSpan();
+    if (activeSpan) {
+      activeSpan.log(tags);
+    }
+  };
+
   const callerScopeManager = currentScopeManager.clone();
 
   const originalPromise =
     typeof promiseOrFunc === "function" ? promiseOrFunc() : promiseOrFunc;
 
   const saveScopeManager = currentScopeManager;
+
   const wrapperPromise = new Promise((resolve, reject) => {
     originalPromise
       .then(value => {
         currentScopeManager = saveScopeManager;
+        logToActiveSpan({
+          $id: "async-then",
+          $async: "then",
+          level: LOG_LEVEL.debug,
+          value
+        });
         resolve(value);
       })
       .catch(err => {
         currentScopeManager = saveScopeManager;
+        logToActiveSpan({
+          $id: "async-catch",
+          $async: "catch",
+          level: LOG_LEVEL.error,
+          error: err
+        });
         reject(err);
       });
   });
