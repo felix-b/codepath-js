@@ -13,10 +13,19 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   const findTextInput = document.querySelector('#find-text');
   const findPrevButton = document.querySelector('#find-prev-button');
   const findNextButton = document.querySelector('#find-next-button');
+  const panelResizerDiv = document.querySelector('#panel-resizer');
+  const mainPanelDiv = document.querySelector('#panel-main');
+  const rightPanelDiv = document.querySelector('#panel-right');
 
   const treeGridController = CodePathTreeGrid.initMvc(treeGridTable);
   const filterTextDebounce = CodePath.createDebounce(applyFilter, 500);
   const nodeSelectedDebounce = CodePath.createDebounce(onNodeSelectedDebounced, 100);
+  
+  CodePath.createResizer({
+    gripElement: panelResizerDiv,
+    leftSideElement: mainPanelDiv,
+    rightSideElement: rightPanelDiv
+  });
     
   let selectedNode = undefined;
   

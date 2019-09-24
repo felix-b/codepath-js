@@ -7,6 +7,7 @@ requirejs.config({
   paths: {
     build: "../build",
     app: "./app",
+    repluggable: "http://localhost:3201/repluggable.bundle.js"
   }
 });
 

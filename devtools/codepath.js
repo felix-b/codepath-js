@@ -2708,7 +2708,7 @@ function createDebounce(consumer, interval, optionalClock) {
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
-/*! exports provided: createCodePath, createRealLowResolutionClock, createDefaultScopeManager, trace, resetCurrentScope, createCodePathStream, createCodePathTracer, contextToPlain, plainToContext, createCodePathModel, walkNodesDepthFirst, walkImmediateSubNodes, createCodePathSearchModel, createTreeGridController, createTreeGridView, createMulticastDelegate, createDebounce */
+/*! exports provided: createCodePath, createRealLowResolutionClock, createDefaultScopeManager, trace, resetCurrentScope, createCodePathStream, createCodePathTracer, contextToPlain, plainToContext, createCodePathModel, walkNodesDepthFirst, walkImmediateSubNodes, createCodePathSearchModel, createTreeGridController, createTreeGridView, createMulticastDelegate, createDebounce, createResizer */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2756,6 +2756,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _debounce__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./debounce */ "./src/debounce.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createDebounce", function() { return _debounce__WEBPACK_IMPORTED_MODULE_8__["createDebounce"]; });
 
+/* harmony import */ var _resizer__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./resizer */ "./src/resizer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createResizer", function() { return _resizer__WEBPACK_IMPORTED_MODULE_9__["createResizer"]; });
+
+
 
 
 
@@ -2801,6 +2805,97 @@ function createMulticastDelegate(eventName) {
 
 
   return delegate;
+}
+
+/***/ }),
+
+/***/ "./src/resizer.js":
+/*!************************!*\
+  !*** ./src/resizer.js ***!
+  \************************/
+/*! exports provided: createResizer */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createResizer", function() { return createResizer; });
+function createResizer(elements) {
+  var minWidthPx = 10;
+  var moveThresholdPx = 3;var
+  gripElement = elements.gripElement,leftSideElement = elements.leftSideElement,rightSideElement = elements.rightSideElement;
+
+  var initial = undefined;
+  var last = undefined;
+  var saveBodyCursor = undefined;
+
+  gripElement.onmousedown = onMouseDown;
+
+  function takeSnapshot(e) {
+    return {
+      mouseX: e.pageX,
+      leftWidth: leftSideElement ? leftSideElement.clientWidth : undefined,
+      rightWidth: rightSideElement ? rightSideElement.clientWidth : undefined };
+
+  }
+
+  function onMouseDown(e) {
+    initial = takeSnapshot(e);
+    last = Object.assign({}, initial);
+
+    window.addEventListener("mousemove", onMouseMove, true);
+    window.addEventListener("mouseup", onMouseUp, true);
+
+    saveBodyCursor = document.body.style.cursor;
+    document.body.style.cursor = "ew-resize";
+
+    e.stopPropagation();
+    return false;
+  }
+
+  function onMouseMove(e) {
+    var current = takeSnapshot(e);
+
+    if (Math.abs(current.mouseX - last.mouseX) >= moveThresholdPx) {
+      last = current;
+      var deltaX = current.mouseX - initial.mouseX;
+
+      if (
+      initial.leftWidth &&
+      deltaX < 0 &&
+      initial.leftWidth + deltaX < minWidthPx)
+      {
+        deltaX = -(initial.leftWidth - minWidthPx);
+      }
+      if (
+      initial.rightWidth &&
+      deltaX > 0 &&
+      initial.rightWidth - deltaX < minWidthPx)
+      {
+        deltaX = initial.rightWidth - minWidthPx;
+      }
+
+      if (leftSideElement && leftSideElement.style.width.length > 0) {
+        leftSideElement.style.width = "".concat(initial.leftWidth + deltaX, "px");
+      }
+      if (rightSideElement && rightSideElement.style.width.length > 0) {
+        rightSideElement.style.width = "".concat(initial.rightWidth - deltaX, "px");
+      }
+    }
+    e.stopPropagation();
+    return false;
+  }
+
+  function onMouseUp(e) {
+    document.body.style.cursor = saveBodyCursor;
+    window.removeEventListener("mousemove", onMouseMove, true);
+    window.removeEventListener("mouseup", onMouseUp, true);
+
+    initial = undefined;
+    last = undefined;
+
+    e.stopPropagation();
+    return false;
+  }
 }
 
 /***/ }),

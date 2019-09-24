@@ -23,25 +23,25 @@
       <button id="find-next-button">Next</button>
       <button id="find-prev-button">Prev</button>
     </div>
-    <div class="panel-main">
+    <div id="panel-main" class="panel-main">
       <table id="trace-grid" tabindex="0">
           <thead>
             <tr>
-              <th class="message-column">
+              <th class="message-column" style="width:300px">
                 <div>Message</div>
               </th>
-              <th class="time-column">
+              <th class="time-column" style="width:100px">
                 <div>Time</div>
               </th>
-              <th class="details-column">
+              <th class="details-column" style="width:400px">
                 <div>Details</div>
               </th>
             </tr>
           </thead>
         </table>
     </div>
-    <div class="panel-resizer-h"></div>
-    <div class="panel-right">
+    <div id="panel-resizer" class="panel-resizer-h"></div>
+    <div id="panel-right" class="panel-right" style="width:250px;">
       <h1>Activity details</h1>
       <pre id="entry-json-text">
       </pre>
