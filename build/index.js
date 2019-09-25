@@ -2775,6 +2775,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _resizer__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./resizer */ "./src/resizer.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createResizer", function() { return _resizer__WEBPACK_IMPORTED_MODULE_9__["createResizer"]; });
 
+/* harmony import */ var _installGlobalVariable__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./installGlobalVariable */ "./src/installGlobalVariable.js");
 
 
 
@@ -2785,6 +2786,65 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
+Object(_installGlobalVariable__WEBPACK_IMPORTED_MODULE_10__["installGlobalVariable"])();
+
+/***/ }),
+
+/***/ "./src/installGlobalVariable.js":
+/*!**************************************!*\
+  !*** ./src/installGlobalVariable.js ***!
+  \**************************************/
+/*! exports provided: installGlobalVariable */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "installGlobalVariable", function() { return installGlobalVariable; });
+/* harmony import */ var _codePath__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./codePath */ "./src/codePath.js");
+/* harmony import */ var _codePathScopeManager__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./codePathScopeManager */ "./src/codePathScopeManager.js");
+/* harmony import */ var _codePathStream__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./codePathStream */ "./src/codePathStream.js");
+/* harmony import */ var _codePathTracer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./codePathTracer */ "./src/codePathTracer.js");
+/* harmony import */ var _codePathModel__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./codePathModel */ "./src/codePathModel.js");
+/* harmony import */ var _codePathSearchModel__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./codePathSearchModel */ "./src/codePathSearchModel.js");
+/* harmony import */ var _treeGrid__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./treeGrid */ "./src/treeGrid.js");
+/* harmony import */ var _multicastDelegate__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./multicastDelegate */ "./src/multicastDelegate.js");
+/* harmony import */ var _debounce__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./debounce */ "./src/debounce.js");
+/* harmony import */ var _resizer__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./resizer */ "./src/resizer.js");
+
+
+
+
+
+
+
+
+
+
+
+function installGlobalVariable() {
+  // window.CodePath = {
+  //   createCodePath,
+  //   createRealLowResolutionClock,
+  //   createDefaultScopeManager,
+  //   trace,
+  //   resetCurrentScope,
+  //   createCodePathStream,
+  //   createCodePathTracer,
+  //   contextToPlain,
+  //   plainToContext,
+  //   createCodePathModel,
+  //   walkNodesDepthFirst,
+  //   walkImmediateSubNodes,
+  //   createCodePathSearchModel,
+  //   createTreeGridController,
+  //   createTreeGridView,
+  //   createMulticastDelegate,
+  //   createDebounce,
+  //   createResizer
+  // };
+}
 
 /***/ }),
 

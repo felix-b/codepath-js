@@ -253,6 +253,7 @@ define(function (require) {
   document.querySelector('.button-4').onclick = (e) => runStressLoop(e.target, 20);
   document.querySelector('.button-5').onclick = (e) => runStressLoop(e.target, 60);
   document.querySelector('.button-6').onclick = (e) => runStressLoop(e.target, 120);
+  document.querySelector('.button-7').onclick = (e) => runStressLoop(e.target, 1200);
 
   const { readyState } = document;
   if (readyState === "complete" || readyState === "loaded" || readyState === "interactive") {

@@ -29,6 +29,11 @@
     } else {
       console.warn('CODEPATH.DEVTOOLS.PAGE>', 'injector not ready; installing on-ready notification');
       window.__CODEPATH_INJECTOR_READY__ = attemptInstall;
+
+      const adapterScript = localStorage.getItem('codePath.devTools.adapterScript');
+      if (adapterScript) {
+        eval(adapterScript);
+      }
     }
   }
 

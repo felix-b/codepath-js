@@ -6,12 +6,15 @@
 
   console.log('CODEPATH.DEVTOOLS.CONTENT>', 'loading');
 
-  const injectScript = (file, node) => {
+  const injectScript = (file, node, onLoad) => {
     var parent = document.getElementsByTagName(node)[0];
     var script = document.createElement('script');
     script.setAttribute('type', 'text/javascript');
-    script.setAttribute('src', file);
     parent.appendChild(script);
+    if (onLoad) {
+      script.onload = onLoad;
+    }
+    script.setAttribute('src', file);
   } 
 
   const relayMessageToBackground = (message) => {
@@ -20,14 +23,22 @@
   }
 
   window.addEventListener('message', (event) => {
-    if (typeof event.data === 'object' && 
-      event.data.type === 'codePath/devTools/publishEntries' &&
-      Array.isArray(event.data.entries)) 
-    {
-      relayMessageToBackground(event.data);
-    } else {
-      console.log('CODEPATH.DEVTOOLS.CONTENT>', 'unexpected message, ignored', event.data);
+    if (typeof event.data === 'object' && typeof event.data.type === 'string') {
+      if (event.data.type === 'codePath/devTools/publishEntries' && Array.isArray(event.data.entries))  {
+        relayMessageToBackground(event.data);
+        return;
+      } 
+      if (event.data.type === 'codePath/devTools/queryCodePathLibUrl') {
+        const url = chrome.extension.getURL('/codepath.js');
+        window.postMessage({
+          type: 'codePath/devTools/codePathLibUrl',
+          url
+        }, '*');
+        return;
+      }
     }
+    
+    console.log('CODEPATH.DEVTOOLS.CONTENT>', 'unexpected message, ignored', event.data);
   });
   
   injectScript(chrome.extension.getURL('/pageScript.js'), 'body');

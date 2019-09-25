@@ -43,11 +43,13 @@ describe('DefaultScopeManager', () => {
     await trace(delay(100));
 
     input.logEvent('E1');
+    console.log(output.peekEntries().map(e => `[${e.spanId}]${e.token}:${e.messageId||''}`))
 
     expect(output.peekEntries()).toMatchObject([
       { token: 'StartTracer' },
       { token: 'StartSpan', spanId: 1 },
       { token: 'StartSpan', spanId: 2, childOf: { spanId: 1 } },
+      { token: 'Log', messageId: 'async-then', spanId: 1 },
       { token: 'Log', spanId: 1 }
     ]);
 
@@ -78,8 +80,11 @@ describe('DefaultScopeManager', () => {
       { token: 'StartSpan', spanId: 1, messageId: 'S1' },
       { token: 'StartSpan', spanId: 2, messageId: 'ATS1', childOf: { spanId: 1 } },
       { token: 'StartSpan', spanId: 3, messageId: 'S2', childOf: { spanId: 1 } },
+      { token: 'Log', messageId: 'async-then', spanId: 2 },
       { token: 'Log', spanId: 2, messageId: 'ATE1' },
       { token: 'EndSpan', spanId: 2 },
+      { token: 'Log', messageId: 'async-then', spanId: 2 },
+      { token: 'Log', messageId: 'async-then', spanId: 3 },
       { token: 'Log', spanId: 3, messageId: 'E1' },
     ]);
   });
@@ -132,16 +137,22 @@ describe('DefaultScopeManager', () => {
       { token: 'StartSpan', spanId: 1, messageId: 'R0', },
       { token: 'StartSpan', spanId: 2, childOf: { spanId: 1 }, messageId: 'AT1-S1' },
       { token: 'StartSpan', spanId: 3, childOf: { spanId: 1 }, messageId: 'AT2-S1' },
+      { token: 'Log', messageId: 'async-then', spanId: 3 },
       { token: 'Log', spanId: 3, messageId: 'AT2-E1' },
       { token: 'EndSpan', spanId: 3 },
+      { token: 'Log', messageId: 'async-then', spanId: 3 },
       { token: 'StartSpan', spanId: 4, childOf: { spanId: 3 }, messageId: 'AT2-S2', },
       { token: 'Log', spanId: 4, messageId: 'AT2-E2', tags: { value: 222 } },
       { token: 'EndSpan', spanId: 4 },
+      { token: 'Log', messageId: 'async-then', spanId: 2 },
       { token: 'Log', spanId: 2, messageId: 'AT1-E1' },
       { token: 'EndSpan', spanId: 2 },
+      { token: 'Log', messageId: 'async-then', spanId: 2 },
       { token: 'StartSpan', spanId: 5, childOf: { spanId: 2 }, messageId: 'AT1-S2' },
       { token: 'Log', spanId: 5, messageId: 'AT1-E2', tags: { value: 111 } },
       { token: 'EndSpan', spanId: 5 },
+      { token: 'Log', messageId: 'async-then', spanId: 1 },
+      { token: 'Log', messageId: 'async-then', spanId: 1 },
       { token: 'Log', spanId: 1, messageId: 'E1', tags: { valueOne: 111, valueTwo: 222 } },
       { token: 'EndSpan', spanId: 1 }
     ]);

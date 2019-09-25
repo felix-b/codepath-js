@@ -53,28 +53,40 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
     treeGridController.clearAll();
   };
   startButton.onclick = () => {
-    chrome.tabs.executeScript(
-      chrome.devtools.inspectedWindow.tabId, 
-      { 
-        code: "window.postMessage({type: 'codePath/devTools/startPublish'},'*')"
-      }, 
-      function() {
-        startButton.style.display = 'none';
-        stopButton.style.display = 'inline';
-      }
-    );
+    backgroundConnection.postMessage({
+      name: 'start',
+      tabId: chrome.devtools.inspectedWindow.tabId
+    });
+    startButton.style.display = 'none';
+    stopButton.style.display = 'inline';
+    // chrome.tabs.executeScript(
+    //   chrome.devtools.inspectedWindow.tabId, 
+    //   { 
+    //     code: "window.postMessage({type: 'codePath/devTools/startPublish'},'*')"
+    //   }, 
+    //   function() {
+    //     startButton.style.display = 'none';
+    //     stopButton.style.display = 'inline';
+    //   }
+    // );
   };
   stopButton.onclick = () => {
-    chrome.tabs.executeScript(
-      chrome.devtools.inspectedWindow.tabId, 
-      { 
-        code: "window.postMessage({type: 'codePath/devTools/stopPublish'},'*')"
-      }, 
-      function() {
-        stopButton.style.display = 'none';
-        startButton.style.display = 'inline';
-      }
-    );
+    backgroundConnection.postMessage({
+      name: 'stop',
+      tabId: chrome.devtools.inspectedWindow.tabId
+    });
+    stopButton.style.display = 'none';
+    startButton.style.display = 'inline';
+    // chrome.tabs.executeScript(
+    //   chrome.devtools.inspectedWindow.tabId, 
+    //   { 
+    //     code: "window.postMessage({type: 'codePath/devTools/stopPublish'},'*')"
+    //   }, 
+    //   function() {
+    //     stopButton.style.display = 'none';
+    //     startButton.style.display = 'inline';
+    //   }
+    // );
   };
   filterTextInput.oninput = () => {
     filterTextDebounce.bounce();

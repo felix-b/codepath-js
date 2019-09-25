@@ -8,7 +8,8 @@
   "content_scripts": [
     {
       "matches": [
-        "http://localhost:9090/*"
+        "http://localhost:9090/*",
+        "https://local.wix.com:3500/*"
       ],
       "js": [
         "codepath.js",
@@ -25,10 +26,12 @@
   "permissions": [
     "tabs",
     "notifications",
+    "storage",
     "http://*/",
-    "https://*/"    
+    "https://*/"
   ],
   "web_accessible_resources" : [
+    "/codepath.js",
     "/pageScript.js"
   ]
 }

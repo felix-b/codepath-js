@@ -13,8 +13,20 @@
             console.log('CODEPATH.DEVTOOLS.BKG>', `dev tool page registered for tab ${message.tabId}`);
             break;
           case 'start':
+            chrome.tabs.executeScript(
+              message.tabId, 
+              { 
+                code: "window.postMessage({type: 'codePath/devTools/startPublish'},'*')"
+              }
+            );
             break;
           case 'stop': 
+            chrome.tabs.executeScript(
+              message.tabId, 
+              { 
+                code: "window.postMessage({type: 'codePath/devTools/stopPublish'},'*')"
+              }
+            );
             break;
           default:
             console.warn('CODEPATH.DEVTOOLS.BKG>', 'unrecognized message', message);
