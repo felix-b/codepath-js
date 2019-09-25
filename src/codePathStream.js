@@ -79,7 +79,39 @@ export function createCodePathStream(options) {
     takeEntries() {
       const copyOfEntries = entries;
       entries = [];
+      copyOfEntries.forEach(normalizeTags);
       return copyOfEntries;
     }
   };
+
+  function normalizeTags(entry) {
+    let visitedObjects = new Set();
+
+    if (entry.tags) {
+      const meta = entry.tags.$meta;
+      if (meta && meta.stringify) {
+        for (let tag of meta.stringify) {
+          entry.tags[tag] = safeStringify(entry.tags[tag]);
+        }
+      }
+    }
+
+    function safeStringify(obj) {
+      const json = JSON.stringify(obj, replaceCircularReferences);
+      if (json && json.length > 1024) {
+        return json.substr(0, 1024) + "...[trunc]";
+      }
+      return json;
+    }
+
+    function replaceCircularReferences(key, value) {
+      if (typeof value === "object" && value !== null) {
+        if (visitedObjects.has(value)) {
+          return "[circ]";
+        }
+        visitedObjects.add(value);
+      }
+      return value;
+    }
+  }
 }

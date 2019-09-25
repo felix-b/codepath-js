@@ -42,35 +42,38 @@
   function createCodePathHostLogger(tracer) {
     return {
       event(severity, id, keyValuePairs, spanFlag) { 
-        const serializableKeyValuePairs = makeSerializable(keyValuePairs);
+        ensureTagsSerializable(keyValuePairs);
         switch (spanFlag) {
           case 'begin':
-            tracer.spanChild(id, serializableKeyValuePairs);
+            tracer.spanChild(id, keyValuePairs);
             break;
           case 'end':
             tracer.finishSpan();
             break;
           default:
-            tracer.logDebug(id, serializableKeyValuePairs);
+            tracer.logDebug(id, keyValuePairs);
         }
       }
     };
   }
 
-  function makeSerializable(data) {
-    if (typeof data.$api !== 'string' || !Array.isArray(data.$args)) {
-      return data;
-    }
-
-    return {
-      ...data,
-      $args: data.$args.map(arg => {
-        if (typeof arg === 'object' || typeof arg === 'function') {
-          return '...';
+  function ensureTagsSerializable(tags) {
+    if (typeof tags.$api === 'string' && Array.isArray(tags.$args)) {
+      let anyNonSerializableArgs = false;
+      for (let i = 0 ; i < tags.$args.length ; i++) {
+        const argValue = tags.$args[i];
+        const argType = typeof argValue;
+        if (argType === 'function' || (argType === 'object' && argValue !== null)) {
+          anyNonSerializableArgs = true;
+          break;
         }
-        return arg;
-      })
-    };
+      }
+      if (anyNonSerializableArgs) {
+        tags.$meta = {
+          stringify: ['$args']
+        };
+      }
+    }
   }
 
 })();

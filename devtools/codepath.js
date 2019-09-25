@@ -2274,8 +2274,10 @@ function createCodePathSearchModel(sourceModel, predicate) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createCodePathStream", function() { return createCodePathStream; });
-/* harmony import */ var opentracing__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! opentracing */ "./node_modules/opentracing/lib/index.js");
-/* harmony import */ var opentracing__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(opentracing__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/typeof */ "./node_modules/@babel/runtime/helpers/typeof.js");
+/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var opentracing__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! opentracing */ "./node_modules/opentracing/lib/index.js");
+/* harmony import */ var opentracing__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(opentracing__WEBPACK_IMPORTED_MODULE_1__);
 
 
 function createCodePathStream(options) {
@@ -2357,9 +2359,44 @@ function createCodePathStream(options) {
     takeEntries: function takeEntries() {
       var copyOfEntries = entries;
       entries = [];
+      copyOfEntries.forEach(normalizeTags);
       return copyOfEntries;
     } };
 
+
+  function normalizeTags(entry) {
+    var visitedObjects = new Set();
+
+    if (entry.tags) {
+      var meta = entry.tags.$meta;
+      if (meta && meta.stringify) {var _iteratorNormalCompletion = true;var _didIteratorError = false;var _iteratorError = undefined;try {
+          for (var _iterator = meta.stringify[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {var tag = _step.value;
+            entry.tags[tag] = safeStringify(entry.tags[tag]);
+          }} catch (err) {_didIteratorError = true;_iteratorError = err;} finally {try {if (!_iteratorNormalCompletion && _iterator["return"] != null) {_iterator["return"]();}} finally {if (_didIteratorError) {throw _iteratorError;}}}
+      }
+    }
+
+    function safeStringify(obj) {
+      var json = JSON.stringify(
+      obj,
+      replaceCircularReferences);
+
+      if (json && json.length > 1024) {
+        return json.substr(0, 1024) + '...[trunc]';
+      }
+      return json;
+    }
+
+    function replaceCircularReferences(key, value) {
+      if (_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0___default()(value) === "object" && value !== null) {
+        if (visitedObjects.has(value)) {
+          return "[circ]";
+        }
+        visitedObjects.add(value);
+      }
+      return value;
+    }
+  }
 }
 
 /***/ }),

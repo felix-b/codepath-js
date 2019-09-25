@@ -166,4 +166,70 @@ describe("codePathStream", () => {
 
   });
 
+  it("serializes non-scalar tag values on takeEntries", () => {
+    const stream = createCodePathStream();
+    const tags = { 
+      $meta: {
+        stringify: ['func','obj','arr','date']
+      },
+      str: 'abc',
+      num: 123,
+      bool: true,
+      func: () => {},
+      obj: { x: 1, y: 2 },
+      arr: [ 1, 2, 3 ],
+      date: new Date("2019-10-01T10:30:00.000Z")
+    };
+
+    stream.writeStartTracer(123, 'T#1');
+    stream.writeStartSpan(124, 'T#1', 'S#11', 'M#11', {}, tags);
+
+    const peekEntriesTags = stream.peekEntries().map(e => e.tags);
+    const takeEntriesTags = stream.takeEntries().map(e => e.tags);
+
+    expect(peekEntriesTags).toMatchObject([ {}, tags ]);
+    expect(takeEntriesTags).toMatchObject([ 
+      {},
+      { 
+        str: 'abc',
+        num: 123,
+        bool: true,
+        func: undefined,
+        obj: '{"x":1,"y":2}',
+        arr: '[1,2,3]',
+        date: '"2019-10-01T10:30:00.000Z"'
+      } 
+    ]);
+
+  });
+
+  it("serializes tag values which are objects with circular references", () => {
+    const stream = createCodePathStream();
+    const tags = { 
+      $meta: {
+        stringify: ['obj1', 'obj2']
+      },
+      obj1: { x: 1 },
+      obj2: { x: 2 },
+    };
+    tags.obj1.obj2 = tags.obj2;
+    tags.obj2.obj1 = tags.obj1;
+
+    stream.writeStartTracer(123, 'T#1');
+    stream.writeStartSpan(124, 'T#1', 'S#11', 'M#11', {}, tags);
+
+    const takeEntriesTags = stream.takeEntries().map(e => e.tags);
+
+    console.log(takeEntriesTags)
+
+    expect(takeEntriesTags).toMatchObject([ 
+      {},
+      { 
+        obj1: '{"x":1,"obj2":{"x":2,"obj1":"[circ]"}}',
+        obj2: '"[circ]"',
+      } 
+    ]);
+
+  });
+
 });
