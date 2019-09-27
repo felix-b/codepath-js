@@ -1,7 +1,9 @@
 define(function (require) {
-  console.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "loaded");
-
   const CodePath = require('codepath');
+  const debug = CodePath.debugLog;
+
+  debug.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "loaded");
+
   const model = CodePath.createCodePathModel();
   let controller = undefined;
   let searchModel = undefined;
@@ -9,7 +11,7 @@ define(function (require) {
 
   return {
     initMvc(gridTableElement) {
-      console.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "initMvc");
+      debug.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "initMvc");
       const view = CodePath.createTreeGridView(gridTableElement, createColumns());
       controller = CodePath.createTreeGridController(view, model);
       controller.onNodeSelected(node => {
@@ -18,7 +20,7 @@ define(function (require) {
       return controller;
     },
     receiveEntries(entries) {
-      console.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "receiveEntries", entries);
+      debug.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "receiveEntries", entries);
       model.publish(entries);
     },
     applyFilter(text) {

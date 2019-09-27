@@ -1,6 +1,7 @@
 (function() {
+  const debug = CodePath.debugLog;
 
-  console.log('CODEPATH.DEVTOOLS.BKG>', 'loading');
+  debug.log('CODEPATH.DEVTOOLS.BKG>', 'loading');
 
   var connections = {};
 
@@ -10,7 +11,7 @@
         switch (message.name) {
           case 'init': 
             connections[message.tabId] = port;
-            console.log('CODEPATH.DEVTOOLS.BKG>', `dev tool page registered for tab ${message.tabId}`);
+            debug.log('CODEPATH.DEVTOOLS.BKG>', `dev tool page registered for tab ${message.tabId}`);
             break;
           case 'start':
             chrome.tabs.executeScript(
@@ -29,7 +30,7 @@
             );
             break;
           default:
-            console.warn('CODEPATH.DEVTOOLS.BKG>', 'unrecognized message', message);
+            debug.warn('CODEPATH.DEVTOOLS.BKG>', 'unrecognized message', message);
         }
       }
       // The original connection event doesn't include the tab ID of the
@@ -67,16 +68,16 @@
       var tabId = sender.tab.id;
       if (tabId in connections) {
         connections[tabId].postMessage(request);
-        console.log('CODEPATH.DEVTOOLS.BKG>', `relaying 1 message to dev tools panel`);
+        debug.log('CODEPATH.DEVTOOLS.BKG>', `relaying 1 message to dev tools panel`);
       } else {
-        console.warn('CODEPATH.DEVTOOLS.BKG>', `tab not found in connection list: ${tabId}`);
+        debug.warn('CODEPATH.DEVTOOLS.BKG>', `tab not found in connection list: ${tabId}`);
       }
     } else {
-      console.warn('CODEPATH.DEVTOOLS.BKG>', 'sender.tab not defined.');
+      debug.warn('CODEPATH.DEVTOOLS.BKG>', 'sender.tab not defined.');
     }
     return true;
   });
 
-  console.info('CODEPATH.DEVTOOLS.BKG>', 'successfully initialized');
+  debug.info('CODEPATH.DEVTOOLS.BKG>', 'successfully initialized');
 
 })();

@@ -1,10 +1,11 @@
 (function() {
+  const debug = CodePath.debugLog;
 
   if (window !== window.top) {
     return;
   }
 
-  console.log('CODEPATH.DEVTOOLS.CONTENT>', 'loading');
+  debug.log('CODEPATH.DEVTOOLS.CONTENT>', 'loading');
 
   const injectScript = (file, node, onLoad) => {
     var parent = document.getElementsByTagName(node)[0];
@@ -18,7 +19,7 @@
   } 
 
   const relayMessageToBackground = (message) => {
-    console.log('CODEPATH.DEVTOOLS.CONTENT>', `relaying 1 message to background`, message);
+    debug.log('CODEPATH.DEVTOOLS.CONTENT>', `relaying 1 message to background`, message);
     chrome.runtime.sendMessage(message);
   }
 
@@ -38,7 +39,7 @@
       }
     }
     
-    console.log('CODEPATH.DEVTOOLS.CONTENT>', 'unexpected message, ignored', event.data);
+    debug.log('CODEPATH.DEVTOOLS.CONTENT>', 'unexpected message, ignored', event.data);
   });
   
   injectScript(chrome.extension.getURL('/pageScript.js'), 'body');
@@ -50,12 +51,12 @@
   // const injector = window.injectCodePathTracer;
 
   // if (typeof injector !== 'function') {
-  //   console.log('CODEPATH DEVTOOLS>', 'injector not found', injector);
+  //   debug.log('CODEPATH DEVTOOLS>', 'injector not found', injector);
   //   return;
   // }
 
   // if (typeof CodePath !== 'object') {
-  //   console.log('CODEPATH DEVTOOLS>', 'codepath library not loaded');
+  //   debug.log('CODEPATH DEVTOOLS>', 'codepath library not loaded');
   //   return;
   // }
 
@@ -66,12 +67,12 @@
   // setInterval(() => {
   //   if (output.peekEntries().length > 0) {
   //     const entries = output.takeEntries();
-  //     console.log('CODEPATH DEVTOOLS > OUTPUT>', entries);
+  //     debug.log('CODEPATH DEVTOOLS > OUTPUT>', entries);
   //   }
   // }, 1000);
 
-  // console.log('CODEPATH DEVTOOLS>', 'successfully initialized');
+  // debug.log('CODEPATH DEVTOOLS>', 'successfully initialized');
 
-  console.info('CODEPATH.DEVTOOLS.CONTENT>', 'successfully initialized');
+  debug.info('CODEPATH.DEVTOOLS.CONTENT>', 'successfully initialized');
 
 })();

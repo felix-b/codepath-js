@@ -1,7 +1,8 @@
 requirejs.config({ });
 
 requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid) {
-  console.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'loaded, initializing...');
+  const debug = CodePath.debugLog;
+  debug.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'loaded, initializing...');
 
   const treeGridTable = document.querySelector('#trace-grid');
   const startButton = document.querySelector('#start-button');
@@ -121,7 +122,7 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
     tabId: chrome.devtools.inspectedWindow.tabId
   });
 
-  console.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'successfully initialized');
+  debug.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'successfully initialized');
 
   function applyFilter() {
     CodePathTreeGrid.applyFilter(filterTextInput.value);

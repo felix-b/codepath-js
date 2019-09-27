@@ -2377,12 +2377,9 @@ function createCodePathStream(options) {
     }
 
     function safeStringify(obj) {
-      var json = JSON.stringify(
-      obj,
-      replaceCircularReferences);
-
+      var json = JSON.stringify(obj, replaceCircularReferences);
       if (json && json.length > 1024) {
-        return json.substr(0, 1024) + '...[trunc]';
+        return json.substr(0, 1024) + "...[trunc]";
       }
       return json;
     }
@@ -2757,11 +2754,53 @@ function createDebounce(consumer, interval, optionalClock) {
 
 /***/ }),
 
+/***/ "./src/debugLog.js":
+/*!*************************!*\
+  !*** ./src/debugLog.js ***!
+  \*************************/
+/*! exports provided: debugLog, enableDebugLog */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "debugLog", function() { return debugLog; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "enableDebugLog", function() { return enableDebugLog; });
+var debugLogEnabled = false;
+
+var debugLog = {
+  log: function log() {
+    if (debugLogEnabled) {var _console;
+      (_console = console).log.apply(_console, arguments);
+    }
+  },
+  info: function info() {
+    if (debugLogEnabled) {var _console2;
+      (_console2 = console).info.apply(_console2, arguments);
+    }
+  },
+  warn: function warn() {
+    if (debugLogEnabled) {var _console3;
+      (_console3 = console).warn.apply(_console3, arguments);
+    }
+  },
+  error: function error() {
+    if (debugLogEnabled) {var _console4;
+      (_console4 = console).error.apply(_console4, arguments);
+    }
+  } };
+
+
+function enableDebugLog(enable) {
+  debugLogEnabled = enable;
+}
+
+/***/ }),
+
 /***/ "./src/index.js":
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
-/*! exports provided: createCodePath, createRealLowResolutionClock, createDefaultScopeManager, trace, resetCurrentScope, createCodePathStream, createCodePathTracer, contextToPlain, plainToContext, createCodePathModel, walkNodesDepthFirst, walkImmediateSubNodes, createCodePathSearchModel, createTreeGridController, createTreeGridView, createMulticastDelegate, createDebounce, createResizer */
+/*! exports provided: createCodePath, createRealLowResolutionClock, createDefaultScopeManager, trace, resetCurrentScope, createCodePathStream, createCodePathTracer, contextToPlain, plainToContext, createCodePathModel, walkNodesDepthFirst, walkImmediateSubNodes, createCodePathSearchModel, createTreeGridController, createTreeGridView, createMulticastDelegate, createDebounce, createResizer, debugLog, enableDebugLog */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2811,6 +2850,12 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony import */ var _resizer__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./resizer */ "./src/resizer.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createResizer", function() { return _resizer__WEBPACK_IMPORTED_MODULE_9__["createResizer"]; });
+
+/* harmony import */ var _debugLog__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./debugLog */ "./src/debugLog.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "debugLog", function() { return _debugLog__WEBPACK_IMPORTED_MODULE_10__["debugLog"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "enableDebugLog", function() { return _debugLog__WEBPACK_IMPORTED_MODULE_10__["enableDebugLog"]; });
+
 
 
 
