@@ -1,81 +1,6 @@
 define(function (require) {
-  const CodePath = require('build/index');
-  //const Repluggable = require('repluggable');
-
-  const trace = CodePath.trace;
-
-  const createFallbackTracer = () => {
-    return {
-      spanChild(id, tags) {
-        console.log('DEMO > FALLBACK-TRACE(span-child)>', id, tags);
-      },
-      spanRoot(id, tags) {
-        console.log('DEMO > FALLBACK-TRACE(span-root)>', id, tags);
-      },
-      logDebug(id, tags) {
-        console.log('DEMO > FALLBACK-TRACE(log-debug)>', id, tags);
-      },
-      finishSpan() {
-        console.log('DEMO > FALLBACK-TRACE>(finish-span)');
-      }
-    };
-  };
-
-  const createAllInPageTracer = () => {
-    const traceTable = document.querySelector('.trace-table');
-    const indentSizePx = 30;
-    const traceColumns = [
-      { 
-        renderCell(node, controller, trIndex) {
-          const renderIndent = (size) => {
-            const span = document.createElement('span');
-            span.style.cssText = `width:${size * indentSizePx}px;display:inline-block;`;
-            return span;
-          };
-          const renderToggleAnchor = () => {
-            const anchor = document.createElement('a');
-            anchor.style.cssText = `width:${indentSizePx}px;display:inline-block;`;
-            anchor.onclick = () => {
-              controller.toggle(node.id);
-            };
-            anchor.innerHTML = '[+]';
-            return anchor;
-          };
-          return [
-            renderIndent(node.firstChild ? node.depth : node.depth + 1),
-            node.firstChild ? renderToggleAnchor() : undefined,
-            `${node.entry.messageId}`
-          ];
-        }
-      },
-      {
-        renderCell(node, controller, trIndex) {
-          return [`${node.entry.time}`];
-        }
-      },
-      {
-        renderCell(node, controller, trIndex) {
-          return [`details...`];
-        }
-      }
-    ];
-    
-    const { input, output } = CodePath.createCodePath();
-    const model = CodePath.createCodePathModel();
-    const view = CodePath.createTreeGridView(traceTable, traceColumns);
-    const controller = CodePath.createTreeGridController(view, model);
-
-    setInterval(() => {
-      if (output.peekEntries().length > 0) {
-        const entries = output.takeEntries();
-        console.log('DEMO>ENTRIES>', entries);
-        model.publish(entries);
-      }
-    }, 250);
-  
-    console.info('DEMO>', 'successfully initialized all-in-page');
-    return input;
-  };
+  let tracer = null;
+  let trace = null;
 
   const createdDeferredPromise = () => {
     let resolve = undefined;
@@ -96,25 +21,26 @@ define(function (require) {
     setTimeout(resolve, ms);
     return promise;
   }
-  
-  const init = () => {
-    console.log('DEMO> CodePath =', CodePath);
 
-    let tracer = createFallbackTracer(); //createAllInPageTracer(); 
-
-    window.__CODEPATH_INJECTOR__ = (newTracer) => {
+  const initInjector = () => {
+    window.__CODEPATH_INJECTOR__ = (newTracer, codePathLib) => {
+      window.CodePath = codePathLib;
+      trace = CodePath.trace;
       tracer = newTracer;
-      window.__TRACER__ = newTracer;
+
+      console.log('DEMO> CodePath =', CodePath, 'trace = ', trace);
+
+      initializeDemoButtons();
     };
 
-    window.CodePath = CodePath;
+    console.log('DEMO> injector installed');
 
     if (typeof window.__CODEPATH_INJECTOR_READY__ === 'function') {
       window.__CODEPATH_INJECTOR_READY__();
     }
+  };
 
-    console.log('DEMO> injector installed');
-
+  function initializeDemoButtons() {
     let demoCounter1 = 0;
     let demoCounter2 = 0;
     
@@ -174,10 +100,9 @@ define(function (require) {
       tracer.logEvent('E1', {valueOne, valueTwo});
       tracer.finishSpan();
     };
-  };
+  }
 
   const runStressIteration = async (stressCounter1) => {
-    const tracer = window.__TRACER__;
 
     const asyncTaskOne = async () => {
       tracer.spanChild('STRESS-AT1-S1', { stressCounter1 });
@@ -257,9 +182,9 @@ define(function (require) {
 
   const { readyState } = document;
   if (readyState === "complete" || readyState === "loaded" || readyState === "interactive") {
-    init(); 
+    initInjector(); 
   } else {
-    window.addEventListener('DOMContentLoaded', init);
+    window.addEventListener('DOMContentLoaded', initInjector);
   }
 
 });
