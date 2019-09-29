@@ -63,7 +63,6 @@ define(function (require) {
   }
 
   function createColumns() {
-    const indentSizePx = 20;
     const columns = [
       createMessageColumn(),
       createTimeColumn(),
@@ -75,25 +74,33 @@ define(function (require) {
     function createMessageColumn() {
       return {
         renderCell(node, controller, rowIndex) {
-          const isExpanded = controller.getIsExpanded(node.id);
-          const renderIndent = (size) => {
-            const span = document.createElement('span');
-            span.style.cssText = `width:${size * indentSizePx}px;display:inline-block;`;
-            return span;
+          const renderIndents = (size) => {
+            const indents = [];
+            for (let i = 0 ; i < size ; i++) {
+              const span = document.createElement('span');
+              span.classList.add('indent');
+              indents.push(span);
+            }
+            return indents;
           };
           const renderToggleAnchor = () => {
-            const anchor = document.createElement('a');
-            anchor.style.cssText = `width:${indentSizePx}px;display:inline-block;`;
-            anchor.onclick = () => {
+            const span = document.createElement('span');
+            span.classList.add('toggle');
+            span.onclick = () => {
               controller.toggle(node.id);
             };
-            anchor.innerHTML = isExpanded ? '[-]' : '[+]';
-            return anchor;
+            return span;
+          };
+          const renderText = () => {
+            const span = document.createElement('span');
+            span.classList.add('data');
+            span.innerHTML = `${node.entry.messageId}`;  
+            return span;
           };
           return [
-            renderIndent(node.firstChild ? node.depth : node.depth + 1),
+            ...renderIndents(node.firstChild ? node.depth : node.depth + 1),
             node.firstChild ? renderToggleAnchor() : undefined,
-            `${node.entry.messageId}`
+            renderText()
           ];
         }
       };

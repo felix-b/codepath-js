@@ -3345,6 +3345,11 @@ function createTreeGridView(table, columns) {
 
   var updateNode = function updateNode(index, node) {
     var tr = tbody.rows[index];
+    var isExpanded = controller.getIsExpanded(node.id);
+
+    tr.classList.remove(isExpanded ? 'collapsed' : 'expanded');
+    tr.classList.add(isExpanded ? 'expanded' : 'collapsed');
+
     for (var colIndex = 0; colIndex < columns.length; colIndex++) {
       var td = tr.cells[colIndex];
       td.innerHTML = "";
@@ -3369,7 +3374,8 @@ function createTreeGridView(table, columns) {
     i) {
       var rowIndex = index + i;
       var tr = tbody.insertRow(index + i);
-      tr.setAttribute("data-nid", nodes[i].id);
+      tr.setAttribute('data-nid', nodes[i].id);
+      tr.classList.add('collapsed');
       tr.onclick = function () {
         selectNode(tr.rowIndex - 1, nodes[i]);
       };

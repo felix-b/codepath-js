@@ -313,6 +313,11 @@ export function createTreeGridView(table, columns) {
 
   const updateNode = (index, node) => {
     const tr = tbody.rows[index];
+    const isExpanded = controller.getIsExpanded(node.id);
+
+    tr.classList.remove(isExpanded ? "collapsed" : "expanded");
+    tr.classList.add(isExpanded ? "expanded" : "collapsed");
+
     for (let colIndex = 0; colIndex < columns.length; colIndex++) {
       const td = tr.cells[colIndex];
       td.innerHTML = "";
@@ -338,6 +343,7 @@ export function createTreeGridView(table, columns) {
       const rowIndex = index + i;
       const tr = tbody.insertRow(index + i);
       tr.setAttribute("data-nid", nodes[i].id);
+      tr.classList.add("collapsed");
       tr.onclick = () => {
         selectNode(tr.rowIndex - 1, nodes[i]);
       };
