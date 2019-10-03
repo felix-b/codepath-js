@@ -34,10 +34,12 @@ export function createTreeGridController(view, model) {
       }
     },
     getIsExpanded(id) {
-      return rowById[id].getIsExpanded();
+      const row = rowById[id];
+      return row ? row.getIsExpanded() : false;
     },
     getIsVisible(id) {
-      return rowById[id].getIsVisible();
+      const row = rowById[id];
+      return row ? rowById[id].getIsVisible() : false;
     },
     replaceModel(newModel) {
       model.unsubscribe(subscriber);
@@ -147,7 +149,8 @@ export function createTreeGridController(view, model) {
         return;
       }
       const thisRowIndex = findAbsoluteIndex();
-      view.removeNodes(thisRowIndex + 1, subTreeHeight);
+      const removedNodeIds = view.removeNodes(thisRowIndex + 1, subTreeHeight);
+      removedNodeIds && removedNodeIds.forEach(id => delete rowById[id]);
       masterIndexVersion++;
       updateSubTreeHeight(-subTreeHeight);
       view.updateNode(thisRowIndex, node);
@@ -363,9 +366,13 @@ export function createTreeGridView(table, columns) {
       selectedTr = undefined;
       nodeSelectedCallbacks.invoke(undefined);
     }
+    const deletedNodeIds = [];
     for (let i = count - 1; i >= 0; i--) {
+      const tr = tbody.rows[index + i];
+      deletedNodeIds.push(getTrNodeId(tr));
       tbody.deleteRow(index + i);
     }
+    return deletedNodeIds;
   };
 
   const clearAll = () => {

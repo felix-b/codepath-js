@@ -1,6 +1,6 @@
 define(function (require) {
   const CodePath = require('codepath');
-  const debug = CodePath.debugLog;
+  const debug = CodePath.createDebugLog('devtool');
 
   debug.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "loaded");
 

@@ -2758,40 +2758,125 @@ function createDebounce(consumer, interval, optionalClock) {
 /*!*************************!*\
   !*** ./src/debugLog.js ***!
   \*************************/
-/*! exports provided: debugLog, enableDebugLog */
+/*! exports provided: createDebugLog, enableDebugLog */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "debugLog", function() { return debugLog; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createDebugLog", function() { return createDebugLog; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "enableDebugLog", function() { return enableDebugLog; });
-var debugLogEnabled = false;
+/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/typeof */ "./node_modules/@babel/runtime/helpers/typeof.js");
+/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0__);
+var logSwitch = undefined;
 
-var debugLog = {
-  log: function log() {
-    if (debugLogEnabled) {var _console;
-      (_console = console).log.apply(_console, arguments);
-    }
-  },
-  info: function info() {
-    if (debugLogEnabled) {var _console2;
-      (_console2 = console).info.apply(_console2, arguments);
-    }
-  },
-  warn: function warn() {
-    if (debugLogEnabled) {var _console3;
-      (_console3 = console).warn.apply(_console3, arguments);
-    }
-  },
-  error: function error() {
-    if (debugLogEnabled) {var _console4;
-      (_console4 = console).error.apply(_console4, arguments);
-    }
-  } };
+function createDebugLog(component, globalVars) {
+  ensureLogSwitchInitialized();
 
+  return {
+    log: function log() {
+      if (logSwitch.isEnabled) {var _console;
+        (_console = console).log.apply(_console, arguments);
+      }
+    },
+    info: function info() {
+      if (logSwitch.isEnabled) {var _console2;
+        (_console2 = console).info.apply(_console2, arguments);
+      }
+    },
+    warn: function warn() {
+      if (logSwitch.isEnabled) {var _console3;
+        (_console3 = console).warn.apply(_console3, arguments);
+      }
+    },
+    error: function error() {
+      if (logSwitch.isEnabled) {var _console4;
+        (_console4 = console).error.apply(_console4, arguments);
+      }
+    } };
+
+
+  function ensureLogSwitchInitialized() {
+    if (!logSwitch) {
+      logSwitch = {
+        component: component,
+        isEnabled: false,
+        setEnabled: createSetEnabled(component, globalVars) };
+
+    }
+  }
+}
 
 function enableDebugLog(enable) {
-  debugLogEnabled = enable;
+  if (logSwitch) {
+    logSwitch.setEnabled(enable);
+    console.log(
+    "CODEPATH.DEBUG-LOG>", "log switch [".concat(
+    logSwitch.component, "] was set to"),
+    enable);
+
+  } else {
+    console.log("CODEPATH.DEBUG-LOG>", "log switch was not initialized");
+  }
+}
+
+function createSetEnabled(component, globalVars) {
+  var createEnableLogMessage = function createEnableLogMessage(enable) {
+    return {
+      type: "codePath/devTools/enableDebugLog",
+      enable: !!enable };
+
+  };
+
+  var handleEnableLogMessage = function handleEnableLogMessage(message) {
+    if (
+    _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0___default()(message) === "object" &&
+    message.type === "codePath/devTools/enableDebugLog" &&
+    typeof message.enable === "boolean")
+    {
+      enableDebugLog(message.enable, true);
+    }
+  };
+
+  switch (component) {
+    case "page":
+      return function (enable) {
+        logSwitch.isEnabled = !!enable;
+        window.postMessage(createEnableLogMessage(enable), "*");
+      };
+    case "content":
+      window.addEventListener("message", function (event) {
+        handleEnableLogMessage(event.data);
+      });
+      return function (enable) {
+        logSwitch.isEnabled = !!enable;
+        chrome.runtime.sendMessage(createEnableLogMessage(enable));
+      };
+    case "background":
+      chrome.runtime.onMessage.addListener(function (
+      request,
+      sender,
+      sendResponse)
+      {
+        handleEnableLogMessage(request);
+      });
+      return function (enable) {
+        logSwitch.isEnabled = !!enable;
+      };
+    case "devtool":
+      globalVars &&
+      globalVars.backgroundConnection.onMessage.addListener(function (
+      message)
+      {
+        handleEnableLogMessage(message);
+      });
+      return function (enable) {
+        logSwitch.isEnabled = !!enable;
+      };
+    default:
+      return function (enable) {
+        logSwitch.isEnabled = !!enable;
+      };}
+
 }
 
 /***/ }),
@@ -2800,7 +2885,7 @@ function enableDebugLog(enable) {
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
-/*! exports provided: createCodePath, createRealLowResolutionClock, createDefaultScopeManager, trace, resetCurrentScope, createCodePathStream, createCodePathTracer, contextToPlain, plainToContext, createCodePathModel, walkNodesDepthFirst, walkImmediateSubNodes, createCodePathSearchModel, createTreeGridController, createTreeGridView, createMulticastDelegate, createDebounce, createResizer, debugLog, enableDebugLog */
+/*! exports provided: createCodePath, createRealLowResolutionClock, createDefaultScopeManager, trace, resetCurrentScope, createCodePathStream, createCodePathTracer, contextToPlain, plainToContext, createCodePathModel, walkNodesDepthFirst, walkImmediateSubNodes, createCodePathSearchModel, createTreeGridController, createTreeGridView, createMulticastDelegate, createDebounce, createResizer, createDebugLog, enableDebugLog */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2852,7 +2937,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createResizer", function() { return _resizer__WEBPACK_IMPORTED_MODULE_9__["createResizer"]; });
 
 /* harmony import */ var _debugLog__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./debugLog */ "./src/debugLog.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "debugLog", function() { return _debugLog__WEBPACK_IMPORTED_MODULE_10__["debugLog"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createDebugLog", function() { return _debugLog__WEBPACK_IMPORTED_MODULE_10__["createDebugLog"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "enableDebugLog", function() { return _debugLog__WEBPACK_IMPORTED_MODULE_10__["enableDebugLog"]; });
 
@@ -3037,6 +3122,10 @@ function createTreeGridController(view, model) {
   var rowById = {};
   var masterIndexVersion = 1;
 
+  setInterval(function () {
+    console.log("TREEGRID > rowById > keys", Object.keys(rowById));
+  }, 1000);
+
   var controller = {
     getNodeById: function getNodeById(id) {
       var row = rowById[id];
@@ -3066,10 +3155,12 @@ function createTreeGridController(view, model) {
       }
     },
     getIsExpanded: function getIsExpanded(id) {
-      return rowById[id].getIsExpanded();
+      var row = rowById[id];
+      return row ? row.getIsExpanded() : false;
     },
     getIsVisible: function getIsVisible(id) {
-      return rowById[id].getIsVisible();
+      var row = rowById[id];
+      return row ? rowById[id].getIsVisible() : false;
     },
     replaceModel: function replaceModel(newModel) {
       model.unsubscribe(subscriber);
@@ -3179,7 +3270,8 @@ function createTreeGridController(view, model) {
         return;
       }
       var thisRowIndex = findAbsoluteIndex();
-      view.removeNodes(thisRowIndex + 1, subTreeHeight);
+      var removedNodeIds = view.removeNodes(thisRowIndex + 1, subTreeHeight);
+      removedNodeIds && removedNodeIds.forEach(function (id) {return delete rowById[id];});
       masterIndexVersion++;
       updateSubTreeHeight(-subTreeHeight);
       view.updateNode(thisRowIndex, node);
@@ -3395,9 +3487,13 @@ function createTreeGridView(table, columns) {
       selectedTr = undefined;
       nodeSelectedCallbacks.invoke(undefined);
     }
+    var deletedNodeIds = [];
     for (var i = count - 1; i >= 0; i--) {
+      var tr = tbody.rows[index + i];
+      deletedNodeIds.push(getTrNodeId(tr));
       tbody.deleteRow(index + i);
     }
+    return deletedNodeIds;
   };
 
   var clearAll = function clearAll() {

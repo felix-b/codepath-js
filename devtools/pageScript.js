@@ -31,7 +31,7 @@
     window.CodePath = codePathLib;
 
     const CodePath = codePathLib;
-    const debug = CodePath.debugLog;
+    const debug = CodePath.createDebugLog('page');
 
     window.addEventListener('message', (event) => {
       if (typeof event.data === 'object' && typeof event.data.type === 'string') {

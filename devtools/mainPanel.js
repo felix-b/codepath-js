@@ -1,7 +1,13 @@
 requirejs.config({ });
 
+let backgroundConnection = undefined;
+
 requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid) {
-  const debug = CodePath.debugLog;
+  backgroundConnection = chrome.runtime.connect({
+    name: 'codePathMainPanel'
+  });
+
+  const debug = CodePath.createDebugLog('devtool', { backgroundConnection });
   debug.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'loaded, initializing...');
 
   const treeGridTable = document.querySelector('#trace-grid');
@@ -102,10 +108,6 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   treeGridController.onNodeSelected((node) => {
     selectedNode = node;
     nodeSelectedDebounce.bounce();
-  });
-
-  const backgroundConnection = chrome.runtime.connect({
-    name: 'codePathMainPanel'
   });
 
   backgroundConnection.onMessage.addListener(function(message) {

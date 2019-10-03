@@ -46,7 +46,9 @@ describe('TreeGridController', () => {
     view = {
       attachController: jest.fn(),
       insertNodes: jest.fn(),
-      removeNodes: jest.fn(),
+      removeNodes: jest.fn().mockImplementation((index, count) => {
+        return [...Array(count).keys()].map(v => 1 + v + index);
+      }),
       updateNode: jest.fn(),
       clearAll: jest.fn(),
       onNodeSelected: jest.fn(),
@@ -347,6 +349,86 @@ describe('TreeGridController', () => {
     controller.expandToNode(nodeByMessageId['M2']);
 
     expect(view.insertNodes).not.toHaveBeenCalled();
+  });
+
+  it('can report node visibility status', () => {
+    const entries = [
+      { token: 'StartSpan', messageId: 'S1', traceId: 'T1', spanId: 101 },
+      { token: 'Log', messageId: 'M1', traceId: 'T1', spanId: 101 },
+      { token: 'StartSpan', messageId: 'S2', traceId: 'T1', spanId: 102, childOf: {
+        traceId: 'T1', spanId: 101
+      } },
+      { token: 'Log', messageId: 'M2', traceId: 'T1', spanId: 102 },
+    ];
+    model.publish(entries);
+
+    expect(controller.getIsVisible(1)).toBe(true);
+    expect(controller.getIsVisible(2)).toBe(false);
+    expect(controller.getIsVisible(3)).toBe(false);
+    expect(controller.getIsVisible(4)).toBe(false);
+
+    controller.expand(1);
+
+    expect(controller.getIsVisible(1)).toBe(true);
+    expect(controller.getIsVisible(2)).toBe(true);
+    expect(controller.getIsVisible(3)).toBe(true);
+    expect(controller.getIsVisible(4)).toBe(false);
+
+    controller.expand(3);
+
+    expect(controller.getIsVisible(1)).toBe(true);
+    expect(controller.getIsVisible(2)).toBe(true);
+    expect(controller.getIsVisible(3)).toBe(true);
+    expect(controller.getIsVisible(4)).toBe(true);
+
+    controller.collapse(1);
+
+    expect(controller.getIsVisible(1)).toBe(true);
+    expect(controller.getIsVisible(2)).toBe(false);
+    expect(controller.getIsVisible(3)).toBe(false);
+    expect(controller.getIsVisible(4)).toBe(false);
+
+    controller.expand(1);
+
+    expect(controller.getIsVisible(1)).toBe(true);
+    expect(controller.getIsVisible(2)).toBe(true);
+    expect(controller.getIsVisible(3)).toBe(true);
+    expect(controller.getIsVisible(4)).toBe(false);
+  });
+
+  it('can report node expanded status', () => {
+    const entries = [
+      { token: 'StartSpan', messageId: 'S1', traceId: 'T1', spanId: 101 },
+      { token: 'Log', messageId: 'M1', traceId: 'T1', spanId: 101 },
+      { token: 'StartSpan', messageId: 'S2', traceId: 'T1', spanId: 102, childOf: {
+        traceId: 'T1', spanId: 101
+      } },
+      { token: 'Log', messageId: 'M2', traceId: 'T1', spanId: 102 },
+    ];
+    model.publish(entries);
+
+    expect(controller.getIsExpanded(1)).toBe(false);
+    expect(controller.getIsExpanded(3)).toBe(false);
+
+    controller.expand(1);
+
+    expect(controller.getIsExpanded(1)).toBe(true);
+    expect(controller.getIsExpanded(3)).toBe(false);
+
+    controller.expand(3);
+
+    expect(controller.getIsExpanded(1)).toBe(true);
+    expect(controller.getIsExpanded(3)).toBe(true);
+
+    controller.collapse(1);
+
+    expect(controller.getIsExpanded(1)).toBe(false);
+    expect(controller.getIsExpanded(3)).toBe(false);
+
+    controller.expand(1);
+
+    expect(controller.getIsExpanded(1)).toBe(true);
+    expect(controller.getIsExpanded(3)).toBe(false);
   });
 
 });

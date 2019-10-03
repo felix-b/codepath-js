@@ -31,6 +31,10 @@ define(function (require) {
       console.log('DEMO> CodePath =', CodePath, 'trace = ', trace);
 
       initializeDemoButtons();
+
+      window.__CODEPATH_ENABLE_DEBUG__ = () => {
+        window.CodePath.enableDebugLog(true);
+      }
     };
 
     console.log('DEMO> injector installed');

@@ -1,5 +1,5 @@
 (function() {
-  const debug = CodePath.debugLog;
+  const debug = CodePath.createDebugLog('content');
 
   if (window !== window.top) {
     return;

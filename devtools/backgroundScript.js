@@ -1,5 +1,5 @@
 (function() {
-  const debug = CodePath.debugLog;
+  const debug = CodePath.createDebugLog('background');
 
   debug.log('CODEPATH.DEVTOOLS.BKG>', 'loading');
 

@@ -1,15 +1,32 @@
 (function() {
 
-  window.__CODEPATH_INJECTOR__ = (tracer) => {
+  window.__CODEPATH_INJECTOR__ = (tracer, CodePath, config) => {
     console.log('CODEPATH.DEVTOOLS.REPLUGGABLE-ADAPTER>', 'injecting AppHost logger');
     const codePathHostLogger = createCodePathHostLogger(tracer);
     repluggableAppDebug.host.log = codePathHostLogger;
-    console.log('`CODEPATH.`DEVTOOLS.REPLUGGABLE-ADAPTER>', 'successfully injected AppHost logger');
+    //config.configureDevTools(createDevToolsConfiguration());
+    console.log('CODEPATH.DEVTOOLS.REPLUGGABLE-ADAPTER>', 'successfully injected AppHost logger');
   }
 
   if (typeof window.__CODEPATH_INJECTOR_READY__ === 'function') {
     window.__CODEPATH_INJECTOR_READY__();
   }
+
+  // function createDevToolsConfiguration() {
+  //   return {
+  //     rows: {
+  //       error: { 
+  //         tag: '$level',
+  //         value: 'error'
+  //       },
+  //       warning: { },
+  //       info: { },
+  //     },
+  //     columns: [
+
+  //     ]
+  //   };
+  // }
 
   function createCodePathHostLogger(tracer) {
     return {
