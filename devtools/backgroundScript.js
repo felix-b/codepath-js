@@ -4,6 +4,7 @@
   debug.log('CODEPATH.DEVTOOLS.BKG>', 'loading');
 
   var connections = {};
+  var initMessageFromPageByTabId = {};
 
   chrome.runtime.onConnect.addListener(function (port) {
     var extensionListener = function (message, sender, sendResponse) {
@@ -12,6 +13,11 @@
           case 'init': 
             connections[message.tabId] = port;
             debug.log('CODEPATH.DEVTOOLS.BKG>', `dev tool page registered for tab ${message.tabId}`);
+            const initMessage = initMessageFromPageByTabId[message.tabId];
+            if (initMessage) {
+              debug.log('CODEPATH.DEVTOOLS.BKG>', `replaying init message from page [tab=${message.tabId}]`, initMessage);
+              port.postMessage(initMessage);
+            }
             break;
           case 'start':
             chrome.tabs.executeScript(
@@ -66,6 +72,10 @@
     // Messages from content scripts should have sender.tab set
     if (sender.tab) {
       var tabId = sender.tab.id;
+      if (request.isInitMessage === true) {
+        debug.log('CODEPATH.DEVTOOLS.BKG>', `storing init message from page for tab ${tabId}`, request);
+        initMessageFromPageByTabId[tabId] = request;
+      }      
       if (tabId in connections) {
         connections[tabId].postMessage(request);
         debug.log('CODEPATH.DEVTOOLS.BKG>', `relaying 1 message to dev tools panel`);

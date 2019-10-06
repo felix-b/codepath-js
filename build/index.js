@@ -107,6 +107,27 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ({
 
+/***/ "./node_modules/@babel/runtime/helpers/arrayWithoutHoles.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/arrayWithoutHoles.js ***!
+  \******************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+function _arrayWithoutHoles(arr) {
+  if (Array.isArray(arr)) {
+    for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) {
+      arr2[i] = arr[i];
+    }
+
+    return arr2;
+  }
+}
+
+module.exports = _arrayWithoutHoles;
+
+/***/ }),
+
 /***/ "./node_modules/@babel/runtime/helpers/assertThisInitialized.js":
 /*!**********************************************************************!*\
   !*** ./node_modules/@babel/runtime/helpers/assertThisInitialized.js ***!
@@ -242,6 +263,36 @@ module.exports = _inherits;
 
 /***/ }),
 
+/***/ "./node_modules/@babel/runtime/helpers/iterableToArray.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/iterableToArray.js ***!
+  \****************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+function _iterableToArray(iter) {
+  if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
+}
+
+module.exports = _iterableToArray;
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/nonIterableSpread.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/nonIterableSpread.js ***!
+  \******************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+function _nonIterableSpread() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance");
+}
+
+module.exports = _nonIterableSpread;
+
+/***/ }),
+
 /***/ "./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js":
 /*!**************************************************************************!*\
   !*** ./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js ***!
@@ -282,6 +333,27 @@ function _setPrototypeOf(o, p) {
 }
 
 module.exports = _setPrototypeOf;
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/toConsumableArray.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/toConsumableArray.js ***!
+  \******************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var arrayWithoutHoles = __webpack_require__(/*! ./arrayWithoutHoles */ "./node_modules/@babel/runtime/helpers/arrayWithoutHoles.js");
+
+var iterableToArray = __webpack_require__(/*! ./iterableToArray */ "./node_modules/@babel/runtime/helpers/iterableToArray.js");
+
+var nonIterableSpread = __webpack_require__(/*! ./nonIterableSpread */ "./node_modules/@babel/runtime/helpers/nonIterableSpread.js");
+
+function _toConsumableArray(arr) {
+  return arrayWithoutHoles(arr) || iterableToArray(arr) || nonIterableSpread();
+}
+
+module.exports = _toConsumableArray;
 
 /***/ }),
 
@@ -3113,8 +3185,10 @@ function createResizer(elements) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createTreeGridController", function() { return createTreeGridController; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createTreeGridView", function() { return createTreeGridView; });
-/* harmony import */ var _multicastDelegate__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./multicastDelegate */ "./src/multicastDelegate.js");
-/* harmony import */ var _codePathModel__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./codePathModel */ "./src/codePathModel.js");
+/* harmony import */ var _babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/toConsumableArray */ "./node_modules/@babel/runtime/helpers/toConsumableArray.js");
+/* harmony import */ var _babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _multicastDelegate__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./multicastDelegate */ "./src/multicastDelegate.js");
+/* harmony import */ var _codePathModel__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./codePathModel */ "./src/codePathModel.js");
 
 
 
@@ -3122,9 +3196,7 @@ function createTreeGridController(view, model) {
   var rowById = {};
   var masterIndexVersion = 1;
 
-  setInterval(function () {
-    console.log("TREEGRID > rowById > keys", Object.keys(rowById));
-  }, 1000);
+  //setInterval(() => console.log(rowById), 1000);
 
   var controller = {
     getNodeById: function getNodeById(id) {
@@ -3395,11 +3467,11 @@ function createTreeGridController(view, model) {
   }
 }
 
-function createTreeGridView(table, columns) {
-  var nodeSelectedCallbacks = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_0__["createMulticastDelegate"])(
+function createTreeGridView(table, columns, rows) {
+  var nodeSelectedCallbacks = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_1__["createMulticastDelegate"])(
   "TreeGridView.NodeSelected");
 
-  var keyPressedCallbacks = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_0__["createMulticastDelegate"])(
+  var keyPressedCallbacks = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_1__["createMulticastDelegate"])(
   "TreeGridView.KeyPressed");
 
 
@@ -3468,6 +3540,10 @@ function createTreeGridView(table, columns) {
       var tr = tbody.insertRow(index + i);
       tr.setAttribute("data-nid", nodes[i].id);
       tr.classList.add("collapsed");
+      if (rows && rows.getTrClasses) {var _tr$classList;
+        var trClasses = rows.getTrClasses(nodes[i], rowIndex);
+        (_tr$classList = tr.classList).add.apply(_tr$classList, _babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0___default()(trClasses));
+      }
       tr.onclick = function () {
         selectNode(tr.rowIndex - 1, nodes[i]);
       };

@@ -192,6 +192,11 @@ body {
   background-color: lightyellow;
 }
 
+#trace-grid tbody tr.error {
+  color: red;
+  font-weight: bold;
+}
+
 #trace-grid tbody tr.highlighted td,
 #trace-grid tbody tr.highlighted:hover td {
   color: black;

@@ -5,6 +5,8 @@ export function createTreeGridController(view, model) {
   let rowById = {};
   let masterIndexVersion = 1;
 
+  //setInterval(() => console.log(rowById), 1000);
+
   const controller = {
     getNodeById(id) {
       const row = rowById[id];
@@ -274,7 +276,7 @@ export function createTreeGridController(view, model) {
   }
 }
 
-export function createTreeGridView(table, columns) {
+export function createTreeGridView(table, columns, rows) {
   const nodeSelectedCallbacks = createMulticastDelegate(
     "TreeGridView.NodeSelected"
   );
@@ -347,6 +349,10 @@ export function createTreeGridView(table, columns) {
       const tr = tbody.insertRow(index + i);
       tr.setAttribute("data-nid", nodes[i].id);
       tr.classList.add("collapsed");
+      if (rows && rows.getTrClasses) {
+        const trClasses = rows.getTrClasses(nodes[i], rowIndex);
+        tr.classList.add(...trClasses);
+      }
       tr.onclick = () => {
         selectNode(tr.rowIndex - 1, nodes[i]);
       };

@@ -23,10 +23,21 @@ define(function (require) {
   }
 
   const initInjector = () => {
-    window.__CODEPATH_INJECTOR__ = (newTracer, codePathLib) => {
+    window.__CODEPATH_INJECTOR__ = (newTracer, codePathLib, configure) => {
       window.CodePath = codePathLib;
       trace = CodePath.trace;
       tracer = newTracer;
+
+      configure({
+        treeGrid: {
+          rowClass: [
+            { tag: 'level', value: 3, className: 'error' },
+            { tag: 'level', value: 2, className: 'warning' },
+            { tag: 'level', value: 1, className: 'info' },
+            { tag: 'level', className: 'debug' },
+          ]
+        }
+      });
 
       console.log('DEMO> CodePath =', CodePath, 'trace = ', trace);
 
@@ -82,7 +93,7 @@ define(function (require) {
         return 222;
       }
       
-      tracer.spanRoot(`R0#${demoCounter2}`, {  demoCounter2 });
+      tracer.spanRoot(`R0#${demoCounter2}`, { demoCounter2 });
   
       const taskPromiseOne = trace(() => asyncTaskOne()).then(value => {
         tracer.spanChild('AT1-S2');

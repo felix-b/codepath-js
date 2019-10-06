@@ -76,10 +76,18 @@
         }
       });
 
-      injector(input, CodePath);
+      injector(input, CodePath, configure);
       entryStream = output;
 
       debug.info('CODEPATH.DEVTOOLS.PAGE>', 'successfully installed');
+    }
+
+    function configure(configuration) {
+      window.postMessage({
+        type: 'codePath/devTools/configure',
+        configuration,
+        isInitMessage: true
+      }, '*');
     }
 
     function publishEntries() {

@@ -25,6 +25,10 @@
 
   window.addEventListener('message', (event) => {
     if (typeof event.data === 'object' && typeof event.data.type === 'string') {
+      if (event.data.type === 'codePath/devTools/configure' && typeof event.data.configuration === 'object') {
+        relayMessageToBackground(event.data);
+        return;
+      } 
       if (event.data.type === 'codePath/devTools/publishEntries' && Array.isArray(event.data.entries))  {
         relayMessageToBackground(event.data);
         return;

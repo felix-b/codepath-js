@@ -8,11 +8,17 @@ define(function (require) {
   let controller = undefined;
   let searchModel = undefined;
   let selectedNode = undefined;
+  let configuration = {
+    rowClass: []
+  };
 
   return {
+    configure(newConfiguration) {
+      configuration = newConfiguration;
+    },
     initMvc(gridTableElement) {
       debug.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "initMvc");
-      const view = CodePath.createTreeGridView(gridTableElement, createColumns());
+      const view = CodePath.createTreeGridView(gridTableElement, createColumns(), createRows());
       controller = CodePath.createTreeGridController(view, model);
       controller.onNodeSelected(node => {
         selectedNode = node;
@@ -122,6 +128,27 @@ define(function (require) {
       };
     }
 
+  }
+
+  function createRows() {
+    return {
+      getTrClasses(node, rowIndex) {
+        const { tags } = node.entry;
+        const classNames = [];
+        if (configuration.rowClass) {
+          configuration.rowClass.forEach(rule => {
+            const shouldApply = (
+              typeof rule.value === 'undefined' || 
+              (tags && tags[rule.tag] === rule.value)
+            );
+            if (shouldApply) {
+              classNames.push(rule.className);
+            }
+          })
+        }
+        return classNames;
+      }
+    }
   }
 
 });

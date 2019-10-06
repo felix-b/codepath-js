@@ -111,11 +111,20 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   });
 
   backgroundConnection.onMessage.addListener(function(message) {
-    if (typeof message === 'object' && 
-      message.type === 'codePath/devTools/publishEntries' &&
-      Array.isArray(message.entries)) 
-    {
-      CodePathTreeGrid.receiveEntries(message.entries);
+    if (typeof message !== 'object' || typeof message.type !== 'string') {
+      return;
+    }
+
+    switch (message.type) {
+      case 'codePath/devTools/configure':
+        debug.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'got configuration message', message.configuration);
+        if (message.configuration && message.configuration.treeGrid) {
+          CodePathTreeGrid.configure(message.configuration.treeGrid);
+        }
+        break;
+      case 'codePath/devTools/publishEntries':
+        CodePathTreeGrid.receiveEntries(message.entries);
+        break;
     }
   });
 
