@@ -138,6 +138,14 @@ body {
   line-height: 18px;
 }
 
+#trace-grid td.align-right {
+  text-align: right;
+}
+
+#trace-grid td.align-center {
+  text-align: center;
+}
+
 #trace-grid span.toggle {
   display: inline-block;
   width:18px; 
@@ -159,6 +167,10 @@ body {
   padding: 0 2px 0 2px;
 }
 
+#trace-grid span.data.time-offset {
+  width: 40px;
+}
+
 #trace-grid tr.collapsed td span.toggle {
   background-image: url(toggleCollapsed.svg);
 }
@@ -170,18 +182,6 @@ body {
 #trace-grid td a:hover {
   color: blue;
 }
-
-/* #trace-grid th.message-column {
-  width: 300px;
-}
-
-#trace-grid th.time-column {
-  width: 100px;
-}
-
-#trace-grid th.details-column {
-  width: 400px;
-} */
 
 #trace-grid tbody tr {
   cursor: default;
@@ -210,3 +210,4 @@ body {
   color: white;
   background-color: rgb(0, 117, 242);
 }
+

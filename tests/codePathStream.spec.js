@@ -44,6 +44,31 @@ describe("codePathStream", () => {
     ]);
   });
 
+  it("writeStartSpanWithEpoch", () => {
+    const stream = createCodePathStream();
+
+    stream.writeStartSpan(
+      123, 'T#1', 'S#11', 'M#11', 
+      { },
+      { k1: 'v1', k2: 'v2' },
+      111222333
+    );
+
+    expect(stream.peekEntries()).toEqual([
+      { 
+        time: 123, 
+        epoch: 111222333,
+        token: 'StartSpan', 
+        traceId: 'T#1', 
+        spanId: 'S#11', 
+        messageId: 'M#11', 
+        childOf: undefined, 
+        followsFrom: undefined, 
+        tags: { k1: 'v1', k2: 'v2' } 
+      }
+    ]);
+  });
+
   it("writeEndSpan", () => {
     const stream = createCodePathStream();
 
@@ -220,7 +245,7 @@ describe("codePathStream", () => {
 
     const takeEntriesTags = stream.takeEntries().map(e => e.tags);
 
-    console.log(takeEntriesTags)
+    //console.log(takeEntriesTags)
 
     expect(takeEntriesTags).toMatchObject([ 
       {},

@@ -1,7 +1,12 @@
 import { createMulticastDelegate } from "./multicastDelegate";
 
 export function createCodePathModel() {
-  const subscribers = createMulticastDelegate("CodePathModel.EntriesPublished");
+  const insertNodesCallbacks = createMulticastDelegate(
+    "CodePathModel.insertNodes"
+  );
+  const updateNodesCallbacks = createMulticastDelegate(
+    "CodePathModel.updateNodes"
+  );
 
   let traceNodeMap = undefined;
   let rootNode = undefined;
@@ -35,17 +40,47 @@ export function createCodePathModel() {
     return rootNode;
   };
 
-  const insertNode = entry => {
+  const handleInsertNodeEntry = (entry, insertQueue, updateQueue) => {
     const { traceId, spanId } = entry;
     const parent = findParentNode(entry);
     const newNode = createRegularNode(nextNodeId++, parent, entry);
 
     appendChildNodeToParent(newNode, parent);
     if (entry.token === "StartSpan") {
+      newNode.metrics = { duration: undefined };
       traceNodeMap.setSpanNode(traceId, spanId, newNode);
     }
 
-    return newNode;
+    insertQueue.push(newNode);
+  };
+
+  const handleSpanTagsEntry = (entry, insertQueue, updateQueue) => {};
+
+  const handleEndSpanEntry = (entry, insertQueue, updateQueue) => {
+    const node = traceNodeMap.getSpanNode(entry.traceId, entry.spanId);
+    if (node) {
+      node.metrics.duration = entry.time - node.entry.time;
+      updateQueue.push(node);
+    }
+  };
+
+  const handleStartTracerEntry = (entry, insertQueue, updateQueue) => {};
+
+  const entryHandlerByToken = {
+    StartTracer: handleStartTracerEntry,
+    StartSpan: handleInsertNodeEntry,
+    Log: handleInsertNodeEntry,
+    SpanTags: handleSpanTagsEntry,
+    EndSpan: handleEndSpanEntry
+  };
+
+  const handleEntry = (entry, insertQueue, updateQueue) => {
+    const handler = entryHandlerByToken[entry.token];
+    if (handler) {
+      handler(entry, insertQueue, updateQueue);
+    } else {
+      console.error(`Unknown entry token [${entry.token}]`);
+    }
   };
 
   initializeModel();
@@ -64,19 +99,33 @@ export function createCodePathModel() {
       walkNodesDepthFirst(rootNode, callback);
     },
     publish(entries) {
-      const insertedNodes = entries
-        .filter(
-          entry => entry.token !== "EndSpan" && entry.token !== "StartTracer"
-        )
-        .map(insertNode);
-
-      subscribers.invoke(insertedNodes);
+      const insertQueue = [];
+      const updateQueue = [];
+      entries.forEach(entry => {
+        handleEntry(entry, insertQueue, updateQueue);
+      });
+      if (insertQueue.length > 0) {
+        insertNodesCallbacks.invoke(insertQueue);
+      }
+      if (updateQueue.length > 0) {
+        updateNodesCallbacks.invoke(updateQueue);
+      }
     },
-    subscribe(callback) {
-      subscribers.add(callback);
+    subscribe(subscriber) {
+      if (subscriber.insertNodes) {
+        insertNodesCallbacks.add(subscriber.insertNodes);
+      }
+      if (subscriber.updateNodes) {
+        updateNodesCallbacks.add(subscriber.updateNodes);
+      }
     },
-    unsubscribe(callback) {
-      subscribers.remove(callback);
+    unsubscribe(subscriber) {
+      if (subscriber.insertNodes) {
+        insertNodesCallbacks.remove(subscriber.insertNodes);
+      }
+      if (subscriber.updateNodes) {
+        updateNodesCallbacks.remove(subscriber.updateNodes);
+      }
     },
     // deleteRow(id) {
     // },
@@ -91,25 +140,33 @@ export function createRootNode() {
     id: 0,
     entry: undefined,
     parent: undefined,
+    top: undefined,
     depth: -1,
     firstChild: undefined,
     lastChild: undefined,
     prevSibling: undefined,
-    nextSibling: undefined
+    nextSibling: undefined,
+    metrics: undefined
   };
 }
 
 export function createRegularNode(id, parent, entry) {
-  return {
+  const node = {
     id,
     entry,
     parent,
     depth: parent.depth + 1,
+    top: parent.top,
     firstChild: undefined,
     lastChild: undefined,
     prevSibling: undefined,
-    nextSibling: undefined
+    nextSibling: undefined,
+    metrics: undefined
   };
+  if (!node.top) {
+    node.top = node;
+  }
+  return node;
 }
 
 export function appendChildNodeToParent(newChild, parent) {

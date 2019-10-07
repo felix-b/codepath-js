@@ -5,17 +5,40 @@ describe('CodePathModel', () => {
   let model;
   let subscriber;
 
-  const expectSubscriberCalls = (...invocationsToMatch) => {
-    expect(subscriber).toHaveBeenCalledTimes(invocationsToMatch.length);
+  const expectCalls = (func, ...invocationsToMatch) => {
+    expect(func).toHaveBeenCalledTimes(invocationsToMatch.length);
 
     for (let i = 0 ; i < invocationsToMatch.length ; i++) {
-      const actualNode = subscriber.mock.calls[i][0];
-      expect(actualNode).toMatchObject(invocationsToMatch[i]);
+      const expectedCall = invocationsToMatch[i];
+      const actualCall = func.mock.calls[i];
+
+      for (let j = 0 ; j < expectedCall.length ; j++) {
+        const expectedArgument = expectedCall[j];
+        const actualArgument = actualCall[j];
+        if (typeof(expectedArgument) === 'object') {
+          expect(actualArgument).toMatchObject(expectedArgument);
+        } else {
+          expect(actualArgument).toBe(expectedArgument);
+        }
+      }
+
+      expect(actualCall.length).toBe(expectedCall.length);
     }
+
+    expect(func.mock.calls.length).toBe(invocationsToMatch.length);
   }
+
+  const resetSubscriberCalls = () => {
+    subscriber.insertNodes.mockClear();
+    subscriber.updateNodes.mockClear();
+  };
+
   
   beforeEach(() => {
-    subscriber = jest.fn();
+    subscriber = {
+      insertNodes: jest.fn(),
+      updateNodes: jest.fn()
+    };
     model = createCodePathModel();
     model.subscribe(subscriber);
   });
@@ -27,9 +50,9 @@ describe('CodePathModel', () => {
 
     model.publish(entries);
 
-    expectSubscriberCalls([
+    expectCalls(subscriber.insertNodes, [[
       { id: 1, entry: entries[0] }
-    ]);
+    ]]);
   });
 
   it('can start second root span', () => {
@@ -40,10 +63,10 @@ describe('CodePathModel', () => {
 
     model.publish(entries);
 
-    expectSubscriberCalls([
+    expectCalls(subscriber.insertNodes, [[
       { id: 1, entry: entries[0] },
       { id: 2, entry: entries[1] }
-    ]);
+    ]]);
   });
 
   it('can start nested span', () => {
@@ -56,10 +79,10 @@ describe('CodePathModel', () => {
 
     model.publish(entries);
 
-    expectSubscriberCalls([
+    expectCalls(subscriber.insertNodes, [[
       { id: 1, entry: entries[0] },
       { id: 2, entry: entries[1], parent: { id: 1 } }
-    ]);
+    ]]);
   });
 
   it('can record log under span', () => {
@@ -70,10 +93,10 @@ describe('CodePathModel', () => {
 
     model.publish(entries);
 
-    expectSubscriberCalls([
+    expectCalls(subscriber.insertNodes, [[
       { id: 1, entry: entries[0] },
       { id: 2, entry: entries[1], parent: { id: 1 } }
-    ]);
+    ]]);
   });
 
   it('can record log under nested span', () => {
@@ -87,11 +110,11 @@ describe('CodePathModel', () => {
 
     model.publish(entries);
 
-    expectSubscriberCalls([
+    expectCalls(subscriber.insertNodes, [[
       { id: 1, entry: entries[0] },
       { id: 2, entry: entries[1], parent: { id: 1 } },
       { id: 3, entry: entries[2], parent: { id: 2 } }
-    ]);
+    ]]);
   });
 
   it('can finish root span', () => {
@@ -103,10 +126,10 @@ describe('CodePathModel', () => {
 
     model.publish(entries);
 
-    expectSubscriberCalls([
+    expectCalls(subscriber.insertNodes, [[
       { id: 1, entry: entries[0] },
       { id: 2, entry: entries[1], parent: { id: 1 } }
-    ]);
+    ]]);
   });
 
   it('can structure nodes in a tree', () => {
@@ -125,7 +148,7 @@ describe('CodePathModel', () => {
 
     model.publish(entries);
 
-    expectSubscriberCalls([
+    expectCalls(subscriber.insertNodes, [[
       { 
         id: 1, 
         parent: { id: 0 },
@@ -180,7 +203,7 @@ describe('CodePathModel', () => {
         prevSibling: { entry: { messageId: 'm3' } },
         nextSibling: undefined,
       },
-    ]);
+    ]]);
   });
 
   it('can tolerate missing parent nodes', () => {
@@ -194,7 +217,7 @@ describe('CodePathModel', () => {
 
     model.publish(entries);
 
-    expectSubscriberCalls([
+    expectCalls(subscriber.insertNodes, [[
       { 
         id: 1, 
         entry: { messageId: 'm4' }, 
@@ -222,7 +245,7 @@ describe('CodePathModel', () => {
         prevSibling: { entry: { messageId: 'm5' } },
         nextSibling: undefined,
       },
-    ]);
+    ]]);
   });
 
   it('can walk nodes depth-first', () => {
@@ -253,6 +276,84 @@ describe('CodePathModel', () => {
     expect(walkList).toEqual([
       'S1','M11','S2','M21','S3','M31','M32','M22','M12','S4'
     ]);
+  });
+
+  it('can update duration on span finish', () => {
+    const entries = [
+      { time: 100, token: 'StartSpan', messageId: 'S1', traceId: 'T1', spanId: 101 },
+      { time: 200, token: 'Log', messageId: 'M1', traceId: 'T1', spanId: 101 },
+    ];
+
+    model.publish(entries);
+
+    expectCalls(subscriber.insertNodes, [[
+      { id: 1, entry: entries[0], metrics: { duration: undefined } },
+      { id: 2, entry: entries[1], parent: { id: 1 } }
+    ]]);
+    expect(subscriber.updateNodes).not.toBeCalled();
+
+    resetSubscriberCalls();
+
+    model.publish([
+      { time: 350, token: 'EndSpan', traceId: 'T1', spanId: 101 },
+    ]);
+
+    expect(subscriber.insertNodes).not.toBeCalled();
+    expectCalls(subscriber.updateNodes, [[
+      { id: 1, entry: entries[0], metrics: { duration: 250 } },
+    ]]);
+
+  });
+
+  it('can include reference to top span node', () => {
+    const entries = [
+      { token: 'StartSpan', messageId: 'm1', traceId: 'T1', spanId: 101 },
+      { token: 'Log', messageId: 'm2', traceId: 'T1', spanId: 101 },
+      { token: 'StartSpan', messageId: 'm3', traceId: 'T1', spanId: 102, childOf: {
+        traceId: 'T1', spanId: 101
+      } },
+      { token: 'Log', messageId: 'm4', traceId: 'T1', spanId: 102 },
+      { token: 'EndSpan', traceId: 'T1', spanId: 102 },
+      { token: 'Log', messageId: 'm5', traceId: 'T1', spanId: 101 },
+      { token: 'EndSpan', traceId: 'T1', spanId: 101 },
+      { token: 'StartSpan', messageId: 'm6', traceId: 'T1', spanId: 103 },
+      { token: 'Log', messageId: 'm7', traceId: 'T1', spanId: 103 },
+    ];
+
+    model.publish(entries);
+
+    expectCalls(subscriber.insertNodes, [[
+      { 
+        id: 1,
+        entry: { messageId: 'm1' }, 
+        top: { id: 1 }
+      },
+      { 
+        entry: { messageId: 'm2' }, 
+        top: { id: 1 }
+      },
+      { 
+        entry: { messageId: 'm3' }, 
+        top: { id: 1 }
+      },
+      { 
+        entry: { messageId: 'm4' }, 
+        top: { id: 1 }
+      },
+      { 
+        entry: { messageId: 'm5' }, 
+        top: { id: 1 }
+      },
+      { 
+        id: 6,
+        entry: { messageId: 'm6' }, 
+        top: { id: 6 }
+      },
+      { 
+        entry: { messageId: 'm7' }, 
+        top: { id: 6 }
+      },
+    ]]);
   });
 
 });

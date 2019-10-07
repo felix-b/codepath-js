@@ -1,4 +1,4 @@
-export { createCodePath, createRealLowResolutionClock } from "./codePath";
+export { createCodePath, createRealClock } from "./codePath";
 export {
   createDefaultScopeManager,
   trace,

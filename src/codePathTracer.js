@@ -107,7 +107,8 @@ class CodePathSpan extends Span {
         childOf: contextToPlain(childOf),
         followsFrom: contextToPlain(followsFrom)
       },
-      options.tags
+      options.tags,
+      childOf || followsFrom ? undefined : clock.epoch()
     );
 
     // this._operationName = name;

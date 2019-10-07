@@ -12,6 +12,10 @@ define(function (require) {
     rowClass: []
   };
 
+  const timeFormat = new Intl.DateTimeFormat('en-US', { 
+    hour12: false, hour: 'numeric', minute: 'numeric', second: 'numeric' 
+  }); 
+
   return {
     configure(newConfiguration) {
       configuration = newConfiguration;
@@ -77,6 +81,24 @@ define(function (require) {
 
     return columns;
 
+    function renderDataSpan(text, classNames, child) {
+      const span = document.createElement('span');
+      span.classList.add('data');
+      if (classNames) {
+        span.classList.add(classNames);
+      }
+      const textNode = document.createTextNode(text);
+      span.appendChild(textNode);
+      if (child) {
+        span.appendChild(child);
+      }
+      return span;
+    }
+
+    function pad(num, size) {
+      return (1e15 + num + '').slice(-size); 
+    }
+
     function createMessageColumn() {
       return {
         renderCell(node, controller, rowIndex) {
@@ -98,10 +120,7 @@ define(function (require) {
             return span;
           };
           const renderText = () => {
-            const span = document.createElement('span');
-            span.classList.add('data');
-            span.innerHTML = `${node.entry.messageId}`;  
-            return span;
+            return renderDataSpan(`${node.entry.messageId}`);
           };
           return [
             ...renderIndents(node.firstChild ? node.depth : node.depth + 1),
@@ -114,8 +133,23 @@ define(function (require) {
 
     function createTimeColumn() {
       return {
+        getTdClass(node, controller, trIndex) {
+          if (!node.entry.epoch) {
+            return 'align-right';
+          }
+        },
         renderCell(node, controller, trIndex) {
-          return [`${node.entry.time}`];
+          if (node.entry.epoch) {
+            const decodedTime = new Date(node.entry.epoch);
+            return [renderDataSpan(`${timeFormat.format(decodedTime)}.${pad(decodedTime.getMilliseconds(), 3)}`)];
+          } else {
+            const deltaTime = node.entry.time - node.top.entry.time;
+            return [
+              renderDataSpan('+', undefined, 
+                renderDataSpan(deltaTime.toFixed(3), 'time-offset')
+              )
+            ];
+          }
         }
       };
     }

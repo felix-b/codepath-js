@@ -1609,12 +1609,12 @@ exports.default = Tracer;
 /*!*************************!*\
   !*** ./src/codePath.js ***!
   \*************************/
-/*! exports provided: createRealLowResolutionClock, noopTracerFactory, defaultTracerFactory, GlobalCodePath, createCodePath */
+/*! exports provided: createRealClock, noopTracerFactory, defaultTracerFactory, GlobalCodePath, createCodePath */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createRealLowResolutionClock", function() { return createRealLowResolutionClock; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createRealClock", function() { return createRealClock; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "noopTracerFactory", function() { return noopTracerFactory; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultTracerFactory", function() { return defaultTracerFactory; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GlobalCodePath", function() { return GlobalCodePath; });
@@ -1634,9 +1634,12 @@ function ownKeys(object, enumerableOnly) {var keys = Object.keys(object);if (Obj
 
 
 
-var createRealLowResolutionClock = function createRealLowResolutionClock() {
+var createRealClock = function createRealClock() {
   return {
     now: function now() {
+      return performance.now();
+    },
+    epoch: function epoch() {
       return new Date().getTime();
     },
     setInterval: function (_setInterval) {function setInterval(_x, _x2) {return _setInterval.apply(this, arguments);}setInterval.toString = function () {return _setInterval.toString();};return setInterval;}(function (func, delay) {
@@ -1694,7 +1697,7 @@ var GlobalCodePath = {
 
 
 function createCodePath(options) {
-  var clock = options && options.clock || createRealLowResolutionClock();
+  var clock = options && options.clock || createRealClock();
   var scopeManager =
   options && options.scopeManager || Object(_codePathScopeManager__WEBPACK_IMPORTED_MODULE_4__["createDefaultScopeManager"])();
   var tracerFactory =
@@ -1851,7 +1854,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function createCodePathModel() {
-  var subscribers = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_0__["createMulticastDelegate"])("CodePathModel.EntriesPublished");
+  var insertNodesCallbacks = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_0__["createMulticastDelegate"])(
+  "CodePathModel.insertNodes");
+
+  var updateNodesCallbacks = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_0__["createMulticastDelegate"])(
+  "CodePathModel.updateNodes");
+
 
   var traceNodeMap = undefined;
   var rootNode = undefined;
@@ -1885,17 +1893,47 @@ function createCodePathModel() {
     return rootNode;
   };
 
-  var insertNode = function insertNode(entry) {var
+  var handleInsertNodeEntry = function handleInsertNodeEntry(entry, insertQueue, updateQueue) {var
     traceId = entry.traceId,spanId = entry.spanId;
     var parent = findParentNode(entry);
     var newNode = createRegularNode(nextNodeId++, parent, entry);
 
     appendChildNodeToParent(newNode, parent);
     if (entry.token === "StartSpan") {
+      newNode.metrics = { duration: undefined };
       traceNodeMap.setSpanNode(traceId, spanId, newNode);
     }
 
-    return newNode;
+    insertQueue.push(newNode);
+  };
+
+  var handleSpanTagsEntry = function handleSpanTagsEntry(entry, insertQueue, updateQueue) {};
+
+  var handleEndSpanEntry = function handleEndSpanEntry(entry, insertQueue, updateQueue) {
+    var node = traceNodeMap.getSpanNode(entry.traceId, entry.spanId);
+    if (node) {
+      node.metrics.duration = entry.time - node.entry.time;
+      updateQueue.push(node);
+    }
+  };
+
+  var handleStartTracerEntry = function handleStartTracerEntry(entry, insertQueue, updateQueue) {};
+
+  var entryHandlerByToken = {
+    StartTracer: handleStartTracerEntry,
+    StartSpan: handleInsertNodeEntry,
+    Log: handleInsertNodeEntry,
+    SpanTags: handleSpanTagsEntry,
+    EndSpan: handleEndSpanEntry };
+
+
+  var handleEntry = function handleEntry(entry, insertQueue, updateQueue) {
+    var handler = entryHandlerByToken[entry.token];
+    if (handler) {
+      handler(entry, insertQueue, updateQueue);
+    } else {
+      console.error("Unknown entry token [".concat(entry.token, "]"));
+    }
   };
 
   initializeModel();
@@ -1914,19 +1952,33 @@ function createCodePathModel() {
       _walkNodesDepthFirst(rootNode, callback);
     },
     publish: function publish(entries) {
-      var insertedNodes = entries.
-      filter(
-      function (entry) {return entry.token !== "EndSpan" && entry.token !== "StartTracer";}).
-
-      map(insertNode);
-
-      subscribers.invoke(insertedNodes);
+      var insertQueue = [];
+      var updateQueue = [];
+      entries.forEach(function (entry) {
+        handleEntry(entry, insertQueue, updateQueue);
+      });
+      if (insertQueue.length > 0) {
+        insertNodesCallbacks.invoke(insertQueue);
+      }
+      if (updateQueue.length > 0) {
+        updateNodesCallbacks.invoke(updateQueue);
+      }
     },
-    subscribe: function subscribe(callback) {
-      subscribers.add(callback);
+    subscribe: function subscribe(subscriber) {
+      if (subscriber.insertNodes) {
+        insertNodesCallbacks.add(subscriber.insertNodes);
+      }
+      if (subscriber.updateNodes) {
+        updateNodesCallbacks.add(subscriber.updateNodes);
+      }
     },
-    unsubscribe: function unsubscribe(callback) {
-      subscribers.remove(callback);
+    unsubscribe: function unsubscribe(subscriber) {
+      if (subscriber.insertNodes) {
+        insertNodesCallbacks.remove(subscriber.insertNodes);
+      }
+      if (subscriber.updateNodes) {
+        updateNodesCallbacks.remove(subscriber.updateNodes);
+      }
     },
     // deleteRow(id) {
     // },
@@ -1941,25 +1993,33 @@ function createRootNode() {
     id: 0,
     entry: undefined,
     parent: undefined,
+    top: undefined,
     depth: -1,
     firstChild: undefined,
     lastChild: undefined,
     prevSibling: undefined,
-    nextSibling: undefined };
+    nextSibling: undefined,
+    metrics: undefined };
 
 }
 
 function createRegularNode(id, parent, entry) {
-  return {
+  var node = {
     id: id,
     entry: entry,
     parent: parent,
     depth: parent.depth + 1,
+    top: parent.top,
     firstChild: undefined,
     lastChild: undefined,
     prevSibling: undefined,
-    nextSibling: undefined };
+    nextSibling: undefined,
+    metrics: undefined };
 
+  if (!node.top) {
+    node.top = node;
+  }
+  return node;
 }
 
 function appendChildNodeToParent(newChild, parent) {
@@ -2176,8 +2236,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function createCodePathSearchModel(sourceModel, predicate) {
-  var subscribers = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_1__["createMulticastDelegate"])(
-  "CodePathSearchModel.EntriesPublished");
+  var insertNodesCallbacks = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_1__["createMulticastDelegate"])(
+  "CodePathSearchModel.insertNodes");
+
+  var updateNodesCallbacks = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_1__["createMulticastDelegate"])(
+  "CodePathSearchModel.updateNodes");
 
 
   var resultNodeById = {};
@@ -2189,6 +2252,11 @@ function createCodePathSearchModel(sourceModel, predicate) {
     newlyCreatedResultNodes = undefined;
     resultRootNode = performSearch();
   };
+
+  var sourceModelSubscriber = {
+    insertNodes: handleInsertedSourceNodes,
+    updateNodes: handleUpdatedSourceNodes };
+
 
   sourceModel.subscribe(sourceModelSubscriber);
   initializeFromSourceModel();
@@ -2236,13 +2304,13 @@ function createCodePathSearchModel(sourceModel, predicate) {
       }
     },
     subscribe: function subscribe(callback) {
-      subscribers.add(callback);
+      insertNodesCallbacks.add(callback);
     },
     unsubscribe: function unsubscribe(callback) {
-      subscribers.remove(callback);
+      insertNodesCallbacks.remove(callback);
     },
     unsubscribeFromSource: function unsubscribeFromSource() {
-      sourceModel.unsubscribe(sourceModelSubscriber);
+      sourceModel.unsubscribe(handleInsertedSourceNodes);
     },
     clearAll: function clearAll() {
       sourceModel.clearAll();
@@ -2316,7 +2384,7 @@ function createCodePathSearchModel(sourceModel, predicate) {
 
   }
 
-  function sourceModelSubscriber(insertedNodes) {
+  function handleInsertedSourceNodes(insertedNodes) {
     newlyCreatedResultNodes = [];
     var matchingNodes = insertedNodes.filter(predicate);
 
@@ -2328,10 +2396,12 @@ function createCodePathSearchModel(sourceModel, predicate) {
     });
 
     if (newlyCreatedResultNodes.length > 0) {
-      subscribers.invoke(newlyCreatedResultNodes);
+      insertNodesCallbacks.invoke(newlyCreatedResultNodes);
     }
     newlyCreatedResultNodes = undefined;
   }
+
+  function handleUpdatedSourceNodes(updatedNodes) {}
 }
 
 /***/ }),
@@ -2368,13 +2438,14 @@ function createCodePathStream(options) {
         tags: tags || {} });
 
     },
-    writeStartSpan: function writeStartSpan(time, traceId, spanId, messageId, references, tags) {
+    writeStartSpan: function writeStartSpan(time, traceId, spanId, messageId, references, tags, epoch) {
       if (!isEnabled) {
         return;
       }var
       childOf = references.childOf,followsFrom = references.followsFrom;
       entries.push({
         time: time,
+        epoch: epoch,
         token: "StartSpan",
         traceId: traceId,
         spanId: spanId,
@@ -2600,7 +2671,8 @@ CodePathSpan = /*#__PURE__*/function (_Span) {_babel_runtime_helpers_inherits__W
       childOf: contextToPlain(childOf),
       followsFrom: contextToPlain(followsFrom) },
 
-    options.tags);
+    options.tags,
+    childOf || followsFrom ? undefined : clock.epoch());
 
 
     // this._operationName = name;
@@ -2808,7 +2880,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function createDebounce(consumer, interval, optionalClock) {
-  var clock = optionalClock || Object(_codePath__WEBPACK_IMPORTED_MODULE_0__["createRealLowResolutionClock"])();
+  var clock = optionalClock || Object(_codePath__WEBPACK_IMPORTED_MODULE_0__["createRealClock"])();
   var timeoutId = undefined;
 
   return {
@@ -2957,7 +3029,7 @@ function createSetEnabled(component, globalVars) {
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
-/*! exports provided: createCodePath, createRealLowResolutionClock, createDefaultScopeManager, trace, resetCurrentScope, createCodePathStream, createCodePathTracer, contextToPlain, plainToContext, createCodePathModel, walkNodesDepthFirst, walkImmediateSubNodes, createCodePathSearchModel, createTreeGridController, createTreeGridView, createMulticastDelegate, createDebounce, createResizer, createDebugLog, enableDebugLog */
+/*! exports provided: createCodePath, createRealClock, createDefaultScopeManager, trace, resetCurrentScope, createCodePathStream, createCodePathTracer, contextToPlain, plainToContext, createCodePathModel, walkNodesDepthFirst, walkImmediateSubNodes, createCodePathSearchModel, createTreeGridController, createTreeGridView, createMulticastDelegate, createDebounce, createResizer, createDebugLog, enableDebugLog */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2965,7 +3037,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _codePath__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./codePath */ "./src/codePath.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createCodePath", function() { return _codePath__WEBPACK_IMPORTED_MODULE_0__["createCodePath"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createRealLowResolutionClock", function() { return _codePath__WEBPACK_IMPORTED_MODULE_0__["createRealLowResolutionClock"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createRealClock", function() { return _codePath__WEBPACK_IMPORTED_MODULE_0__["createRealClock"]; });
 
 /* harmony import */ var _codePathScopeManager__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./codePathScopeManager */ "./src/codePathScopeManager.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createDefaultScopeManager", function() { return _codePathScopeManager__WEBPACK_IMPORTED_MODULE_1__["createDefaultScopeManager"]; });
@@ -3198,6 +3270,11 @@ function createTreeGridController(view, model) {
 
   //setInterval(() => console.log(rowById), 1000);
 
+  var subscriber = {
+    insertNodes: handleInsertedNodes,
+    updateNodes: handleUpdatedNodes };
+
+
   var controller = {
     getNodeById: function getNodeById(id) {
       var row = rowById[id];
@@ -3257,7 +3334,7 @@ function createTreeGridController(view, model) {
     masterIndexVersion = 1;
     initRootNode();
     view.clearAll();
-    subscriber(model.getTopLevelNodes());
+    subscriber.insertNodes(model.getTopLevelNodes());
     model.subscribe(subscriber);
   }
 
@@ -3426,7 +3503,7 @@ function createTreeGridController(view, model) {
 
   }
 
-  function subscriber(insertedNodes) {
+  function handleInsertedNodes(insertedNodes) {
     var currentGroup = undefined;
 
     for (var i = 0; i < insertedNodes.length; i++) {
@@ -3459,6 +3536,16 @@ function createTreeGridController(view, model) {
         }
       }
     }
+  }
+
+  function handleUpdatedNodes(updatedNodes) {
+    updateNodes.forEach(function (node) {
+      var row = rowById[node.id];
+      if (row) {
+        var index = row.findAbsoluteIndex();
+        view.updateNode(index, node);
+      }
+    });
   }
 
   function initRootNode() {
@@ -3496,7 +3583,11 @@ function createTreeGridView(table, columns, rows) {
   };
 
   var renderCell = function renderCell(node, rowIndex, colIndex, tr, td) {
-    var tdContents = columns[colIndex].renderCell(node, controller, rowIndex);
+    var column = columns[colIndex];
+    var tdClass =
+    column.getTdClass && column.getTdClass(node, controller, rowIndex);
+    tdClass && td.classList.add(tdClass);
+    var tdContents = column.renderCell(node, controller, rowIndex);
     tdContents.
     filter(function (htmlNode) {return !!htmlNode;}).
     map(stringToTextNode).

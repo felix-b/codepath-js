@@ -10,9 +10,12 @@ import { createCodePathStream } from "./codePathStream";
 import { createDefaultScopeManager } from "./codePathScopeManager";
 import { LOG_LEVEL } from "./logLevel";
 
-export const createRealLowResolutionClock = () => {
+export const createRealClock = () => {
   return {
     now() {
+      return performance.now();
+    },
+    epoch() {
       return new Date().getTime();
     },
     setInterval(func, delay) {
@@ -70,7 +73,7 @@ export const GlobalCodePath = {
 };
 
 export function createCodePath(options) {
-  const clock = (options && options.clock) || createRealLowResolutionClock();
+  const clock = (options && options.clock) || createRealClock();
   const scopeManager =
     (options && options.scopeManager) || createDefaultScopeManager();
   const tracerFactory =

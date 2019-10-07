@@ -1,5 +1,6 @@
-export function createTestClock(initialTime) {
+export function createTestClock(initialTime, initialEpoch) {
   let time = initialTime || 0;
+  let epoch = initialEpoch || 1000000;
   let timerById = {};
   let nextTimerId = 1001;
 
@@ -36,6 +37,9 @@ export function createTestClock(initialTime) {
     now() {
       return time;
     },
+    epoch() {
+      return epoch;
+    },
     setInterval(func, delay) {
       return addTimer(func, delay, 'interval');
     },
@@ -50,6 +54,10 @@ export function createTestClock(initialTime) {
     },
     testSetTime(newTime) {
       time = newTime;
+      return clock;
+    },
+    testSetEpoch(newEpoch) {
+      epoch = newEpoch;
       return clock;
     },
     testExecuteTimers() {

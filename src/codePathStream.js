@@ -16,13 +16,14 @@ export function createCodePathStream(options) {
         tags: tags || {}
       });
     },
-    writeStartSpan(time, traceId, spanId, messageId, references, tags) {
+    writeStartSpan(time, traceId, spanId, messageId, references, tags, epoch) {
       if (!isEnabled) {
         return;
       }
       const { childOf, followsFrom } = references;
       entries.push({
         time,
+        epoch,
         token: "StartSpan",
         traceId,
         spanId,

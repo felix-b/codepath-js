@@ -1,7 +1,7 @@
-import { createRealLowResolutionClock } from "./codePath";
+import { createRealClock } from "./codePath";
 
 export function createDebounce(consumer, interval, optionalClock) {
-  const clock = optionalClock || createRealLowResolutionClock();
+  const clock = optionalClock || createRealClock();
   let timeoutId = undefined;
 
   return {

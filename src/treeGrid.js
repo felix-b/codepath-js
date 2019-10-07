@@ -7,6 +7,11 @@ export function createTreeGridController(view, model) {
 
   //setInterval(() => console.log(rowById), 1000);
 
+  const subscriber = {
+    insertNodes: handleInsertedNodes,
+    updateNodes: handleUpdatedNodes
+  };
+
   const controller = {
     getNodeById(id) {
       const row = rowById[id];
@@ -66,7 +71,7 @@ export function createTreeGridController(view, model) {
     masterIndexVersion = 1;
     initRootNode();
     view.clearAll();
-    subscriber(model.getTopLevelNodes());
+    subscriber.insertNodes(model.getTopLevelNodes());
     model.subscribe(subscriber);
   }
 
@@ -235,7 +240,7 @@ export function createTreeGridController(view, model) {
     };
   }
 
-  function subscriber(insertedNodes) {
+  function handleInsertedNodes(insertedNodes) {
     let currentGroup = undefined;
 
     for (let i = 0; i < insertedNodes.length; i++) {
@@ -268,6 +273,16 @@ export function createTreeGridController(view, model) {
         }
       }
     }
+  }
+
+  function handleUpdatedNodes(updatedNodes) {
+    updateNodes.forEach(node => {
+      const row = rowById[node.id];
+      if (row) {
+        const index = row.findAbsoluteIndex();
+        view.updateNode(index, node);
+      }
+    });
   }
 
   function initRootNode() {
@@ -305,7 +320,11 @@ export function createTreeGridView(table, columns, rows) {
   };
 
   const renderCell = (node, rowIndex, colIndex, tr, td) => {
-    const tdContents = columns[colIndex].renderCell(node, controller, rowIndex);
+    const column = columns[colIndex];
+    const tdClass =
+      column.getTdClass && column.getTdClass(node, controller, rowIndex);
+    tdClass && td.classList.add(tdClass);
+    const tdContents = column.renderCell(node, controller, rowIndex);
     tdContents
       .filter(htmlNode => !!htmlNode)
       .map(stringToTextNode)

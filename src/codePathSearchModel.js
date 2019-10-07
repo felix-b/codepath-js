@@ -10,8 +10,11 @@ import {
 import { createMulticastDelegate } from "./multicastDelegate";
 
 export function createCodePathSearchModel(sourceModel, predicate) {
-  const subscribers = createMulticastDelegate(
-    "CodePathSearchModel.EntriesPublished"
+  const insertNodesCallbacks = createMulticastDelegate(
+    "CodePathSearchModel.insertNodes"
+  );
+  const updateNodesCallbacks = createMulticastDelegate(
+    "CodePathSearchModel.updateNodes"
   );
 
   let resultNodeById = {};
@@ -22,6 +25,11 @@ export function createCodePathSearchModel(sourceModel, predicate) {
     resultNodeById = {};
     newlyCreatedResultNodes = undefined;
     resultRootNode = performSearch();
+  };
+
+  const sourceModelSubscriber = {
+    insertNodes: handleInsertedSourceNodes,
+    updateNodes: handleUpdatedSourceNodes
   };
 
   sourceModel.subscribe(sourceModelSubscriber);
@@ -70,13 +78,13 @@ export function createCodePathSearchModel(sourceModel, predicate) {
       }
     },
     subscribe(callback) {
-      subscribers.add(callback);
+      insertNodesCallbacks.add(callback);
     },
     unsubscribe(callback) {
-      subscribers.remove(callback);
+      insertNodesCallbacks.remove(callback);
     },
     unsubscribeFromSource() {
-      sourceModel.unsubscribe(sourceModelSubscriber);
+      sourceModel.unsubscribe(handleInsertedSourceNodes);
     },
     clearAll() {
       sourceModel.clearAll();
@@ -150,7 +158,7 @@ export function createCodePathSearchModel(sourceModel, predicate) {
     );
   }
 
-  function sourceModelSubscriber(insertedNodes) {
+  function handleInsertedSourceNodes(insertedNodes) {
     newlyCreatedResultNodes = [];
     const matchingNodes = insertedNodes.filter(predicate);
 
@@ -162,8 +170,10 @@ export function createCodePathSearchModel(sourceModel, predicate) {
     });
 
     if (newlyCreatedResultNodes.length > 0) {
-      subscribers.invoke(newlyCreatedResultNodes);
+      insertNodesCallbacks.invoke(newlyCreatedResultNodes);
     }
     newlyCreatedResultNodes = undefined;
   }
+
+  function handleUpdatedSourceNodes(updatedNodes) {}
 }

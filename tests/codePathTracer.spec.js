@@ -1,13 +1,20 @@
 import { createCodePathTracer, createCodePathStream } from '../src';
 
-const createClock = (initialTime = 0) => {
+const createClock = (initialTime = 0, initialEpoch = 1000000) => {
   let time = initialTime;
+  let epoch = initialEpoch;
   return {
     now() {
       return time;
     },
+    epoch() {
+      return epoch;
+    },
     setTime(newTime) {
       time = newTime;
+    },
+    setEpoch(newEpoch) {
+      epoch = newEpoch;
     }
   }
 }
@@ -44,6 +51,7 @@ describe('CodePathTracer', () => {
     ]);
     expect(stream.peekEntries()[1]).toEqual({ 
       time: 123, 
+      epoch: 1000000,
       token: 'StartSpan', 
       traceId: 'T#1', 
       spanId: 1, 
@@ -142,6 +150,7 @@ describe('CodePathTracer', () => {
     ]);
     expect(stream.peekEntries()[1]).toEqual({ 
       time: 123, 
+      epoch: 1000000,
       token: 'StartSpan', 
       traceId: 'T#1', 
       spanId: 1, 
@@ -287,5 +296,6 @@ describe('CodePathTracer', () => {
       tags: { k3: 'v33' }
     });
   });
+
 
 });
