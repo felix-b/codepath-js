@@ -305,6 +305,24 @@ describe('CodePathModel', () => {
 
   });
 
+  it('can count metrics inside span', () => {
+    const entries = [
+      { time: 100, token: 'StartSpan', messageId: 'S1', traceId: 'T1', spanId: 101, metrics: { z: 30 } },
+      { time: 200, token: 'Log', messageId: 'M1', traceId: 'T1', spanId: 101, metrics: { x: 10, y: 20 } },
+      { time: 300, token: 'Log', messageId: 'M2', traceId: 'T1', spanId: 101, metrics: { y: 2, z: 3 } },
+    ];
+
+    model.publish(entries);
+
+    expectCalls(subscriber.insertNodes, [[
+      { id: 1, entry: entries[0], metrics: { duration: undefined } },
+      { id: 2, entry: entries[1], parent: { id: 1 } },
+      { id: 3, entry: entries[2], parent: { id: 1 } }
+    ]]);
+
+        
+  });
+
   it('can include reference to top span node', () => {
     const entries = [
       { token: 'StartSpan', messageId: 'm1', traceId: 'T1', spanId: 101 },

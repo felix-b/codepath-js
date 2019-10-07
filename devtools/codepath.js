@@ -3539,7 +3539,7 @@ function createTreeGridController(view, model) {
   }
 
   function handleUpdatedNodes(updatedNodes) {
-    updateNodes.forEach(function (node) {
+    updatedNodes.forEach(function (node) {
       var row = rowById[node.id];
       if (row) {
         var index = row.findAbsoluteIndex();
@@ -3588,7 +3588,8 @@ function createTreeGridView(table, columns, rows) {
     column.getTdClass && column.getTdClass(node, controller, rowIndex);
     tdClass && td.classList.add(tdClass);
     var tdContents = column.renderCell(node, controller, rowIndex);
-    tdContents && tdContents.
+    tdContents &&
+    tdContents.
     filter(function (htmlNode) {return !!htmlNode;}).
     map(stringToTextNode).
     forEach(function (htmlNode) {return td.appendChild(htmlNode);});

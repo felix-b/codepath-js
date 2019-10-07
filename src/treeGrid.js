@@ -276,7 +276,7 @@ export function createTreeGridController(view, model) {
   }
 
   function handleUpdatedNodes(updatedNodes) {
-    updateNodes.forEach(node => {
+    updatedNodes.forEach(node => {
       const row = rowById[node.id];
       if (row) {
         const index = row.findAbsoluteIndex();

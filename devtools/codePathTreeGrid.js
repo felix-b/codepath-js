@@ -171,7 +171,7 @@ define(function (require) {
     function createDetailsColumn() {
       return {
         renderCell(node, controller, trIndex) {
-          return [`details...`];
+          //return [`details...`];
         }
       };
     }
