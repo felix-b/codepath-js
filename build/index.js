@@ -3588,7 +3588,7 @@ function createTreeGridView(table, columns, rows) {
     column.getTdClass && column.getTdClass(node, controller, rowIndex);
     tdClass && td.classList.add(tdClass);
     var tdContents = column.renderCell(node, controller, rowIndex);
-    tdContents.
+    tdContents && tdContents.
     filter(function (htmlNode) {return !!htmlNode;}).
     map(stringToTextNode).
     forEach(function (htmlNode) {return td.appendChild(htmlNode);});

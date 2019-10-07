@@ -76,6 +76,7 @@ define(function (require) {
     const columns = [
       createMessageColumn(),
       createTimeColumn(),
+      createDurationColumn(),
       createDetailsColumn()
     ];
 
@@ -149,6 +150,19 @@ define(function (require) {
                 renderDataSpan(deltaTime.toFixed(3), 'time-offset')
               )
             ];
+          }
+        }
+      };
+    }
+
+    function createDurationColumn() {
+      return {
+        getTdClass(node, controller, trIndex) {
+          return 'align-right';
+        },
+        renderCell(node, controller, trIndex) {
+          if (node.metrics && node.metrics.duration) {
+            return [renderDataSpan(node.metrics.duration.toFixed(3))];
           }
         }
       };

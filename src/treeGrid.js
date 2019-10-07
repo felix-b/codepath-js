@@ -325,10 +325,11 @@ export function createTreeGridView(table, columns, rows) {
       column.getTdClass && column.getTdClass(node, controller, rowIndex);
     tdClass && td.classList.add(tdClass);
     const tdContents = column.renderCell(node, controller, rowIndex);
-    tdContents
-      .filter(htmlNode => !!htmlNode)
-      .map(stringToTextNode)
-      .forEach(htmlNode => td.appendChild(htmlNode));
+    tdContents &&
+      tdContents
+        .filter(htmlNode => !!htmlNode)
+        .map(stringToTextNode)
+        .forEach(htmlNode => td.appendChild(htmlNode));
   };
 
   const attachController = theController => {

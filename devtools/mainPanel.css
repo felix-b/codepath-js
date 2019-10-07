@@ -164,11 +164,11 @@ body {
 #trace-grid span.data {
   display: inline-block;
   vertical-align: bottom;
-  padding: 0 2px 0 2px;
+  padding: 0 3px 0 3px;
 }
 
 #trace-grid span.data.time-offset {
-  width: 40px;
+  width: 42px;
 }
 
 #trace-grid tr.collapsed td span.toggle {

@@ -46,11 +46,21 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   CodePath.createResizer({
     gripElement: document.getElementById('time-column-resizer-right'),
     leftSideElement: document.getElementById('time-column-header'),
+    rightSideElement: document.getElementById('duration-column-header')
+  });
+  CodePath.createResizer({
+    gripElement: document.getElementById('duration-column-resizer-left'),
+    leftSideElement: document.getElementById('time-column-header'),
+    rightSideElement: document.getElementById('duration-column-header')
+  });
+  CodePath.createResizer({
+    gripElement: document.getElementById('duration-column-resizer-right'),
+    leftSideElement: document.getElementById('duration-column-header'),
     rightSideElement: document.getElementById('details-column-header')
   });
   CodePath.createResizer({
     gripElement: document.getElementById('details-column-resizer-left'),
-    leftSideElement: document.getElementById('time-column-header'),
+    leftSideElement: document.getElementById('duration-column-header'),
     rightSideElement: document.getElementById('details-column-header')
   });
 
