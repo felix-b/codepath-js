@@ -134,7 +134,8 @@ export function createCodePathSearchModel(sourceModel, predicate) {
     let resultNode = createRegularNode(
       sourceNode.id,
       resultParentNode,
-      sourceNode.entry
+      sourceNode.entry,
+      sourceModel.extractEntryMetrics
     );
     resultNodeById[resultNode.id] = resultNode;
     if (newlyCreatedResultNodes) {

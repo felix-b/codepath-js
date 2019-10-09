@@ -33,14 +33,17 @@ describe('CodePathModel', () => {
     subscriber.updateNodes.mockClear();
   };
 
-  
-  beforeEach(() => {
+  const initWithTestModel = (newModel) => {
+    model = newModel;
     subscriber = {
       insertNodes: jest.fn(),
       updateNodes: jest.fn()
     };
-    model = createCodePathModel();
     model.subscribe(subscriber);
+  };
+  
+  beforeEach(() => {
+    initWithTestModel(createCodePathModel());
   });
 
   it('can start first root span', () => {
@@ -467,6 +470,34 @@ describe('CodePathModel', () => {
         entry: { messageId: 'm7' }, 
         top: { id: 6 }
       },
+    ]]);
+  });
+
+  it('can specify metrics extractor function', () => {
+    initWithTestModel(
+      createCodePathModel({ 
+        extractEntryMetrics: entry => {
+          return {
+            bar: entry.foo
+          }
+        }
+      })
+    );
+
+    const entries = [
+      { token: 'StartSpan', messageId: 123, traceId: 'T1', spanId: 101, foo: 11 },
+      { token: 'StartSpan', messageId: 456, traceId: 'T1', spanId: 102, foo: 22, childOf: {
+        traceId: 'T1', spanId: 101
+      } },
+      { token: 'Log', messageId: 789, traceId: 'T1', spanId: 102, foo: 33 },
+    ];
+
+    model.publish(entries);
+
+    expectCalls(subscriber.insertNodes, [[
+      { id: 1, entry: entries[0], metrics: { bar: 66 } },
+      { id: 2, entry: entries[1], parent: { id: 1 }, metrics: { bar: 55 } },
+      { id: 3, entry: entries[2], parent: { id: 2 }, metrics: { bar: 33 } }
     ]]);
   });
 

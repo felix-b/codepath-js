@@ -1,12 +1,15 @@
 import { createMulticastDelegate } from "./multicastDelegate";
 
-export function createCodePathModel() {
+export function createCodePathModel(options) {
   const insertNodesCallbacks = createMulticastDelegate(
     "CodePathModel.insertNodes"
   );
   const updateNodesCallbacks = createMulticastDelegate(
     "CodePathModel.updateNodes"
   );
+  const extractEntryMetrics = options && options.extractEntryMetrics 
+    ? options.extractEntryMetrics 
+    : (entry) => entry.metrics;
 
   let traceNodeMap = undefined;
   let rootNode = undefined;
@@ -70,7 +73,7 @@ export function createCodePathModel() {
   const handleInsertNodeEntry = (entry, insertQueue, updateQueue) => {
     const { traceId, spanId } = entry;
     const parent = findParentNode(entry);
-    const newNode = createRegularNode(nextNodeId++, parent, entry);
+    const newNode = createRegularNode(nextNodeId++, parent, entry, extractEntryMetrics);
 
     appendChildNodeToParent(newNode, parent);
     if (entry.token === "StartSpan") {
@@ -158,7 +161,8 @@ export function createCodePathModel() {
     // },
     clearAll() {
       initializeModel();
-    }
+    },
+    extractEntryMetrics
   };
 }
 
@@ -177,7 +181,7 @@ export function createRootNode() {
   };
 }
 
-export function createRegularNode(id, parent, entry) {
+export function createRegularNode(id, parent, entry, extractEntryMetrics) {
   const node = {
     id,
     entry,
@@ -188,7 +192,9 @@ export function createRegularNode(id, parent, entry) {
     lastChild: undefined,
     prevSibling: undefined,
     nextSibling: undefined,
-    metrics: entry.metrics
+    metrics: extractEntryMetrics 
+      ? extractEntryMetrics(entry) 
+      : entry.metrics
   };
   if (!node.top) {
     node.top = node;
