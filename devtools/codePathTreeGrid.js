@@ -161,8 +161,8 @@ define(function (require) {
           return 'align-right';
         },
         renderCell(node, controller, trIndex) {
-          if (node.metrics && node.metrics.duration) {
-            return [renderDataSpan(node.metrics.duration.toFixed(3))];
+          if (node.entry.duration) {
+            return [renderDataSpan(node.entry.duration.toFixed(3))];
           }
         }
       };

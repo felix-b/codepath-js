@@ -287,7 +287,7 @@ describe('CodePathModel', () => {
     model.publish(entries);
 
     expectCalls(subscriber.insertNodes, [[
-      { id: 1, entry: entries[0], metrics: { duration: undefined } },
+      { id: 1, entry: {...entries[0] } },
       { id: 2, entry: entries[1], parent: { id: 1 } }
     ]]);
     expect(subscriber.updateNodes).not.toBeCalled();
@@ -300,7 +300,7 @@ describe('CodePathModel', () => {
 
     expect(subscriber.insertNodes).not.toBeCalled();
     expectCalls(subscriber.updateNodes, [[
-      { id: 1, entry: entries[0], metrics: { duration: 250 } },
+      { id: 1, entry: {...entries[0], duration: 250 } },
     ]]);
 
   });

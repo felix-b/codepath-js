@@ -74,7 +74,6 @@ export function createCodePathModel() {
 
     appendChildNodeToParent(newNode, parent);
     if (entry.token === "StartSpan") {
-      bubbleSingleMetric(newNode, 'duration', undefined);
       traceNodeMap.setSpanNode(traceId, spanId, newNode);
     }
 
@@ -87,7 +86,7 @@ export function createCodePathModel() {
   const handleEndSpanEntry = (entry, insertQueue, updateQueue) => {
     const node = traceNodeMap.getSpanNode(entry.traceId, entry.spanId);
     if (node) {
-      node.metrics.duration = entry.time - node.entry.time;
+      node.entry.duration = entry.time - node.entry.time;
       updateQueue.push(node);
     }
   };
