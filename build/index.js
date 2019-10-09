@@ -1850,16 +1850,22 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getTopLevelNodesAsArray", function() { return getTopLevelNodesAsArray; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "walkNodesDepthFirst", function() { return _walkNodesDepthFirst; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "walkImmediateSubNodes", function() { return walkImmediateSubNodes; });
-/* harmony import */ var _multicastDelegate__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./multicastDelegate */ "./src/multicastDelegate.js");
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js");
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _multicastDelegate__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./multicastDelegate */ "./src/multicastDelegate.js");
 
 
-function createCodePathModel() {
-  var insertNodesCallbacks = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_0__["createMulticastDelegate"])(
+function createCodePathModel(options) {
+  var insertNodesCallbacks = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_1__["createMulticastDelegate"])(
   "CodePathModel.insertNodes");
 
-  var updateNodesCallbacks = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_0__["createMulticastDelegate"])(
+  var updateNodesCallbacks = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_1__["createMulticastDelegate"])(
   "CodePathModel.updateNodes");
 
+  var extractEntryMetrics =
+  options && options.extractEntryMetrics ?
+  options.extractEntryMetrics :
+  function (entry) {return entry.metrics;};
 
   var traceNodeMap = undefined;
   var rootNode = undefined;
@@ -1893,18 +1899,54 @@ function createCodePathModel() {
     return rootNode;
   };
 
+  var bubbleSingleMetric = function bubbleSingleMetric(targetNode, key, value) {
+    if (!targetNode.metrics) {
+      targetNode.metrics = _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0___default()({}, key, value);
+    } else if (!targetNode.metrics[key]) {
+      targetNode.metrics[key] = value;
+    } else {
+      targetNode.metrics[key] += value;
+    }
+  };
+
+  var bubbleMetrics = function bubbleMetrics(node, insertQueue, updateQueue) {
+    if (!node.metrics) {
+      return;
+    }
+    var insertSet = new Set(insertQueue);
+    var metricKeys = Object.keys(node.metrics);var _loop = function _loop(
+
+    targetNode) {
+
+
+
+      metricKeys.forEach(function (key) {
+        var value = node.metrics[key];
+        bubbleSingleMetric(targetNode, key, value);
+      });
+      if (!insertSet.has(targetNode)) {
+        updateQueue.push(targetNode);
+      }};for (var targetNode = node.parent; targetNode.id > 0; targetNode = targetNode.parent) {_loop(targetNode);
+    }
+  };
+
   var handleInsertNodeEntry = function handleInsertNodeEntry(entry, insertQueue, updateQueue) {var
     traceId = entry.traceId,spanId = entry.spanId;
     var parent = findParentNode(entry);
-    var newNode = createRegularNode(nextNodeId++, parent, entry);
+    var newNode = createRegularNode(
+    nextNodeId++,
+    parent,
+    entry,
+    extractEntryMetrics);
+
 
     appendChildNodeToParent(newNode, parent);
     if (entry.token === "StartSpan") {
-      newNode.metrics = { duration: undefined };
       traceNodeMap.setSpanNode(traceId, spanId, newNode);
     }
 
     insertQueue.push(newNode);
+    bubbleMetrics(newNode, insertQueue, updateQueue);
   };
 
   var handleSpanTagsEntry = function handleSpanTagsEntry(entry, insertQueue, updateQueue) {};
@@ -1912,7 +1954,7 @@ function createCodePathModel() {
   var handleEndSpanEntry = function handleEndSpanEntry(entry, insertQueue, updateQueue) {
     var node = traceNodeMap.getSpanNode(entry.traceId, entry.spanId);
     if (node) {
-      node.metrics.duration = entry.time - node.entry.time;
+      node.entry.duration = entry.time - node.entry.time;
       updateQueue.push(node);
     }
   };
@@ -1984,7 +2026,8 @@ function createCodePathModel() {
     // },
     clearAll: function clearAll() {
       initializeModel();
-    } };
+    },
+    extractEntryMetrics: extractEntryMetrics };
 
 }
 
@@ -2003,7 +2046,7 @@ function createRootNode() {
 
 }
 
-function createRegularNode(id, parent, entry) {
+function createRegularNode(id, parent, entry, extractEntryMetrics) {
   var node = {
     id: id,
     entry: entry,
@@ -2014,7 +2057,7 @@ function createRegularNode(id, parent, entry) {
     lastChild: undefined,
     prevSibling: undefined,
     nextSibling: undefined,
-    metrics: undefined };
+    metrics: extractEntryMetrics ? extractEntryMetrics(entry) : entry.metrics };
 
   if (!node.top) {
     node.top = node;
@@ -2360,7 +2403,8 @@ function createCodePathSearchModel(sourceModel, predicate) {
     var resultNode = Object(_codePathModel__WEBPACK_IMPORTED_MODULE_0__["createRegularNode"])(
     sourceNode.id,
     resultParentNode,
-    sourceNode.entry);
+    sourceNode.entry,
+    sourceModel.extractEntryMetrics);
 
     resultNodeById[resultNode.id] = resultNode;
     if (newlyCreatedResultNodes) {
@@ -3029,7 +3073,7 @@ function createSetEnabled(component, globalVars) {
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
-/*! exports provided: createCodePath, createRealClock, createDefaultScopeManager, trace, resetCurrentScope, createCodePathStream, createCodePathTracer, contextToPlain, plainToContext, createCodePathModel, walkNodesDepthFirst, walkImmediateSubNodes, createCodePathSearchModel, createTreeGridController, createTreeGridView, createMulticastDelegate, createDebounce, createResizer, createDebugLog, enableDebugLog */
+/*! exports provided: createCodePath, createRealClock, createDefaultScopeManager, trace, resetCurrentScope, createCodePathStream, createCodePathTracer, contextToPlain, plainToContext, createCodePathModel, walkNodesDepthFirst, walkImmediateSubNodes, createCodePathSearchModel, createTreeGridController, createTreeGridView, createMulticastDelegate, createDebounce, createResizer, LOG_LEVEL, createDebugLog, enableDebugLog */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3080,10 +3124,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _resizer__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./resizer */ "./src/resizer.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createResizer", function() { return _resizer__WEBPACK_IMPORTED_MODULE_9__["createResizer"]; });
 
-/* harmony import */ var _debugLog__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./debugLog */ "./src/debugLog.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createDebugLog", function() { return _debugLog__WEBPACK_IMPORTED_MODULE_10__["createDebugLog"]; });
+/* harmony import */ var _logLevel__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./logLevel */ "./src/logLevel.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "LOG_LEVEL", function() { return _logLevel__WEBPACK_IMPORTED_MODULE_10__["LOG_LEVEL"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "enableDebugLog", function() { return _debugLog__WEBPACK_IMPORTED_MODULE_10__["enableDebugLog"]; });
+/* harmony import */ var _debugLog__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./debugLog */ "./src/debugLog.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createDebugLog", function() { return _debugLog__WEBPACK_IMPORTED_MODULE_11__["createDebugLog"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "enableDebugLog", function() { return _debugLog__WEBPACK_IMPORTED_MODULE_11__["enableDebugLog"]; });
+
 
 
 

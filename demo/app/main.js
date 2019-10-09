@@ -23,21 +23,10 @@ define(function (require) {
   }
 
   const initInjector = () => {
-    window.__CODEPATH_INJECTOR__ = (newTracer, codePathLib, configure) => {
+    window.__CODEPATH_INJECTOR__ = (newTracer, codePathLib) => {
       window.CodePath = codePathLib;
       trace = CodePath.trace;
       tracer = newTracer;
-
-      configure({
-        treeGrid: {
-          rowClass: [
-            { tag: 'level', value: 3, className: 'error' },
-            { tag: 'level', value: 2, className: 'warning' },
-            { tag: 'level', value: 1, className: 'info' },
-            { tag: 'level', className: 'debug' },
-          ]
-        }
-      });
 
       console.log('DEMO> CodePath =', CodePath, 'trace = ', trace);
 

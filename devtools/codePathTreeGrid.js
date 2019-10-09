@@ -4,13 +4,11 @@ define(function (require) {
 
   debug.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "loaded");
 
-  const model = CodePath.createCodePathModel();
+  let model = undefined;CodePath.createCodePathModel();
   let controller = undefined;
   let searchModel = undefined;
   let selectedNode = undefined;
-  let configuration = {
-    rowClass: []
-  };
+  let configuration = undefined;
 
   const timeFormat = new Intl.DateTimeFormat('en-US', { 
     hour12: false, hour: 'numeric', minute: 'numeric', second: 'numeric' 
@@ -18,10 +16,16 @@ define(function (require) {
 
   return {
     configure(newConfiguration) {
+      debug.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "configure", newConfiguration);
       configuration = newConfiguration;
     },
     initMvc(gridTableElement) {
+      if (!configuration) {
+        console.error("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID> initMvc: not configured");
+      }
+
       debug.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "initMvc");
+      model = CodePath.createCodePathModel(configuration.codePathModel);
       const view = CodePath.createTreeGridView(gridTableElement, createColumns(), createRows());
       controller = CodePath.createTreeGridController(view, model);
       controller.onNodeSelected(node => {
@@ -181,20 +185,21 @@ define(function (require) {
   function createRows() {
     return {
       getTrClasses(node, rowIndex) {
-        const { tags } = node.entry;
-        const classNames = [];
-        if (configuration.rowClass) {
-          configuration.rowClass.forEach(rule => {
-            const shouldApply = (
-              typeof rule.value === 'undefined' || 
-              (tags && tags[rule.tag] === rule.value)
-            );
-            if (shouldApply) {
-              classNames.push(rule.className);
-            }
-          })
+        const { metrics } = node;
+        if (metrics) {
+          if (metrics.error > 0) {
+            return node.entry.token === 'Log' 
+              ? ['error', 'root-cause']
+              : ['error'];
+          }
+          if (metrics.warning > 0) {
+            return ['warning'];
+          }
+          if (metrics.event > 0) {
+            return ['event'];
+          }
         }
-        return classNames;
+        return [];
       }
     }
   }

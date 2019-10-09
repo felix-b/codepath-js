@@ -3,6 +3,7 @@ body {
   margin: 0;
   padding: 0;
   color: #474c52;
+  font-weight: normal;
 }
 
 .panels-container {
@@ -87,7 +88,6 @@ body {
   white-space: nowrap;
   overflow: hidden;
   font-size: 12px;
-  font-weight: normal;
   text-overflow: ellipsis;
   border-right: 1px solid #b3b3b3;
   cursor: default;
@@ -105,6 +105,7 @@ body {
   height: 100%;
   border-bottom: 1px solid #cfcfcf;
   padding: 0;
+  font-weight: 500;
   display: grid;
   grid-template-columns: 3px auto 3px;
   grid-template-rows: 18px;
@@ -194,6 +195,9 @@ body {
 
 #trace-grid tbody tr.error {
   color: red;
+}
+
+#trace-grid tbody tr.root-cause {
   font-weight: bold;
 }
 

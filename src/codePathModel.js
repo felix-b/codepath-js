@@ -7,9 +7,10 @@ export function createCodePathModel(options) {
   const updateNodesCallbacks = createMulticastDelegate(
     "CodePathModel.updateNodes"
   );
-  const extractEntryMetrics = options && options.extractEntryMetrics 
-    ? options.extractEntryMetrics 
-    : (entry) => entry.metrics;
+  const extractEntryMetrics =
+    options && options.extractEntryMetrics
+      ? options.extractEntryMetrics
+      : entry => entry.metrics;
 
   let traceNodeMap = undefined;
   let rootNode = undefined;
@@ -51,7 +52,7 @@ export function createCodePathModel(options) {
     } else {
       targetNode.metrics[key] += value;
     }
-  }
+  };
 
   const bubbleMetrics = (node, insertQueue, updateQueue) => {
     if (!node.metrics) {
@@ -59,7 +60,11 @@ export function createCodePathModel(options) {
     }
     const insertSet = new Set(insertQueue);
     const metricKeys = Object.keys(node.metrics);
-    for (let targetNode = node.parent ; targetNode.id > 0 ; targetNode = targetNode.parent) {
+    for (
+      let targetNode = node.parent;
+      targetNode.id > 0;
+      targetNode = targetNode.parent
+    ) {
       metricKeys.forEach(key => {
         const value = node.metrics[key];
         bubbleSingleMetric(targetNode, key, value);
@@ -68,12 +73,17 @@ export function createCodePathModel(options) {
         updateQueue.push(targetNode);
       }
     }
-  }
+  };
 
   const handleInsertNodeEntry = (entry, insertQueue, updateQueue) => {
     const { traceId, spanId } = entry;
     const parent = findParentNode(entry);
-    const newNode = createRegularNode(nextNodeId++, parent, entry, extractEntryMetrics);
+    const newNode = createRegularNode(
+      nextNodeId++,
+      parent,
+      entry,
+      extractEntryMetrics
+    );
 
     appendChildNodeToParent(newNode, parent);
     if (entry.token === "StartSpan") {
@@ -192,9 +202,7 @@ export function createRegularNode(id, parent, entry, extractEntryMetrics) {
     lastChild: undefined,
     prevSibling: undefined,
     nextSibling: undefined,
-    metrics: extractEntryMetrics 
-      ? extractEntryMetrics(entry) 
-      : entry.metrics
+    metrics: extractEntryMetrics ? extractEntryMetrics(entry) : entry.metrics
   };
   if (!node.top) {
     node.top = node;

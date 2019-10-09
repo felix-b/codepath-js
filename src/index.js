@@ -20,4 +20,5 @@ export { createTreeGridController, createTreeGridView } from "./treeGrid";
 export { createMulticastDelegate } from "./multicastDelegate";
 export { createDebounce } from "./debounce";
 export { createResizer } from "./resizer";
+export { LOG_LEVEL } from "./logLevel";
 export { createDebugLog, enableDebugLog } from "./debugLog";

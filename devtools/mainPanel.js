@@ -24,6 +24,9 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   const mainPanelDiv = document.querySelector('#panel-main');
   const rightPanelDiv = document.querySelector('#panel-right');
 
+  const configuration = loadConfiguration();
+  CodePathTreeGrid.configure(configuration);
+
   const treeGridController = CodePathTreeGrid.initMvc(treeGridTable);
   const filterTextDebounce = CodePath.createDebounce(applyFilter, 500);
   const nodeSelectedDebounce = CodePath.createDebounce(onNodeSelectedDebounced, 100);
@@ -154,6 +157,20 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
       selectedNode 
         ? `[${selectedNode.id}]: ${JSON.stringify(selectedNode.entry, null, 2)}` 
         : ''; 
+  }
+
+  function loadConfiguration() {
+    const configScript = localStorage.getItem('codePath/devTools/configScript');
+    console.log('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'loaded config script', configScript);
+
+    if (configScript) {
+      const configFunc = new Function('codePathLib', configScript);
+      const configuration = configFunc(CodePath);
+      console.log('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'evaluated configuration', configuration);
+      return configuration;
+    }
+
+    console.warn('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'config script not found, using defaults');
   }
 
 });
