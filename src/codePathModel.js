@@ -40,6 +40,33 @@ export function createCodePathModel() {
     return rootNode;
   };
 
+  const bubbleSingleMetric = (targetNode, key, value) => {
+    if (!targetNode.metrics) {
+      targetNode.metrics = { [key]: value };
+    } else if (!targetNode.metrics[key]) {
+      targetNode.metrics[key] = value;
+    } else {
+      targetNode.metrics[key] += value;
+    }
+  }
+
+  const bubbleMetrics = (node, insertQueue, updateQueue) => {
+    if (!node.metrics) {
+      return;
+    }
+    const insertSet = new Set(insertQueue);
+    const metricKeys = Object.keys(node.metrics);
+    for (let targetNode = node.parent ; targetNode.id > 0 ; targetNode = targetNode.parent) {
+      metricKeys.forEach(key => {
+        const value = node.metrics[key];
+        bubbleSingleMetric(targetNode, key, value);
+      });
+      if (!insertSet.has(targetNode)) {
+        updateQueue.push(targetNode);
+      }
+    }
+  }
+
   const handleInsertNodeEntry = (entry, insertQueue, updateQueue) => {
     const { traceId, spanId } = entry;
     const parent = findParentNode(entry);
@@ -47,11 +74,12 @@ export function createCodePathModel() {
 
     appendChildNodeToParent(newNode, parent);
     if (entry.token === "StartSpan") {
-      newNode.metrics = { duration: undefined };
+      bubbleSingleMetric(newNode, 'duration', undefined);
       traceNodeMap.setSpanNode(traceId, spanId, newNode);
     }
 
     insertQueue.push(newNode);
+    bubbleMetrics(newNode, insertQueue, updateQueue);
   };
 
   const handleSpanTagsEntry = (entry, insertQueue, updateQueue) => {};
@@ -161,7 +189,7 @@ export function createRegularNode(id, parent, entry) {
     lastChild: undefined,
     prevSibling: undefined,
     nextSibling: undefined,
-    metrics: undefined
+    metrics: entry.metrics
   };
   if (!node.top) {
     node.top = node;

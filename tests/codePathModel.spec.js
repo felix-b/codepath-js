@@ -305,7 +305,7 @@ describe('CodePathModel', () => {
 
   });
 
-  it('can count metrics inside span', () => {
+  it('can aggregate metrics inside span', () => {
     const entries = [
       { time: 100, token: 'StartSpan', messageId: 'S1', traceId: 'T1', spanId: 101, metrics: { z: 30 } },
       { time: 200, token: 'Log', messageId: 'M1', traceId: 'T1', spanId: 101, metrics: { x: 10, y: 20 } },
@@ -315,12 +315,108 @@ describe('CodePathModel', () => {
     model.publish(entries);
 
     expectCalls(subscriber.insertNodes, [[
-      { id: 1, entry: entries[0], metrics: { duration: undefined } },
-      { id: 2, entry: entries[1], parent: { id: 1 } },
-      { id: 3, entry: entries[2], parent: { id: 1 } }
+      { id: 1, entry: entries[0], metrics: { x: 10, y: 22, z: 33 } },
+      { id: 2, entry: entries[1], metrics: { x: 10, y: 20 } },
+      { id: 3, entry: entries[2], metrics: { y: 2, z: 3 } }
     ]]);
 
-        
+  });
+
+  it('can aggregate metrics inside span', () => {
+    const entries = [
+      { time: 100, token: 'StartSpan', messageId: 'S1', traceId: 'T1', spanId: 101, metrics: { z: 30 } },
+      { time: 200, token: 'Log', messageId: 'M1', traceId: 'T1', spanId: 101, metrics: { x: 10, y: 20 } },
+      { time: 300, token: 'Log', messageId: 'M2', traceId: 'T1', spanId: 101, metrics: { y: 2, z: 3 } },
+    ];
+
+    model.publish(entries);
+
+    expectCalls(subscriber.insertNodes, [[
+      { id: 1, entry: entries[0], metrics: { x: 10, y: 22, z: 33 } },
+      { id: 2, entry: entries[1], metrics: { x: 10, y: 20 } },
+      { id: 3, entry: entries[2], metrics: { y: 2, z: 3 } }
+    ]]);
+
+  });
+
+  it('can aggregate metrics upon later insertion of subnode', () => {
+    const entries0 = [
+      { time: 100, token: 'StartSpan', messageId: 'S1', traceId: 'T1', spanId: 101, metrics: { z: 30 } },
+      { time: 200, token: 'Log', messageId: 'M1', traceId: 'T1', spanId: 101, metrics: { x: 10, y: 20 } },
+    ];
+    const entries1 = [
+      { time: 300, token: 'Log', messageId: 'M2', traceId: 'T1', spanId: 101, metrics: { y: 2, z: 3 } },
+    ];
+
+    model.publish(entries0);
+
+    expectCalls(subscriber.insertNodes, [[
+      { id: 1, entry: entries0[0], metrics: { x: 10, y: 20, z: 30 } },
+      { id: 2, entry: entries0[1], metrics: { x: 10, y: 20 } },
+      //{ id: 3, entry: entries[2], metrics: { y: 2, z: 3 } }
+    ]]);
+    expect(subscriber.updateNodes).not.toBeCalled();
+
+    resetSubscriberCalls();
+
+    model.publish(entries1);
+
+    expectCalls(subscriber.insertNodes, [[
+      { id: 3, entry: entries1[0], metrics: { y: 2, z: 3 } }
+    ]]);
+    expectCalls(subscriber.updateNodes, [[
+      { id: 1, entry: entries0[0], metrics: { x: 10, y: 22, z: 33 } },
+    ]]);
+
+  });
+
+  it('can bubble metrics to root', () => {
+    const entries0 = [
+      { time: 100, token: 'StartSpan', messageId: 'S1', traceId: 'T1', spanId: 101 },
+      { time: 200, token: 'StartSpan', messageId: 'S2', traceId: 'T1', spanId: 102, childOf: {
+        traceId: 'T1', spanId: 101
+      } },
+      { time: 300, token: 'StartSpan', messageId: 'S3', traceId: 'T1', spanId: 103, metrics: { x: 1 }, childOf: {
+        traceId: 'T1', spanId: 102
+      } },
+      { time: 400, token: 'Log', messageId: 'M1', traceId: 'T1', spanId: 103, metrics: { x: 10 } },
+    ];
+    const entries1 = [
+      { time: 500, token: 'Log', messageId: 'M2', traceId: 'T1', spanId: 103, metrics: { x: 20 } },
+    ];
+    const entries2 = [
+      { time: 777, token: 'EndSpan', traceId: 'T1', spanId: 103 },
+    ];
+
+    model.publish(entries0);
+
+    expectCalls(subscriber.insertNodes, [[
+      { id: 1, entry: entries0[0], metrics: { x: 11 } },
+      { id: 2, entry: entries0[1], metrics: { x: 11 } },
+      { id: 3, entry: entries0[2], metrics: { x: 11 } },
+      { id: 4, entry: entries0[3], metrics: { x: 10 } },
+    ]]);
+    expect(subscriber.updateNodes).not.toBeCalled();
+
+    resetSubscriberCalls();
+    model.publish(entries1);
+
+    expectCalls(subscriber.insertNodes, [[
+      { id: 5, entry: entries1[0], metrics: { x: 20 } }
+    ]]);
+    expectCalls(subscriber.updateNodes, [[
+      { id: 3, entry: entries0[2], metrics: { x: 31 } },
+      { id: 2, entry: entries0[1], metrics: { x: 31 } },
+      { id: 1, entry: entries0[0], metrics: { x: 31 } },
+    ]]);
+
+    resetSubscriberCalls();
+    model.publish(entries2);
+
+    expect(subscriber.insertNodes).not.toBeCalled();
+    expectCalls(subscriber.updateNodes, [[
+      { id: 3, entry: entries0[2], metrics: { x: 31 } },
+    ]]);
   });
 
   it('can include reference to top span node', () => {
