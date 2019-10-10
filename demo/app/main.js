@@ -124,7 +124,7 @@ define(function (require) {
       tracer.logDebug('STRESS-D4', { stressCounter1, aaa: 123, bbb: 456 });
       tracer.logWarning('STRESS-D5', { stressCounter1, ccc: 789, ddd: 1230 });
       await trace(delay(10));
-      if (stressCounter1 === 13) {
+      if ((stressCounter1 % 13) === 0) {
         throw new Error("Bad, bad, bad!");
       }
       tracer.logEvent('STRESS-AT2-E1', { stressCounter1 });

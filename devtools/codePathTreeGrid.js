@@ -4,7 +4,7 @@ define(function (require) {
 
   debug.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "loaded");
 
-  let model = undefined;CodePath.createCodePathModel();
+  let model = undefined;
   let controller = undefined;
   let searchModel = undefined;
   let selectedNode = undefined;
@@ -49,7 +49,11 @@ define(function (require) {
         const firstMatchedNode = searchModel.getFirstMatchedNode();
         controller.selectNode(firstMatchedNode);
       } else {
+        const saveSelectedNode = selectedNode;
         controller.replaceModel(model);
+        if (saveSelectedNode) {
+          controller.selectNode(saveSelectedNode);
+        }
       }
     },
     goToNode(text, nextOrPrev) {
@@ -187,17 +191,18 @@ define(function (require) {
       getTrClasses(node, rowIndex) {
         const { metrics } = node;
         if (metrics) {
+          const classNames = [];
           if (metrics.error > 0) {
-            return node.entry.token === 'Log' 
-              ? ['error', 'root-cause']
-              : ['error'];
+            classNames.push('error');
+          } else if (metrics.warning > 0) {
+            classNames.push('warning');
+          } else if (metrics.event > 0) {
+            classNames.push('event');
           }
-          if (metrics.warning > 0) {
-            return ['warning'];
+          if (classNames.length > 0 && node.entry.token === 'Log') {
+            classNames.push('root-cause');
           }
-          if (metrics.event > 0) {
-            return ['event'];
-          }
+          return classNames;
         }
         return [];
       }

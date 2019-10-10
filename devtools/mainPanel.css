@@ -194,8 +194,17 @@ body {
 }
 
 #trace-grid tbody tr.error {
-  color: red;
+  color: rgb(208, 0, 73);
 }
+
+#trace-grid tbody tr.warning {
+  color: rgb(205, 147, 0);
+}
+
+#trace-grid tbody tr.event {
+  color: rgb(31, 87, 184);
+}
+
 
 #trace-grid tbody tr.root-cause {
   font-weight: bold;
