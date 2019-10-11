@@ -4,6 +4,7 @@ import {
   resetCurrentScope,
   trace
 } from '../src/index';
+import { CustomConsole } from '@jest/console';
 
 const createdDeferredPromise = () => {
   let resolve = undefined;
@@ -157,6 +158,32 @@ describe('DefaultScopeManager', () => {
       { token: 'EndSpan', spanId: 1 }
     ]);
   });
+
+  it('catches rejected promises', async () => {
+    const { input, output } = createCodePath();
+
+    input.spanRoot('R0');
+
+    await trace(delay(10).then(() => {
+      throw new Error('TEST-REJECT');
+    })).catch(err => {
+      expect(err.message).toBe('TEST-REJECT');
+    });
+
+    input.logEvent('E1');
+
+    const entries = output.peekEntries();
+
+    expect(entries).toMatchObject([
+      { token: 'StartTracer' },
+      { token: 'StartSpan', messageId: 'R0' },
+      { token: 'Log', messageId: 'async-catch', tags: { error: { message: 'TEST-REJECT' } } },
+      { token: 'Log', spanId: 1 }
+    ]);
+
+    expect(typeof entries[2].tags.error.message).toBe('string');
+    expect(typeof entries[2].tags.error.stack).toBe('string');
+  })
 
 });
 

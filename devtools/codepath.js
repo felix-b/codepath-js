@@ -2206,7 +2206,10 @@ function trace(promiseOrFunc) {
         $id: "async-catch",
         $async: "catch",
         level: _logLevel__WEBPACK_IMPORTED_MODULE_0__["LOG_LEVEL"].error,
-        error: err });
+        error: {
+          message: err.message,
+          stack: err.stack } });
+
 
       reject(err);
     });

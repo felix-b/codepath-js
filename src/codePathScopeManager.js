@@ -35,7 +35,10 @@ export function trace(promiseOrFunc) {
           $id: "async-catch",
           $async: "catch",
           level: LOG_LEVEL.error,
-          error: err
+          error: {
+            message: err.message,
+            stack: err.stack
+          }
         });
         reject(err);
       });
