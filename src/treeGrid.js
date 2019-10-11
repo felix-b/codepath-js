@@ -336,12 +336,22 @@ export function createTreeGridView(table, columns, rows) {
     controller = theController;
   };
 
+  const applyTrClasses = (tr, node, index) => {
+    const isExpanded = controller.getIsExpanded(node.id);
+    tr.className = "";
+    tr.classList.add(isExpanded ? "expanded" : "collapsed");
+    if (tr === selectedTr) {
+      tr.classList.add("selected");
+    }
+    if (rows && rows.getTrClasses) {
+      const trClasses = rows.getTrClasses(node, index);
+      tr.classList.add(...trClasses);
+    }
+  };
+
   const updateNode = (index, node) => {
     const tr = tbody.rows[index];
-    const isExpanded = controller.getIsExpanded(node.id);
-
-    tr.classList.remove(isExpanded ? "collapsed" : "expanded");
-    tr.classList.add(isExpanded ? "expanded" : "collapsed");
+    applyTrClasses(tr, node, index);
 
     for (let colIndex = 0; colIndex < columns.length; colIndex++) {
       const td = tr.cells[colIndex];
@@ -368,11 +378,7 @@ export function createTreeGridView(table, columns, rows) {
       const rowIndex = index + i;
       const tr = tbody.insertRow(index + i);
       tr.setAttribute("data-nid", nodes[i].id);
-      tr.classList.add("collapsed");
-      if (rows && rows.getTrClasses) {
-        const trClasses = rows.getTrClasses(nodes[i], rowIndex);
-        tr.classList.add(...trClasses);
-      }
+      applyTrClasses(tr, nodes[i], index + i);
       tr.onclick = () => {
         selectNode(tr.rowIndex - 1, nodes[i]);
       };

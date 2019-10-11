@@ -189,9 +189,9 @@ define(function (require) {
   function createRows() {
     return {
       getTrClasses(node, rowIndex) {
+        const classNames = (node.parent.id !== 0 ? [] : ['root-span']);
         const { metrics } = node;
         if (metrics) {
-          const classNames = [];
           if (metrics.error > 0) {
             classNames.push('error');
           } else if (metrics.warning > 0) {
@@ -202,9 +202,8 @@ define(function (require) {
           if (classNames.length > 0 && node.entry.token === 'Log') {
             classNames.push('root-cause');
           }
-          return classNames;
         }
-        return [];
+        return classNames;
       }
     }
   }

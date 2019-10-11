@@ -56,6 +56,7 @@ body {
   font-weight: normal;
   background-color: #f3f3f3;
   border-bottom: 1px solid #cfcfcf;
+  overflow: hidden;
 }
 
 .panel-right pre {
@@ -64,6 +65,7 @@ body {
   font-family: menlo, Courier New, monospace;
   font-size: 11px;
   color: #881280;
+  overflow: scroll;
 }
 
 .panel-top a {
@@ -186,7 +188,13 @@ body {
 
 #trace-grid tbody tr {
   cursor: default;
-  border-bottom: 1px solid #fafafa;
+  color: #afb6bd;
+  border-bottom: 1px solid #eeeeee;
+}
+
+#trace-grid tbody tr.root-span {
+  color: #474c52;
+  background-color: #fafafa;
 }
 
 #trace-grid tbody tr:hover td {

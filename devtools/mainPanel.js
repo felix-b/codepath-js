@@ -153,9 +153,17 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   }
 
   function onNodeSelectedDebounced() {
+    const createDetailsObject = () => {
+      return {
+        entry: selectedNode.entry,
+        metrics: selectedNode.metrics,
+        parentNodeId: selectedNode.parent.id
+      }
+    };
+
     entryJsonText.innerHTML = 
       selectedNode 
-        ? `[${selectedNode.id}]: ${JSON.stringify(selectedNode.entry, null, 2)}` 
+        ? `[${selectedNode.id}]: ${JSON.stringify(createDetailsObject(), null, 2)}` 
         : ''; 
   }
 

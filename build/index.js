@@ -3650,12 +3650,22 @@ function createTreeGridView(table, columns, rows) {
     controller = theController;
   };
 
+  var applyTrClasses = function applyTrClasses(tr, node, index) {
+    var isExpanded = controller.getIsExpanded(node.id);
+    tr.className = "";
+    tr.classList.add(isExpanded ? "expanded" : "collapsed");
+    if (tr === selectedTr) {
+      tr.classList.add("selected");
+    }
+    if (rows && rows.getTrClasses) {var _tr$classList;
+      var trClasses = rows.getTrClasses(node, index);
+      (_tr$classList = tr.classList).add.apply(_tr$classList, _babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0___default()(trClasses));
+    }
+  };
+
   var updateNode = function updateNode(index, node) {
     var tr = tbody.rows[index];
-    var isExpanded = controller.getIsExpanded(node.id);
-
-    tr.classList.remove(isExpanded ? "collapsed" : "expanded");
-    tr.classList.add(isExpanded ? "expanded" : "collapsed");
+    applyTrClasses(tr, node, index);
 
     for (var colIndex = 0; colIndex < columns.length; colIndex++) {
       var td = tr.cells[colIndex];
@@ -3682,11 +3692,7 @@ function createTreeGridView(table, columns, rows) {
       var rowIndex = index + i;
       var tr = tbody.insertRow(index + i);
       tr.setAttribute("data-nid", nodes[i].id);
-      tr.classList.add("collapsed");
-      if (rows && rows.getTrClasses) {var _tr$classList;
-        var trClasses = rows.getTrClasses(nodes[i], rowIndex);
-        (_tr$classList = tr.classList).add.apply(_tr$classList, _babel_runtime_helpers_toConsumableArray__WEBPACK_IMPORTED_MODULE_0___default()(trClasses));
-      }
+      applyTrClasses(tr, nodes[i], index + i);
       tr.onclick = function () {
         selectNode(tr.rowIndex - 1, nodes[i]);
       };
