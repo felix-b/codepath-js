@@ -6,22 +6,22 @@
 <body>
   <div class="panels-container">
     <div class="panel-top">
-      <a id="start-button" style="display:inline">Start</a>
-      <a id="stop-button" style="display:none">Stop</a>
-      <a id="clear-all-button">Clear All</a>
+      <a id="start-button" style="display:inline-block"><span class="icon"></span><span class="text">Start</span></a>
+      <a id="stop-button" style="display:none"><span class="icon"></span><span class="text">Stop</span></a>
+      <a id="clear-all-button"><span class="icon"></span><span class="text">Clear</span></a>
       <span>|</span>
       <label>
         Filter
         <input id="filter-text" type="text"></input>
       </label>
-      <button id="filter-clear-button">X</button>
+      <a id="filter-clear-button"><span class="icon"></span></a>
       <span>|</span>
       <label>
         Find
         <input id="find-text" type="text"></input>
       </label>
-      <button id="find-next-button">Next</button>
-      <button id="find-prev-button">Prev</button>
+      <a id="find-next-button"><span class="icon"></span><span class="text">Next</span></a>
+      <a id="find-prev-button"><span class="icon"></span><span class="text">Prev</span></a>
     </div>
     <div id="panel-main" class="panel-main">
       <table id="trace-grid" tabindex="0">

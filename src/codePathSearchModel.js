@@ -77,6 +77,28 @@ export function createCodePathSearchModel(sourceModel, predicate) {
         }
       }
     },
+    getPrevMatchedNode(matchedNode) {
+      let currentNode = matchedNode;
+      let finishedSubTree = false;
+
+      while (currentNode) {
+        if (!finishedSubTree && currentNode.firstChild) {
+          currentNode = currentNode.firstChild;
+        } else {
+          finishedSubTree = false;
+          if (currentNode.nextSibling) {
+            currentNode = currentNode.nextSibling;
+          } else {
+            finishedSubTree = true;
+            currentNode = currentNode.parent;
+          }
+        }
+
+        if (!finishedSubTree && currentNode.matched) {
+          return currentNode;
+        }
+      }
+    },
     subscribe(callback) {
       insertNodesCallbacks.add(callback);
     },

@@ -69,13 +69,62 @@ body {
 }
 
 .panel-top a {
-  color: blue;
   cursor: pointer;
+  line-height: 20px;
+  border: 0px;
+  padding: 2px;
+  vertical-align: top;
+  display: inline-block; 
 }
 
 .panel-top a:hover {
   color: orange;
-  text-decoration: underline;
+}
+
+.panel-top a span.icon {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  margin: 2px 4px 2px 2px;
+  line-height: 20px;
+  vertical-align: middle;
+  background-color: #474c52;
+  -webkit-mask-size: 13px;
+  -webkit-mask-position-y: center;
+  -webkit-mask-repeat: no-repeat;  
+}
+
+.panel-top a:hover span.icon {
+  background-color: orange;
+}
+
+.panel-top a span.text {
+  margin: 2px 4px 2px 0;
+  vertical-align: middle;  
+}
+
+#start-button .icon {
+  -webkit-mask-image: url(icons/play.svg);
+}
+
+#stop-button .icon {
+  -webkit-mask-image: url(icons/stop.svg);
+}
+
+#clear-all-button .icon {
+  -webkit-mask-image: url(icons/clear.svg);
+}
+
+#filter-clear-button .icon {
+  -webkit-mask-image: url(icons/clear.svg);
+}
+
+#find-next-button .icon {
+  -webkit-mask-image: url(icons/next.svg);
+}
+
+#find-prev-button .icon {
+  -webkit-mask-image: url(icons/prev.svg);
 }
 
 #trace-grid {
@@ -175,11 +224,11 @@ body {
 }
 
 #trace-grid tr.collapsed td span.toggle {
-  background-image: url(toggleCollapsed.svg);
+  background-image: url(icons/collapsed.svg);
 }
 
 #trace-grid tr.expanded td span.toggle {
-  background-image: url(toggleExpanded.svg);
+  background-image: url(icons/expanded.svg);
 }
 
 #trace-grid td a:hover {

@@ -118,6 +118,9 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   findNextButton.onclick = () => {
     CodePathTreeGrid.goToNode('', 'next');
   };
+  findPrevButton.onclick = () => {
+    CodePathTreeGrid.goToNode('', 'prev');
+  };
   treeGridController.onNodeSelected((node) => {
     selectedNode = node;
     nodeSelectedDebounce.bounce();
