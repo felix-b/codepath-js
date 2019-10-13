@@ -143,12 +143,17 @@ define(function (require) {
             };
             return span;
           };
+          const renderRowIcon = () => {
+            const span = document.createElement('span');
+            span.classList.add('row-icon');
+            return span;
+          };
           const renderText = () => {
             return renderDataSpan(`${node.entry.messageId}`);
           };
           return [
-            ...renderIndents(node.firstChild ? node.depth : node.depth + 1),
-            node.firstChild ? renderToggleAnchor() : undefined,
+            ...renderIndents(node.depth),
+            node.firstChild ? renderToggleAnchor() : renderRowIcon(),
             renderText()
           ];
         }

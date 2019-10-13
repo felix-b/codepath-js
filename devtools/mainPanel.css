@@ -207,6 +207,21 @@ body {
   background-color: white;
 }
 
+#trace-grid span.row-icon {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  /*background-color: #474c52;
+  -webkit-mask-size: 13px;
+  -webkit-mask-position-y: center;
+  -webkit-mask-repeat: no-repeat; */
+  background-color: white;
+  background-size: 13px;
+  background-repeat: no-repeat;
+  background-position-y: center;
+  background-position-x: center;
+}
+
 #trace-grid span.indent {
   display: inline-block;
   background-color: white;
@@ -263,6 +278,23 @@ body {
   color: rgb(31, 87, 184);
 }
 
+#trace-grid tbody tr.error.root-cause td span.row-icon {
+  /*background-color: rgb(208, 0, 73);
+  -webkit-mask-image: url(icons/error.svg);*/
+  background-image: url(icons/error.svg);
+}
+
+#trace-grid tbody tr.warning.root-cause td span.row-icon {
+  /*background-color: rgb(205, 147, 0);
+  -webkit-mask-image: url(icons/warning.svg);*/
+  background-image: url(icons/warning.svg);
+}
+
+#trace-grid tbody tr.event.root-cause td span.row-icon {
+  /*background-color: rgb(31, 87, 184);
+  -webkit-mask-image: url(icons/event.svg);*/
+  background-image: url(icons/event.svg);
+}
 
 #trace-grid tbody tr.root-cause {
   font-weight: bold;
