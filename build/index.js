@@ -1837,7 +1837,7 @@ function createCodePath(options) {
 /*!******************************!*\
   !*** ./src/codePathModel.js ***!
   \******************************/
-/*! exports provided: createCodePathModel, createRootNode, createRegularNode, appendChildNodeToParent, getNodesAsFlatArray, getTopLevelNodesAsArray, walkNodesDepthFirst, walkImmediateSubNodes */
+/*! exports provided: createCodePathModel, createRootNode, createRegularNode, appendChildNodeToParent, getNodesAsFlatArray, getTopLevelNodesAsArray, walkNodesDepthFirst, walkImmediateSubNodes, findNextMatchingNode, findPrevMatchingNode */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1850,6 +1850,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getTopLevelNodesAsArray", function() { return getTopLevelNodesAsArray; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "walkNodesDepthFirst", function() { return _walkNodesDepthFirst; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "walkImmediateSubNodes", function() { return walkImmediateSubNodes; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "findNextMatchingNode", function() { return findNextMatchingNode; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "findPrevMatchingNode", function() { return findPrevMatchingNode; });
 /* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js");
 /* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _multicastDelegate__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./multicastDelegate */ "./src/multicastDelegate.js");
@@ -2115,6 +2117,52 @@ function walkImmediateSubNodes(parentNode, callback) {
   }
 }
 
+function findNextMatchingNode(fromNode, predicate) {
+  var currentNode = fromNode;
+  var finishedSubTree = false;
+
+  while (currentNode) {
+    if (!finishedSubTree && currentNode.firstChild) {
+      currentNode = currentNode.firstChild;
+    } else {
+      finishedSubTree = false;
+      if (currentNode.nextSibling) {
+        currentNode = currentNode.nextSibling;
+      } else {
+        finishedSubTree = true;
+        currentNode = currentNode.parent;
+      }
+    }
+
+    if (!finishedSubTree && predicate(currentNode)) {
+      return currentNode;
+    }
+  }
+}
+
+function findPrevMatchingNode(fromNode, predicate) {
+  var currentNode = fromNode;
+  var finishedSubTree = false;
+
+  while (currentNode) {
+    if (!finishedSubTree && currentNode.lastChild) {
+      currentNode = currentNode.lastChild;
+    } else {
+      finishedSubTree = false;
+      if (currentNode.prevSibling) {
+        currentNode = currentNode.prevSibling;
+      } else {
+        finishedSubTree = true;
+        currentNode = currentNode.parent;
+      }
+    }
+
+    if (!finishedSubTree && predicate(currentNode)) {
+      return currentNode;
+    }
+  }
+}
+
 function createTraceNodeMap() {
   var mapByTraceId = {};
 
@@ -2328,32 +2376,26 @@ function createCodePathSearchModel(sourceModel, predicate) {
       return firstMatchedNode;
     },
     getNextMatchedNode: function getNextMatchedNode(matchedNode) {
-      var currentNode = matchedNode;
-      var finishedSubTree = false;
-
-      while (currentNode) {
-        if (!finishedSubTree && currentNode.firstChild) {
-          currentNode = currentNode.firstChild;
-        } else {
-          finishedSubTree = false;
-          if (currentNode.nextSibling) {
-            currentNode = currentNode.nextSibling;
-          } else {
-            finishedSubTree = true;
-            currentNode = currentNode.parent;
-          }
-        }
-
-        if (!finishedSubTree && currentNode.matched) {
-          return currentNode;
-        }
+      return Object(_codePathModel__WEBPACK_IMPORTED_MODULE_0__["findNextMatchingNode"])(matchedNode, function (node) {return node.matched;});
+    },
+    getPrevMatchedNode: function getPrevMatchedNode(matchedNode) {
+      return Object(_codePathModel__WEBPACK_IMPORTED_MODULE_0__["findPrevMatchingNode"])(matchedNode, function (node) {return node.matched;});
+    },
+    subscribe: function subscribe(subscriber) {
+      if (subscriber.insertNodes) {
+        insertNodesCallbacks.add(subscriber.insertNodes);
+      }
+      if (subscriber.updateNodes) {
+        updateNodesCallbacks.add(subscriber.updateNodes);
       }
     },
-    subscribe: function subscribe(callback) {
-      insertNodesCallbacks.add(callback);
-    },
-    unsubscribe: function unsubscribe(callback) {
-      insertNodesCallbacks.remove(callback);
+    unsubscribe: function unsubscribe(subscriber) {
+      if (subscriber.insertNodes) {
+        insertNodesCallbacks.remove(subscriber.insertNodes);
+      }
+      if (subscriber.updateNodes) {
+        updateNodesCallbacks.remove(subscriber.updateNodes);
+      }
     },
     unsubscribeFromSource: function unsubscribeFromSource() {
       sourceModel.unsubscribe(handleInsertedSourceNodes);
@@ -3076,7 +3118,7 @@ function createSetEnabled(component, globalVars) {
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
-/*! exports provided: createCodePath, createRealClock, createDefaultScopeManager, trace, resetCurrentScope, createCodePathStream, createCodePathTracer, contextToPlain, plainToContext, createCodePathModel, walkNodesDepthFirst, walkImmediateSubNodes, createCodePathSearchModel, createTreeGridController, createTreeGridView, createMulticastDelegate, createDebounce, createResizer, LOG_LEVEL, createDebugLog, enableDebugLog */
+/*! exports provided: createCodePath, createRealClock, createDefaultScopeManager, trace, resetCurrentScope, createCodePathStream, createCodePathTracer, contextToPlain, plainToContext, createCodePathModel, walkNodesDepthFirst, walkImmediateSubNodes, findNextMatchingNode, findPrevMatchingNode, createCodePathSearchModel, createTreeGridController, createTreeGridView, createMulticastDelegate, createDebounce, createResizer, LOG_LEVEL, createDebugLog, enableDebugLog */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3109,6 +3151,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "walkNodesDepthFirst", function() { return _codePathModel__WEBPACK_IMPORTED_MODULE_4__["walkNodesDepthFirst"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "walkImmediateSubNodes", function() { return _codePathModel__WEBPACK_IMPORTED_MODULE_4__["walkImmediateSubNodes"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "findNextMatchingNode", function() { return _codePathModel__WEBPACK_IMPORTED_MODULE_4__["findNextMatchingNode"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "findPrevMatchingNode", function() { return _codePathModel__WEBPACK_IMPORTED_MODULE_4__["findPrevMatchingNode"]; });
 
 /* harmony import */ var _codePathSearchModel__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./codePathSearchModel */ "./src/codePathSearchModel.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createCodePathSearchModel", function() { return _codePathSearchModel__WEBPACK_IMPORTED_MODULE_5__["createCodePathSearchModel"]; });

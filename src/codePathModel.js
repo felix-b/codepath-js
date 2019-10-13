@@ -260,6 +260,52 @@ export function walkImmediateSubNodes(parentNode, callback) {
   }
 }
 
+export function findNextMatchingNode(fromNode, predicate) {
+  let currentNode = fromNode;
+  let finishedSubTree = false;
+
+  while (currentNode) {
+    if (!finishedSubTree && currentNode.firstChild) {
+      currentNode = currentNode.firstChild;
+    } else {
+      finishedSubTree = false;
+      if (currentNode.nextSibling) {
+        currentNode = currentNode.nextSibling;
+      } else {
+        finishedSubTree = true;
+        currentNode = currentNode.parent;
+      }
+    }
+
+    if (!finishedSubTree && predicate(currentNode)) {
+      return currentNode;
+    }
+  }
+}
+
+export function findPrevMatchingNode(fromNode, predicate) {
+  let currentNode = fromNode;
+  let finishedSubTree = false;
+
+  while (currentNode) {
+    if (!finishedSubTree && currentNode.lastChild) {
+      currentNode = currentNode.lastChild;
+    } else {
+      finishedSubTree = false;
+      if (currentNode.prevSibling) {
+        currentNode = currentNode.prevSibling;
+      } else {
+        finishedSubTree = true;
+        currentNode = currentNode.parent;
+      }
+    }
+
+    if (!finishedSubTree && predicate(currentNode)) {
+      return currentNode;
+    }
+  }
+}
+
 function createTraceNodeMap() {
   let mapByTraceId = {};
 

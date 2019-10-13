@@ -69,10 +69,10 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
 
   let selectedNode = undefined;
   
-  clearAllButton.onclick = () => {
+  clearAllButton.onclick = (e) => {
     treeGridController.clearAll();
   };
-  startButton.onclick = () => {
+  startButton.onclick = (e) => {
     backgroundConnection.postMessage({
       name: 'start',
       tabId: chrome.devtools.inspectedWindow.tabId
@@ -90,7 +90,7 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
     //   }
     // );
   };
-  stopButton.onclick = () => {
+  stopButton.onclick = (e) => {
     backgroundConnection.postMessage({
       name: 'stop',
       tabId: chrome.devtools.inspectedWindow.tabId
@@ -111,14 +111,14 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   filterTextInput.oninput = () => {
     filterTextDebounce.bounce();
   };
-  filterClearButton.onclick = () => {
+  filterClearButton.onclick = (e) => {
     filterTextInput.value = '';
     applyFilter();
   };
-  findNextButton.onclick = () => {
+  findNextButton.onclick = (e) => {
     CodePathTreeGrid.goToNode('', 'next');
   };
-  findPrevButton.onclick = () => {
+  findPrevButton.onclick = (e) => {
     CodePathTreeGrid.goToNode('', 'prev');
   };
   treeGridController.onNodeSelected((node) => {

@@ -4,7 +4,9 @@ import {
   appendChildNodeToParent,
   getNodesAsFlatArray,
   getTopLevelNodesAsArray,
-  walkNodesDepthFirst
+  walkNodesDepthFirst,
+  findNextMatchingNode,
+  findPrevMatchingNode
 } from "./codePathModel";
 
 import { createMulticastDelegate } from "./multicastDelegate";
@@ -56,54 +58,26 @@ export function createCodePathSearchModel(sourceModel, predicate) {
       return firstMatchedNode;
     },
     getNextMatchedNode(matchedNode) {
-      let currentNode = matchedNode;
-      let finishedSubTree = false;
-
-      while (currentNode) {
-        if (!finishedSubTree && currentNode.firstChild) {
-          currentNode = currentNode.firstChild;
-        } else {
-          finishedSubTree = false;
-          if (currentNode.nextSibling) {
-            currentNode = currentNode.nextSibling;
-          } else {
-            finishedSubTree = true;
-            currentNode = currentNode.parent;
-          }
-        }
-
-        if (!finishedSubTree && currentNode.matched) {
-          return currentNode;
-        }
-      }
+      return findNextMatchingNode(matchedNode, node => node.matched);
     },
     getPrevMatchedNode(matchedNode) {
-      let currentNode = matchedNode;
-      let finishedSubTree = false;
-
-      while (currentNode) {
-        if (!finishedSubTree && currentNode.firstChild) {
-          currentNode = currentNode.firstChild;
-        } else {
-          finishedSubTree = false;
-          if (currentNode.nextSibling) {
-            currentNode = currentNode.nextSibling;
-          } else {
-            finishedSubTree = true;
-            currentNode = currentNode.parent;
-          }
-        }
-
-        if (!finishedSubTree && currentNode.matched) {
-          return currentNode;
-        }
+      return findPrevMatchingNode(matchedNode, node => node.matched);
+    },
+    subscribe(subscriber) {
+      if (subscriber.insertNodes) {
+        insertNodesCallbacks.add(subscriber.insertNodes);
+      }
+      if (subscriber.updateNodes) {
+        updateNodesCallbacks.add(subscriber.updateNodes);
       }
     },
-    subscribe(callback) {
-      insertNodesCallbacks.add(callback);
-    },
-    unsubscribe(callback) {
-      insertNodesCallbacks.remove(callback);
+    unsubscribe(subscriber) {
+      if (subscriber.insertNodes) {
+        insertNodesCallbacks.remove(subscriber.insertNodes);
+      }
+      if (subscriber.updateNodes) {
+        updateNodesCallbacks.remove(subscriber.updateNodes);
+      }
     },
     unsubscribeFromSource() {
       sourceModel.unsubscribe(handleInsertedSourceNodes);

@@ -13,7 +13,9 @@ export {
 export {
   createCodePathModel,
   walkNodesDepthFirst,
-  walkImmediateSubNodes
+  walkImmediateSubNodes,
+  findNextMatchingNode,
+  findPrevMatchingNode
 } from "./codePathModel";
 export { createCodePathSearchModel } from "./codePathSearchModel";
 export { createTreeGridController, createTreeGridView } from "./treeGrid";

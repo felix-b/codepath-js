@@ -210,7 +210,11 @@ describe("CodePathSearchModel", () => {
       { matched: true, entry: { messageId: 'M2' }, parent: { entry: { messageId: 'S1' } } },
     ]);
 
-    const subscriber = jest.fn();
+    const subscriber = {
+      insertNodes: jest.fn(),
+      updateNodes: jest.fn(),
+    };
+      
     search.subscribe(subscriber);
 
     source.publish([
@@ -233,9 +237,11 @@ describe("CodePathSearchModel", () => {
       { matched: true, entry: { messageId: 'M88' }, parent: { entry: { messageId: 'R2' } } },
     ]);
 
-    expect(subscriber.mock.calls.length).toBe(1);
+    expect(subscriber.insertNodes).toBeCalledTimes(1);
+    expect(subscriber.updateNodes).not.toBeCalled();
 
-    const receivedNodesMessageIds = subscriber.mock.calls[0][0].map(node => node.entry.messageId);
+    const receivedNodesMessageIds = 
+      subscriber.insertNodes.mock.calls[0][0].map(node => node.entry.messageId);
 
     expect(receivedNodesMessageIds).toEqual(['S2','S3','M22','R1','M44','R2','M88']);
   });

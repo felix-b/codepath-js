@@ -57,17 +57,28 @@ define(function (require) {
       }
     },
     goToNode(text, nextOrPrev) {
+      const getNextMatchedNode = () => {
+        switch (nextOrPrev) {
+          case 'next':
+            return selectedNode 
+              ? searchModel.getNextMatchedNode(selectedNode)
+              : searchModel.getFirstMatchedNode();
+          case 'prev':
+              return selectedNode 
+              ? searchModel.getPrevMatchedNode(selectedNode)
+              : searchModel.getFirstMatchedNode();
+        }
+      }
+      
       if (searchModel) {
-        const nextNode = selectedNode 
-          ? searchModel.getNextMatchedNode(selectedNode)
-          : searchModel.getFirstMatchedNode();
+        const nextNode = getNextMatchedNode() || selectedNode;
         controller.selectNode(nextNode);
       }
     }
   };
 
-  function performSearch(trimmedText) {
-    const predicate = (node) => {
+  function createSearchPredicate(trimmedText) {
+    return (node) => {
       if (!node.entry) {
         return false;
       }
@@ -77,6 +88,10 @@ define(function (require) {
       }
       return (messageId.indexOf(trimmedText) >= 0);
     };
+  }
+
+  function performSearch(trimmedText) {
+    const predicate = createSearchPredicate(trimmedText);
     return CodePath.createCodePathSearchModel(model, predicate);
   }
 
