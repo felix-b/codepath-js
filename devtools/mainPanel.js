@@ -90,24 +90,15 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
     //   }
     // );
   };
-  stopButton.onclick = (e) => {
+  const executeStopCommand = () => {
     backgroundConnection.postMessage({
       name: 'stop',
       tabId: chrome.devtools.inspectedWindow.tabId
     });
     stopButton.style.display = 'none';
     startButton.style.display = 'inline';
-    // chrome.tabs.executeScript(
-    //   chrome.devtools.inspectedWindow.tabId, 
-    //   { 
-    //     code: "window.postMessage({type: 'codePath/devTools/stopPublish'},'*')"
-    //   }, 
-    //   function() {
-    //     stopButton.style.display = 'none';
-    //     startButton.style.display = 'inline';
-    //   }
-    // );
   };
+  stopButton.onclick = executeStopCommand;
   filterTextInput.oninput = () => {
     filterTextDebounce.bounce();
   };
@@ -132,11 +123,14 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
     }
 
     switch (message.type) {
-      case 'codePath/devTools/configure':
-        debug.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'got configuration message', message.configuration);
-        if (message.configuration && message.configuration.treeGrid) {
-          CodePathTreeGrid.configure(message.configuration.treeGrid);
-        }
+      case 'codePath/devTools/requestRunAdapterOnPage':
+        debug.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'got adapter run request');
+        backgroundConnection.postMessage({
+          name: 'runPageAdapterScript',
+          tabId: chrome.devtools.inspectedWindow.tabId,
+          script: configuration.pageInit,
+        });
+        executeStopCommand();
         break;
       case 'codePath/devTools/publishEntries':
         CodePathTreeGrid.receiveEntries(message.entries);
@@ -147,11 +141,6 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   backgroundConnection.postMessage({
     name: 'init',
     tabId: chrome.devtools.inspectedWindow.tabId
-  });
-  backgroundConnection.postMessage({
-    name: 'runPageConfigScript',
-    tabId: chrome.devtools.inspectedWindow.tabId,
-    script: configuration.pageInit,
   });
 
   debug.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'successfully initialized');

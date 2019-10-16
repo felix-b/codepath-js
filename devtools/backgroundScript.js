@@ -5,7 +5,7 @@
 
   var connections = {};
   var initMessageFromPageByTabId = {};
-
+  
   chrome.runtime.onConnect.addListener(function (port) {
     var extensionListener = function (message, sender, sendResponse) {
       if (typeof message.tabId === 'number' && typeof message.name === 'string') {
@@ -19,11 +19,11 @@
               port.postMessage(initMessage);
             }
             break;
-          case 'runPageConfigScript':
+          case 'runPageAdapterScript':
             chrome.tabs.sendMessage(
               message.tabId, 
               { 
-                type: 'codePath/devTools/runPageConfigScript',
+                type: 'codePath/devTools/runPageAdapterScript',
                 script: message.script,
               }
             );
@@ -84,7 +84,7 @@
       if (request.isInitMessage === true) {
         debug.log('CODEPATH.DEVTOOLS.BKG>', `storing init message from page for tab ${tabId}`, request);
         initMessageFromPageByTabId[tabId] = request;
-      }      
+      }
       if (tabId in connections) {
         connections[tabId].postMessage(request);
         debug.log('CODEPATH.DEVTOOLS.BKG>', `relaying 1 message to dev tools panel`);

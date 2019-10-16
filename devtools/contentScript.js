@@ -25,21 +25,20 @@
 
   window.addEventListener('message', (event) => {
     if (typeof event.data === 'object' && typeof event.data.type === 'string') {
-      if (event.data.type === 'codePath/devTools/configure' && typeof event.data.configuration === 'object') {
-        relayMessageToBackground(event.data);
-        return;
-      } 
-      if (event.data.type === 'codePath/devTools/publishEntries' && Array.isArray(event.data.entries))  {
-        relayMessageToBackground(event.data);
-        return;
-      } 
-      if (event.data.type === 'codePath/devTools/queryCodePathLibUrl') {
-        const url = chrome.extension.getURL('/codepath.js');
-        window.postMessage({
-          type: 'codePath/devTools/codePathLibUrl',
-          url
-        }, '*');
-        return;
+      switch (event.data.type) {
+        case 'codePath/devTools/queryCodePathLibUrl':
+          const url = chrome.extension.getURL('/codepath.js');
+          window.postMessage({
+            type: 'codePath/devTools/codePathLibUrl',
+            url
+          }, '*');
+          break;
+        case 'codePath/devTools/requestRunAdapterOnPage':
+          relayMessageToBackground(event.data);
+          break;
+        case 'codePath/devTools/publishEntries':
+          relayMessageToBackground(event.data);
+          break;
       }
     }
     
@@ -49,7 +48,7 @@
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (typeof request === 'object' &&  typeof request.type === 'string') {
       switch (request.type) {
-        case 'codePath/devTools/runPageConfigScript':
+        case 'codePath/devTools/runPageAdapterScript':
           window.postMessage({
             type: request.type,
             script: request.script

@@ -9,8 +9,8 @@
           console.log('CODEPATH.DEVTOOLS.PAGE>', 'loading CodePath from URL:', event.data.url);
           beginLoadCodePathLib(event.data.url);
           break;
-        case 'codePath/devTools/runPageConfigScript':
-          console.log('CODEPATH.DEVTOOLS.PAGE>', 'running page config script', event.data.script);
+        case 'codePath/devTools/runPageAdapterScript':
+          console.log('CODEPATH.DEVTOOLS.PAGE>', 'running page adapter script', event.data.script);
           eval(event.data.script);
           break;
       }
@@ -51,6 +51,7 @@
       }
     });
   
+    requestRunAdapterOnPage();
     attemptInstall();
 
     function attemptInstall() {
@@ -62,10 +63,10 @@
         debug.warn('CODEPATH.DEVTOOLS.PAGE>', 'injector not ready; installing on-ready notification');
         window.__CODEPATH_INJECTOR_READY__ = attemptInstall;
 
-        const adapterScript = localStorage.getItem('codePath.devTools.adapterScript');
-        if (adapterScript) {
-          eval(adapterScript);
-        }
+        // const adapterScript = localStorage.getItem('codePath.devTools.adapterScript');
+        // if (adapterScript) {
+        //   eval(adapterScript);
+        // }
       }
     }
 
@@ -81,16 +82,15 @@
         }
       });
 
-      injector(input, CodePath, configure);
+      injector(input, CodePath);
       entryStream = output;
 
       debug.info('CODEPATH.DEVTOOLS.PAGE>', 'successfully installed');
     }
 
-    function configure(configuration) {
+    function requestRunAdapterOnPage() {
       window.postMessage({
-        type: 'codePath/devTools/configure',
-        configuration,
+        type: 'codePath/devTools/requestRunAdapterOnPage',
         isInitMessage: true
       }, '*');
     }
