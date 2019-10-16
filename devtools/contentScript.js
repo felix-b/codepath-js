@@ -45,6 +45,19 @@
     
     debug.log('CODEPATH.DEVTOOLS.CONTENT>', 'unexpected message, ignored', event.data);
   });
+
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (typeof request === 'object' &&  typeof request.type === 'string') {
+      switch (request.type) {
+        case 'codePath/devTools/runPageConfigScript':
+          window.postMessage({
+            type: request.type,
+            script: request.script
+          }, '*');
+          break;
+      }
+    }
+  });
   
   injectScript(chrome.extension.getURL('/pageScript.js'), 'body');
 

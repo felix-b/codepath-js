@@ -1,3 +1,5 @@
+// https://skalman.github.io/UglifyJS-online/
+
 (function() {
 
   window.__CODEPATH_INJECTOR__ = (tracer, CodePath, config) => {

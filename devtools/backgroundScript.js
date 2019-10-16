@@ -19,6 +19,15 @@
               port.postMessage(initMessage);
             }
             break;
+          case 'runPageConfigScript':
+            chrome.tabs.sendMessage(
+              message.tabId, 
+              { 
+                type: 'codePath/devTools/runPageConfigScript',
+                script: message.script,
+              }
+            );
+            break;
           case 'start':
             chrome.tabs.executeScript(
               message.tabId, 

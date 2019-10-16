@@ -109,6 +109,7 @@ export function createCodePath(options) {
     if (existingSpan) {
       existingSpan.log(tags);
     } else {
+      const activeTracer = scopeManager.getActiveTracer();
       const tempSpan = activeTracer.startSpan("unknown-root");
       tempSpan.log(tags);
       tempSpan.finish();

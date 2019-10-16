@@ -148,6 +148,11 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
     name: 'init',
     tabId: chrome.devtools.inspectedWindow.tabId
   });
+  backgroundConnection.postMessage({
+    name: 'runPageConfigScript',
+    tabId: chrome.devtools.inspectedWindow.tabId,
+    script: configuration.pageInit,
+  });
 
   debug.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'successfully initialized');
 

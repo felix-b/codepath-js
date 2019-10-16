@@ -3,12 +3,17 @@
   let publishIntervalId = undefined;
 
   window.addEventListener('message', (event) => {
-    if (typeof event.data === 'object' && 
-      event.data.type === 'codePath/devTools/codePathLibUrl' &&
-      typeof event.data.url === 'string') 
-    {
-      console.log('CODEPATH.DEVTOOLS.PAGE>', 'loading CodePath from URL:', event.data.url);
-      beginLoadCodePathLib(event.data.url);
+    if (typeof event.data === 'object' && typeof event.data.type === 'string') {
+      switch (event.data.type) {
+        case 'codePath/devTools/codePathLibUrl':
+          console.log('CODEPATH.DEVTOOLS.PAGE>', 'loading CodePath from URL:', event.data.url);
+          beginLoadCodePathLib(event.data.url);
+          break;
+        case 'codePath/devTools/runPageConfigScript':
+          console.log('CODEPATH.DEVTOOLS.PAGE>', 'running page config script', event.data.script);
+          eval(event.data.script);
+          break;
+      }
     }
   });
   
