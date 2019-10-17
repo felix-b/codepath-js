@@ -17,6 +17,7 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   const entryJsonText = document.querySelector('#entry-json-text');
   const filterTextInput = document.querySelector('#filter-text');
   const filterClearButton = document.querySelector('#filter-clear-button');
+  const filterFlatCheckbox = document.querySelector('#filter-flat-check');
   const findTextInput = document.querySelector('#find-text');
   const findPrevButton = document.querySelector('#find-prev-button');
   const findNextButton = document.querySelector('#find-next-button');
@@ -97,6 +98,9 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   filterTextInput.oninput = () => {
     filterTextDebounce.bounce();
   };
+  filterFlatCheckbox.onclick = (e) => {
+    applyFilter();
+  };
   filterClearButton.onclick = (e) => {
     filterTextInput.value = '';
     applyFilter();
@@ -141,7 +145,9 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   debug.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'successfully initialized');
 
   function applyFilter() {
-    CodePathTreeGrid.applyFilter(filterTextInput.value, 'flat');
+    const filterText = filterTextInput.value;
+    const isFlatChecked = filterFlatCheckbox.checked;
+    CodePathTreeGrid.applyFilter(filterText, isFlatChecked ? 'flat' : 'tree');
   }
 
   function onNodeSelectedDebounced() {
