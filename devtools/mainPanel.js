@@ -39,32 +39,37 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   CodePath.createResizer({
     gripElement: document.getElementById('message-column-resizer-right'),
     leftSideElement: document.getElementById('message-column-header'),
-    rightSideElement: document.getElementById('time-column-header')
+    rightSideElement: undefined//document.getElementById('time-column-header')
   });
   CodePath.createResizer({
     gripElement: document.getElementById('time-column-resizer-left'),
     leftSideElement: document.getElementById('message-column-header'),
-    rightSideElement: document.getElementById('time-column-header')
+    rightSideElement: undefined//document.getElementById('time-column-header')
   });
   CodePath.createResizer({
     gripElement: document.getElementById('time-column-resizer-right'),
     leftSideElement: document.getElementById('time-column-header'),
-    rightSideElement: document.getElementById('duration-column-header')
+    rightSideElement: undefined//document.getElementById('duration-column-header')
   });
   CodePath.createResizer({
     gripElement: document.getElementById('duration-column-resizer-left'),
     leftSideElement: document.getElementById('time-column-header'),
-    rightSideElement: document.getElementById('duration-column-header')
+    rightSideElement: undefined//document.getElementById('duration-column-header')
   });
   CodePath.createResizer({
     gripElement: document.getElementById('duration-column-resizer-right'),
     leftSideElement: document.getElementById('duration-column-header'),
-    rightSideElement: document.getElementById('details-column-header')
+    rightSideElement: undefined//document.getElementById('details-column-header')
   });
   CodePath.createResizer({
     gripElement: document.getElementById('details-column-resizer-left'),
     leftSideElement: document.getElementById('duration-column-header'),
-    rightSideElement: document.getElementById('details-column-header')
+    rightSideElement: undefined//document.getElementById('details-column-header')
+  });
+  CodePath.createResizer({
+    gripElement: document.getElementById('details-column-resizer-right'),
+    leftSideElement: document.getElementById('details-column-header'),
+    rightSideElement: undefined//document.getElementById('details-column-header')
   });
 
   let selectedNode = undefined;
@@ -79,16 +84,6 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
     });
     startButton.style.display = 'none';
     stopButton.style.display = 'inline';
-    // chrome.tabs.executeScript(
-    //   chrome.devtools.inspectedWindow.tabId, 
-    //   { 
-    //     code: "window.postMessage({type: 'codePath/devTools/startPublish'},'*')"
-    //   }, 
-    //   function() {
-    //     startButton.style.display = 'none';
-    //     stopButton.style.display = 'inline';
-    //   }
-    // );
   };
   const executeStopCommand = () => {
     backgroundConnection.postMessage({

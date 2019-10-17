@@ -386,6 +386,7 @@ export function createTreeGridView(table, columns, rows) {
         const td = tr.insertCell(colIndex);
         renderCell(nodes[i], rowIndex, colIndex, tr, td);
       }
+      tr.insertCell(columns.length);
     }
   };
 
