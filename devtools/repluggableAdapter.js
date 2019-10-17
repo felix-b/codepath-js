@@ -49,7 +49,7 @@
   }
 
   function ensureTagsSerializable(tags) {
-    if (typeof tags.$api === 'string' && Array.isArray(tags.$args)) {
+    if (typeof tags === 'object' && typeof tags.$api === 'string' && Array.isArray(tags.$args)) {
       let anyNonSerializableArgs = false;
       for (let i = 0 ; i < tags.$args.length ; i++) {
         const argValue = tags.$args[i];
