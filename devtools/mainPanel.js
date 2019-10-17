@@ -141,7 +141,7 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   debug.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'successfully initialized');
 
   function applyFilter() {
-    CodePathTreeGrid.applyFilter(filterTextInput.value);
+    CodePathTreeGrid.applyFilter(filterTextInput.value, 'flat');
   }
 
   function onNodeSelectedDebounced() {

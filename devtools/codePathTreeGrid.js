@@ -37,22 +37,22 @@ define(function (require) {
       debug.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "receiveEntries", entries);
       model.publish(entries);
     },
-    applyFilter(text) {
+    applyFilter(text, treeOrFlat) {
       if (searchModel) {
         searchModel.unsubscribeFromSource();
         searchModel = undefined;
       }
       const trimmedText = text.trim();
       if (trimmedText.length > 0) {
-        searchModel = performSearch(trimmedText);
+        searchModel = performSearch(trimmedText, treeOrFlat);
         controller.replaceModel(searchModel);
         const firstMatchedNode = searchModel.getFirstMatchedNode();
         controller.selectNode(firstMatchedNode);
       } else {
         const saveSelectedNode = selectedNode;
         controller.replaceModel(model);
-        if (saveSelectedNode) {
-          controller.selectNode(saveSelectedNode);
+        if (saveSelectedNode && saveSelectedNode.sourceNode) {
+          controller.selectNode(saveSelectedNode.sourceNode);
         }
       }
     },
@@ -90,9 +90,16 @@ define(function (require) {
     };
   }
 
-  function performSearch(trimmedText) {
+  function performSearch(trimmedText, treeOrFlat) {
     const predicate = createSearchPredicate(trimmedText);
-    return CodePath.createCodePathSearchModel(model, predicate);
+    switch (treeOrFlat) {
+      case 'tree':
+        return CodePath.createCodePathSearchModel(model, predicate);
+      case 'flat':
+        return CodePath.createCodePathFlatFilterModel(model, predicate);
+      default:
+        console.error('performSearch: treeOrFlat parameter is missing or invalid');
+    }
   }
 
   function createColumns() {

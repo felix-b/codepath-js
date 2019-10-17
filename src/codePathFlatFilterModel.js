@@ -11,12 +11,12 @@ import {
 
 import { createMulticastDelegate } from "./multicastDelegate";
 
-export function createCodePathSearchModel(sourceModel, predicate) {
+export function createCodePathFlatFilterModel(sourceModel, predicate) {
   const insertNodesCallbacks = createMulticastDelegate(
-    "CodePathSearchModel.insertNodes"
+    "CodePathFlatFilterModel.insertNodes"
   );
   const updateNodesCallbacks = createMulticastDelegate(
-    "CodePathSearchModel.updateNodes"
+    "CodePathFlatFilterModel.updateNodes"
   );
 
   let resultNodeById = {};
@@ -80,7 +80,7 @@ export function createCodePathSearchModel(sourceModel, predicate) {
       }
     },
     unsubscribeFromSource() {
-      sourceModel.unsubscribe(handleInsertedSourceNodes);
+      sourceModel.unsubscribe(sourceModelSubscriber);
     },
     clearAll() {
       sourceModel.clearAll();
@@ -114,14 +114,7 @@ export function createCodePathSearchModel(sourceModel, predicate) {
       !!subNode;
       subNode = subNode.nextSibling
     ) {
-      depthFirstSearchSubTree(subNode, () => {
-        if (!thisResultNode) {
-          thisResultNode = isRootNode
-            ? getResultParentNode()
-            : createThisResultNode(false);
-        }
-        return thisResultNode;
-      });
+      depthFirstSearchSubTree(subNode, getResultParentNode);
     }
   }
 
@@ -143,28 +136,12 @@ export function createCodePathSearchModel(sourceModel, predicate) {
     return resultNode;
   }
 
-  function getOrCreateResultParentNode(sourceChildNode) {
-    if (!sourceChildNode.parent) {
-      return;
-    }
-    const existingParent = resultNodeById[sourceChildNode.parent.id];
-    if (existingParent) {
-      return existingParent;
-    }
-    return createResultNode(sourceChildNode.parent, false, () =>
-      getOrCreateResultParentNode(sourceChildNode.parent)
-    );
-  }
-
   function handleInsertedSourceNodes(insertedNodes) {
     newlyCreatedResultNodes = [];
     const matchingNodes = insertedNodes.filter(predicate);
 
     matchingNodes.forEach(sourceNode => {
-      const getParentNode = () => {
-        return getOrCreateResultParentNode(sourceNode);
-      };
-      createResultNode(sourceNode, true, getParentNode);
+      createResultNode(sourceNode, true, () => resultRootNode);
     });
 
     if (newlyCreatedResultNodes.length > 0) {

@@ -18,6 +18,7 @@ export {
   findPrevMatchingNode
 } from "./codePathModel";
 export { createCodePathSearchModel } from "./codePathSearchModel";
+export { createCodePathFlatFilterModel } from "./codePathFlatFilterModel";
 export { createTreeGridController, createTreeGridView } from "./treeGrid";
 export { createMulticastDelegate } from "./multicastDelegate";
 export { createDebounce } from "./debounce";
