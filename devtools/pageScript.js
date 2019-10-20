@@ -82,7 +82,7 @@
         }
       });
 
-      injector(input, CodePath);
+      injector(CodePath, input);
       entryStream = output;
 
       debug.info('CODEPATH.DEVTOOLS.PAGE>', 'successfully installed');

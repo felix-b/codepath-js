@@ -1768,6 +1768,9 @@ function createCodePath(options) {
 
 
   var thisCodePath = {
+    getActiveSpan: function getActiveSpan() {
+      return scopeManager.getActiveSpan();
+    },
     logDebug: function logDebug(id, tags) {
       logToActiveSpan(_objectSpread({ $id: id, level: _logLevel__WEBPACK_IMPORTED_MODULE_5__["LOG_LEVEL"].debug }, tags));
     },
@@ -1811,16 +1814,18 @@ function createCodePath(options) {
       if (!entry) {
         throw new Error("Trace span not found: id [".concat(spanId, "]"));
       }
-      var parentContext =
-      entry.options.references &&
-      entry.options.references[0].referencedContext();
-      if (parentContext && parentContext.toTraceId() === traceId) {
-        var parentEntry = spanEntries[parentContext.toSpanId()];
-        if (parentEntry) {
-          scopeManager.setActiveSpan(parentEntry.span);
+      if (span === scopeManager.getActiveSpan()) {
+        var parentContext =
+        entry.options.references &&
+        entry.options.references[0].referencedContext();
+        if (parentContext && parentContext.toTraceId() === traceId) {
+          var parentEntry = spanEntries[parentContext.toSpanId()];
+          if (parentEntry) {
+            scopeManager.setActiveSpan(parentEntry.span);
+          }
+        } else {
+          scopeManager.setActiveSpan(undefined);
         }
-      } else {
-        scopeManager.setActiveSpan(undefined);
       }
       delete spanEntries[spanId];
     } };

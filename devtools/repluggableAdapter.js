@@ -2,17 +2,21 @@
 
 (function() {
 
-  window.__CODEPATH_INJECTOR__ = (tracer, CodePath, config) => {
+  window.__CODEPATH_INJECTOR__ = (CodePathLib, codePathObject) => {
     console.log('CODEPATH.DEVTOOLS.REPLUGGABLE-ADAPTER>', 'injecting AppHost logger');
-    const codePathHostLogger = createCodePathHostLogger(tracer);
+    const codePathHostLogger = createCodePathHostLogger(codePathObject, CodePathLib);
     repluggableAppDebug.host.log = codePathHostLogger;
     //config.configureDevTools(createDevToolsConfiguration());
     console.log('CODEPATH.DEVTOOLS.REPLUGGABLE-ADAPTER>', 'successfully injected AppHost logger');
-  }
+  };
 
   if (typeof window.__CODEPATH_INJECTOR_READY__ === 'function') {
     window.__CODEPATH_INJECTOR_READY__();
   }
+
+  const noopSpan = {
+    end() {}
+  };
 
   // function createDevToolsConfiguration() {
   //   return {
@@ -30,22 +34,47 @@
   //   };
   // }
 
-  function createCodePathHostLogger(tracer) {
+  function createCodePathHostLogger(codePathObject, CodePathLib) {
     return {
-      event(severity, id, keyValuePairs, spanFlag) { 
+      log(severity, id, keyValuePairs) { 
+        if (codePathObject.getActiveSpan()) {
+          ensureTagsSerializable(keyValuePairs);
+          codePathObject.logDebug(id, keyValuePairs);
+        }
+      },
+      spanRoot(id, keyValuePairs) {
         ensureTagsSerializable(keyValuePairs);
-        switch (spanFlag) {
-          case 'begin':
-            tracer.spanChild(id, keyValuePairs);
-            break;
-          case 'end':
-            tracer.finishSpan();
-            break;
-          default:
-            tracer.logDebug(id, keyValuePairs);
+        const tracerSpan = codePathObject.spanRoot(id, keyValuePairs);
+        return createShellLoggerSpan(tracerSpan);
+      },
+      spanChild(id, keyValuePairs) {
+        if (codePathObject.getActiveSpan()) {
+          ensureTagsSerializable(keyValuePairs);
+          const tracerSpan = codePathObject.spanChild(id, keyValuePairs);
+          return createShellLoggerSpan(tracerSpan);
+        } else {
+          return noopSpan;
+        }
+      },
+    };
+
+    function createShellLoggerSpan(tracerSpan) {
+      return {
+        end(success, error, keyValuePairs) {
+          // if (keyValuePairs) {
+          //   tracerSpan.addTags(keyValuePairs);
+          // }
+          if (error) {
+            tracerSpan.log({
+              $id: 'OperationFailure', 
+              level: CodePathLib.LOG_LEVEL.error
+            });
+          }
+          tracerSpan.finish();
+          codePathObject.notifySpanFinished(tracerSpan);
         }
       }
-    };
+    }
   }
 
   function ensureTagsSerializable(tags) {
