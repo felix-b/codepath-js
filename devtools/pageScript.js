@@ -82,6 +82,17 @@
         }
       });
 
+      window.addEventListener('message', (event) => {
+        if (typeof event.data === 'object' && typeof event.data.type === 'string') {
+          switch (event.data.type) {
+            case 'codePath/devTools/clearAll':
+              input.clearAll();
+              output.clearAll();
+              break;
+          }
+        }
+      });
+  
       injector(CodePath, input);
       entryStream = output;
 

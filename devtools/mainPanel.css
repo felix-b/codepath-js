@@ -53,6 +53,8 @@ body {
   border: 0;
   padding: 0;
   background-color: #fdfdfd;
+  display: grid;
+  grid-template-rows: 20px auto;  
 }
 
 .panel-right h1 {

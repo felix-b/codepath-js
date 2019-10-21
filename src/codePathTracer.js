@@ -76,6 +76,7 @@ class CodePathSpan extends Span {
   _clock;
   _stream;
   _selfContext;
+  _name;
   // _childOfContext;
   // _followsFromContext;
   // _operationName;
@@ -94,6 +95,7 @@ class CodePathSpan extends Span {
     this._clock = clock;
     this._stream = stream;
     this._selfContext = new CodePathSpanContext(traceId, spanId);
+    this._name = name;
 
     const startTime = (options && options.startTime) || clock.now();
     const { childOf, followsFrom } = findReferences(options);

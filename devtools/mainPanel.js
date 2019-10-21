@@ -77,6 +77,10 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   
   clearAllButton.onclick = (e) => {
     treeGridController.clearAll();
+    backgroundConnection.postMessage({
+      name: 'clearAll',
+      tabId: chrome.devtools.inspectedWindow.tabId
+    });
   };
   startButton.onclick = (e) => {
     backgroundConnection.postMessage({

@@ -81,7 +81,7 @@ export function createCodePath(options) {
   const outputStream =
     (options && options.outputStream) ||
     createCodePathStream(options ? options.stream : undefined);
-  const spanEntries = {};
+  let spanEntries = {};
 
   const getOrCreateActiveTracer = () => {
     const existingTracer = scopeManager.getActiveTracer();
@@ -204,6 +204,10 @@ export function createCodePath(options) {
         }
       }
       delete spanEntries[spanId];
+    },
+    clearAll() {
+      spanEntries = {};
+      scopeManager.setActiveSpan(undefined);
     }
   };
 

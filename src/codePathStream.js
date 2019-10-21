@@ -82,6 +82,9 @@ export function createCodePathStream(options) {
       entries = [];
       copyOfEntries.forEach(normalizeTags);
       return copyOfEntries;
+    },
+    clearAll() {
+      entries = [];
     }
   };
 

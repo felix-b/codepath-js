@@ -1828,6 +1828,10 @@ function createCodePath(options) {
         }
       }
       delete spanEntries[spanId];
+    },
+    clearAll: function clearAll() {
+      spanEntries = {};
+      scopeManager.setActiveSpan(undefined);
     } };
 
 
@@ -2760,6 +2764,9 @@ function createCodePathStream(options) {
       entries = [];
       copyOfEntries.forEach(normalizeTags);
       return copyOfEntries;
+    },
+    clearAll: function clearAll() {
+      entries = [];
     } };
 
 
@@ -2896,6 +2903,7 @@ CodePathSpan = /*#__PURE__*/function (_Span) {_babel_runtime_helpers_inherits__W
 
 
 
+
   // _childOfContext;
   // _followsFromContext;
   // _operationName;
@@ -2906,7 +2914,7 @@ CodePathSpan = /*#__PURE__*/function (_Span) {_babel_runtime_helpers_inherits__W
   // _logs;
 
   function CodePathSpan(tracer, clock, stream, spanId, name, options) {var _this2;_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default()(this, CodePathSpan);
-    _this2 = _babel_runtime_helpers_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_2___default()(this, _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_3___default()(CodePathSpan).call(this));_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_6___default()(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_4___default()(_this2), "_tracer", void 0);_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_6___default()(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_4___default()(_this2), "_clock", void 0);_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_6___default()(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_4___default()(_this2), "_stream", void 0);_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_6___default()(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_4___default()(_this2), "_selfContext", void 0);
+    _this2 = _babel_runtime_helpers_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_2___default()(this, _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_3___default()(CodePathSpan).call(this));_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_6___default()(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_4___default()(_this2), "_tracer", void 0);_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_6___default()(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_4___default()(_this2), "_clock", void 0);_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_6___default()(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_4___default()(_this2), "_stream", void 0);_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_6___default()(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_4___default()(_this2), "_selfContext", void 0);_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_6___default()(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_4___default()(_this2), "_name", void 0);
 
     var traceId = tracer.getTraceId();
 
@@ -2914,6 +2922,7 @@ CodePathSpan = /*#__PURE__*/function (_Span) {_babel_runtime_helpers_inherits__W
     _this2._clock = clock;
     _this2._stream = stream;
     _this2._selfContext = new CodePathSpanContext(traceId, spanId);
+    _this2._name = name;
 
     var startTime = options && options.startTime || clock.now();var _findReferences =
     findReferences(options),childOf = _findReferences.childOf,followsFrom = _findReferences.followsFrom;

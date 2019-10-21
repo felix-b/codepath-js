@@ -44,6 +44,14 @@
               }
             );
             break;
+          case 'clearAll': 
+            chrome.tabs.executeScript(
+              message.tabId, 
+              { 
+                code: "window.postMessage({type: 'codePath/devTools/clearAll'},'*')"
+              }
+            );
+            break;
           default:
             debug.warn('CODEPATH.DEVTOOLS.BKG>', 'unrecognized message', message);
         }
