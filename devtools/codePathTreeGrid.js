@@ -85,13 +85,22 @@ define(function (require) {
       if (typeof messageId !== 'string') {
         return false;
       }
+      if (node.matchHighlight) {
+        node.matchHighlight = undefined;
+      }
       for (let iExclude = 0 ; iExclude < definition.exclude.length ; iExclude++) {
         if (messageId.indexOf(definition.exclude[iExclude]) >= 0) {
           return false;
         }
       }
       for (let iInclude = 0 ; iInclude < definition.include.length ; iInclude++) {
-        if (messageId.indexOf(definition.include[iInclude]) >= 0) {
+        const text = definition.include[iInclude];
+        const index = messageId.indexOf(text);
+        if (index >= 0) {
+          node.matchHighlight = { 
+            index, 
+            count: text.length 
+          };
           return true;
         }
       }
@@ -121,14 +130,27 @@ define(function (require) {
 
     return columns;
 
-    function renderDataSpan(text, classNames, child) {
+    function renderDataSpan(text, classNames, child, highlight) {
       const span = document.createElement('span');
       span.classList.add('data');
       if (classNames) {
         span.classList.add(classNames);
       }
-      const textNode = document.createTextNode(text);
-      span.appendChild(textNode);
+      if (highlight) {
+        if (highlight.index > 0) {
+          span.appendChild(document.createTextNode(text.substr(0, highlight.index)));
+        }
+        const highlightSpan = document.createElement('span');
+        highlightSpan.classList.add('hl');
+        highlightSpan.appendChild(document.createTextNode(text.substr(highlight.index, highlight.count)));
+        span.appendChild(highlightSpan);
+        const highlightEndIndex = highlight.index + highlight.count;
+        if (highlightEndIndex < text.length) {
+          span.appendChild(document.createTextNode(text.substr(highlightEndIndex)));
+        }
+      } else {
+        span.appendChild(document.createTextNode(text));
+      }
       if (child) {
         span.appendChild(child);
       }
@@ -165,7 +187,11 @@ define(function (require) {
             return span;
           };
           const renderText = () => {
-            return renderDataSpan(`${node.entry.messageId}`);
+            return renderDataSpan(
+              `${node.entry.messageId}`, 
+              undefined, 
+              undefined, 
+              node.matchHighlight);
           };
           return [
             ...renderIndents(node.depth),

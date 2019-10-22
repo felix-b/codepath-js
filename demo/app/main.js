@@ -23,7 +23,7 @@ define(function (require) {
   }
 
   const initInjector = () => {
-    window.__CODEPATH_INJECTOR__ = (codePathLib,  newTracer) => {
+    window.__CODEPATH_INJECTOR__ = (codePathLib, newTracer) => {
       window.CodePath = codePathLib;
       trace = CodePath.trace;
       tracer = newTracer;

@@ -10,6 +10,7 @@
       "matches": [
         "http://localhost:9090/*",
         "http://localhost:3000/*",
+        "http://localhost:3333/*",
         "https://local.wix.com:3500/*"
       ],
       "js": [

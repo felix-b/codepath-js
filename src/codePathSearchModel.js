@@ -140,6 +140,11 @@ export function createCodePathSearchModel(sourceModel, predicate) {
     appendChildNodeToParent(resultNode, resultParentNode);
     resultNode.sourceNode = sourceNode;
     resultNode.matched = matched;
+    if (sourceNode.matchHighlight) {
+      // TODO: make predicate return { matched, highlight }
+      resultNode.matchHighlight = sourceNode.matchHighlight;
+      sourceNode.matchHighlight = undefined;
+    }
     return resultNode;
   }
 
