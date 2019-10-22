@@ -15,7 +15,12 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   const stopButton = document.querySelector('#stop-button');
   const clearAllButton = document.querySelector('#clear-all-button');
   const entryJsonText = document.querySelector('#entry-json-text');
-  const filterTextInput = document.querySelector('#filter-text');
+  const filterIncludeText1 = document.querySelector('#filter-text');
+  const filterIncludeText2 = document.querySelector('#filter-text-2');
+  const filterIncludeText3 = document.querySelector('#filter-text-3');
+  const filterExcludeText1 = document.querySelector('#filter-exclude-text-1');
+  const filterExcludeText2 = document.querySelector('#filter-exclude-text-2');
+  const filterExcludeText3 = document.querySelector('#filter-exclude-text-3');
   const filterClearButton = document.querySelector('#filter-clear-button');
   const filterFlatCheckbox = document.querySelector('#filter-flat-check');
   const findTextInput = document.querySelector('#find-text');
@@ -24,6 +29,14 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   const panelResizerDiv = document.querySelector('#panel-resizer');
   const mainPanelDiv = document.querySelector('#panel-main');
   const rightPanelDiv = document.querySelector('#panel-right');
+  const allFilterTextInputs = [
+    filterIncludeText1, 
+    filterIncludeText2, 
+    filterIncludeText3, 
+    filterExcludeText1, 
+    filterExcludeText2, 
+    filterExcludeText3
+  ];
 
   const configuration = loadConfiguration();
   CodePathTreeGrid.configure(configuration);
@@ -99,14 +112,14 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
     startButton.style.display = 'inline';
   };
   stopButton.onclick = executeStopCommand;
-  filterTextInput.oninput = () => {
+  allFilterTextInputs.forEach(el => el.oninput = () => {
     filterTextDebounce.bounce();
-  };
+  });
   filterFlatCheckbox.onclick = (e) => {
     applyFilter();
   };
   filterClearButton.onclick = (e) => {
-    filterTextInput.value = '';
+    allFilterTextInputs.forEach(el => el.value = '');
     applyFilter();
   };
   findNextButton.onclick = (e) => {
@@ -149,9 +162,21 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   debug.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'successfully initialized');
 
   function applyFilter() {
-    const filterText = filterTextInput.value;
+    const filterText = filterIncludeText1.value;
     const isFlatChecked = filterFlatCheckbox.checked;
-    CodePathTreeGrid.applyFilter(filterText, isFlatChecked ? 'flat' : 'tree');
+    const filterDefinition = {
+      include: [
+        filterIncludeText1.value.trim(),
+        filterIncludeText2.value.trim(),
+        filterIncludeText3.value.trim(),
+      ].filter(s => s.length > 0),
+      exclude: [
+        filterExcludeText1.value.trim(),
+        filterExcludeText2.value.trim(),
+        filterExcludeText3.value.trim(),
+      ].filter(s => s.length > 0)
+    }
+    CodePathTreeGrid.applyFilter(filterDefinition, isFlatChecked ? 'flat' : 'tree');
   }
 
   function onNodeSelectedDebounced() {

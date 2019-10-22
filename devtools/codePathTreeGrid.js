@@ -37,14 +37,13 @@ define(function (require) {
       debug.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "receiveEntries", entries);
       model.publish(entries);
     },
-    applyFilter(text, treeOrFlat) {
+    applyFilter(definition, treeOrFlat) {
       if (searchModel) {
         searchModel.unsubscribeFromSource();
         searchModel = undefined;
       }
-      const trimmedText = text.trim();
-      if (trimmedText.length > 0) {
-        searchModel = performSearch(trimmedText, treeOrFlat);
+      if (definition.include.length > 0 || definition.exclude.length > 0) {
+        searchModel = performSearch(definition, treeOrFlat);
         controller.replaceModel(searchModel);
         const firstMatchedNode = searchModel.getFirstMatchedNode();
         controller.selectNode(firstMatchedNode);
@@ -77,7 +76,7 @@ define(function (require) {
     }
   };
 
-  function createSearchPredicate(trimmedText) {
+  function createSearchPredicate(definition) {
     return (node) => {
       if (!node.entry) {
         return false;
@@ -86,12 +85,22 @@ define(function (require) {
       if (typeof messageId !== 'string') {
         return false;
       }
-      return (messageId.indexOf(trimmedText) >= 0);
+      for (let iExclude = 0 ; iExclude < definition.exclude.length ; iExclude++) {
+        if (messageId.indexOf(definition.exclude[iExclude]) >= 0) {
+          return false;
+        }
+      }
+      for (let iInclude = 0 ; iInclude < definition.include.length ; iInclude++) {
+        if (messageId.indexOf(definition.include[iInclude]) >= 0) {
+          return true;
+        }
+      }
+      return false;
     };
   }
 
-  function performSearch(trimmedText, treeOrFlat) {
-    const predicate = createSearchPredicate(trimmedText);
+  function performSearch(definition, treeOrFlat) {
+    const predicate = createSearchPredicate(definition);
     switch (treeOrFlat) {
       case 'tree':
         return CodePath.createCodePathSearchModel(model, predicate);

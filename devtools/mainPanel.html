@@ -6,26 +6,52 @@
 <body>
   <div class="panels-container">
     <div class="panel-top">
-      <a id="start-button" style="display:inline-block"><span class="icon"></span><span class="text">Start</span></a>
-      <a id="stop-button" style="display:none"><span class="icon"></span><span class="text">Stop</span></a>
-      <a id="clear-all-button"><span class="icon"></span><span class="text">Clear</span></a>
-      <span>|</span>
-      <label>
-        Filter
-        <input id="filter-text" type="text"></input>
-      </label>
-      <label>
-        <input id="filter-flat-check" type="checkbox"></input>
-        Flat
-      </label>
-      <a id="filter-clear-button"><span class="icon"></span></a>
-      <span>|</span>
-      <label>
-        Find
-        <input id="find-text" type="text"></input>
-      </label>
-      <a id="find-next-button"><span class="icon"></span><span class="text">Next</span></a>
-      <a id="find-prev-button"><span class="icon"></span><span class="text">Prev</span></a>
+      <div>
+        <a id="start-button" style="display:inline-block"><span class="icon"></span><span class="text">Start</span></a>
+        <a id="stop-button" style="display:none"><span class="icon"></span><span class="text">Stop</span></a>
+        <a id="clear-all-button"><span class="icon"></span><span class="text">Clear</span></a>
+        <span>|</span>
+        <label>
+          Find
+          <input id="find-text" type="text"></input>
+        </label>
+        <a id="find-next-button"><span class="icon"></span><span class="text">Next</span></a>
+        <a id="find-prev-button"><span class="icon"></span><span class="text">Prev</span></a>
+      </div>
+      <div>
+        <span>|</span>
+        <label>Filter</label>
+        <label>
+          +
+          <input id="filter-text" type="text"></input>
+        </label>
+        <label>
+          +
+          <input id="filter-text-2" type="text"></input>
+        </label>
+        <label>
+          +
+          <input id="filter-text-3" type="text"></input>
+        </label>
+        <label>
+          -
+          <input id="filter-exclude-text-1" type="text"></input>
+        </label>
+        <label>
+          -
+          <input id="filter-exclude-text-2" type="text"></input>
+        </label>
+        <label>
+          -
+          <input id="filter-exclude-text-3" type="text"></input>
+        </label>
+        <label>
+          <input id="filter-flat-check" type="checkbox"></input>
+          Flat
+        </label>
+        <a id="filter-clear-button"><span class="icon"></span></a>
+        <span>|</span>
+      </div>
     </div>
     <div id="panel-main" class="panel-main">
       <table id="trace-grid" tabindex="0">
