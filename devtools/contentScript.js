@@ -54,6 +54,13 @@
             script: request.script
           }, '*');
           break;
+        case 'codePath/devTools/replayApiCall':
+          window.postMessage({
+            type: request.type,
+            apiCall: request.apiCall,
+            prepareOnly: request.prepareOnly
+          }, '*');
+          break;
       }
     }
   });

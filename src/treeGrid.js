@@ -304,6 +304,8 @@ export function createTreeGridView(table, columns, rows) {
       e.stopPropagation();
       return false;
     }
+    keyPressedCallbacks.invoke(e);
+    return !e.defaultPrevented;
   };
 
   let tbody = document.createElement("tbody");

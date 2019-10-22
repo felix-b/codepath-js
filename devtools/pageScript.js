@@ -47,6 +47,9 @@
           case 'codePath/devTools/stopPublish':
             stopPublish();
             break;
+          case 'codePath/devTools/replayApiCall':
+            prepareReplayApiCall(event.data.apiCall, event.data.prepareOnly);
+            break;
         }
       }
     });
@@ -139,6 +142,22 @@
       entryStream.takeEntries();
 
       debug.info('CODEPATH.DEVTOOLS.PAGE>', 'publish stopped');
+    }
+
+    function prepareReplayApiCall(apiCall, prepareOnly) {
+      const { api, apiFunc, apiArgs } = apiCall;
+      console.log(`--- REPLAY API CALL: ${api}.${apiFunc} ---`);
+      for (let i = 0 ; i < apiArgs.length ; i++) {
+        const varName = `apiArg${i + 1}`;
+        window[varName] = apiArgs[i];
+        console.log(varName, apiArgs[i]);
+      }
+      const callExpression = `apis.${api}.${apiFunc}(${apiArgs.map((value, index) => `apiArg${index + 1}`).join(',')})`;
+      console.log(callExpression);
+      if (!prepareOnly) {
+        console.log('--- executing ---');
+        console.log(eval(callExpression));
+      }
     }
   }
 })();

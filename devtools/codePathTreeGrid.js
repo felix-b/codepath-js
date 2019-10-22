@@ -19,7 +19,7 @@ define(function (require) {
       debug.log("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID>", "configure", newConfiguration);
       configuration = newConfiguration;
     },
-    initMvc(gridTableElement) {
+    initMvc(gridTableElement, nodeKeyPressHandler) {
       if (!configuration) {
         console.error("CODEPATH.DEVTOOLS.CODEPATH-TREEGRID> initMvc: not configured");
       }
@@ -30,6 +30,11 @@ define(function (require) {
       controller = CodePath.createTreeGridController(view, model);
       controller.onNodeSelected(node => {
         selectedNode = node;
+      });
+      view.onKeyPressed(event => {
+        if (selectedNode && nodeKeyPressHandler) {
+          nodeKeyPressHandler(event, selectedNode);
+        }
       });
       return controller;
     },

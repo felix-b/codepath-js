@@ -2628,7 +2628,8 @@ function createCodePathSearchModel(sourceModel, predicate) {
     Object(_codePathModel__WEBPACK_IMPORTED_MODULE_0__["appendChildNodeToParent"])(resultNode, resultParentNode);
     resultNode.sourceNode = sourceNode;
     resultNode.matched = matched;
-    if (sourceNode.matchHighlight) {// TODO: make predicate return { matched, highlight }
+    if (sourceNode.matchHighlight) {
+      // TODO: make predicate return { matched, highlight }
       resultNode.matchHighlight = sourceNode.matchHighlight;
       sourceNode.matchHighlight = undefined;
     }
@@ -3848,6 +3849,8 @@ function createTreeGridView(table, columns, rows) {
       e.stopPropagation();
       return false;
     }
+    keyPressedCallbacks.invoke(e);
+    return !e.defaultPrevented;
   };
 
   var tbody = document.createElement("tbody");

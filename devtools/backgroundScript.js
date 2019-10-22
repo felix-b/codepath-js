@@ -44,6 +44,16 @@
               }
             );
             break;
+          case 'replayApiCall':
+            chrome.tabs.sendMessage(
+              message.tabId, 
+              { 
+                type: 'codePath/devTools/replayApiCall',
+                apiCall: message.apiCall,
+                prepareOnly: message.prepareOnly
+              }
+            );
+            break;
           case 'clearAll': 
             chrome.tabs.executeScript(
               message.tabId, 

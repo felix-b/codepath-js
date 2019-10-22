@@ -41,7 +41,7 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   const configuration = loadConfiguration();
   CodePathTreeGrid.configure(configuration);
 
-  const treeGridController = CodePathTreeGrid.initMvc(treeGridTable);
+  const treeGridController = CodePathTreeGrid.initMvc(treeGridTable, handleKeyPressEvent);
   const filterTextDebounce = CodePath.createDebounce(applyFilter, 500);
   const nodeSelectedDebounce = CodePath.createDebounce(onNodeSelectedDebounced, 100);
   
@@ -206,6 +206,41 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
     }
 
     console.warn('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'config script not found, using defaults');
+  }
+
+  function handleKeyPressEvent(event, node) {
+    switch (event.key) {
+      case "Enter":
+        const prepareOnly = event.shiftKey;
+        requestReplayCall(node.entry, prepareOnly);
+        event.preventDefault();
+        break;
+    }
+  }
+
+  function requestReplayCall(entry, prepareOnly) {
+    const { $api, $apiFunc, $args } = entry.tags;
+    if (typeof $api !== 'string' || typeof $apiFunc !== 'string') {
+      return;
+    }
+
+    const callArgs = (
+      typeof $args === 'string'
+      ? JSON.parse($args)
+      : $args);
+    
+    const apiCall = {
+      api: $api,
+      apiFunc: $apiFunc,
+      apiArgs: callArgs
+    };
+    
+    backgroundConnection.postMessage({
+      name: 'replayApiCall',
+      tabId: chrome.devtools.inspectedWindow.tabId,
+      apiCall,
+      prepareOnly
+    });
   }
 
 });
