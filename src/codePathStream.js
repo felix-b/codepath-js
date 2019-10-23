@@ -101,9 +101,14 @@ export function createCodePathStream(options) {
     }
 
     function safeStringify(obj) {
-      const json = JSON.stringify(obj, replaceCircularReferences);
-      if (json && json.length > 1024) {
-        return json.substr(0, 1024) + "...[trunc]";
+      let json = null;
+      try {
+        json = JSON.stringify(obj);
+      } catch (err) {
+        json = JSON.stringify(obj, replaceCircularReferences);
+      }
+      if (json && json.length > 4096) {
+        return json.substr(0, 4096) + "...[trunc]";
       }
       return json;
     }

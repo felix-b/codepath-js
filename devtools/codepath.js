@@ -2788,9 +2788,14 @@ function createCodePathStream(options) {
     }
 
     function safeStringify(obj) {
-      var json = JSON.stringify(obj, replaceCircularReferences);
-      if (json && json.length > 1024) {
-        return json.substr(0, 1024) + "...[trunc]";
+      var json = null;
+      try {
+        json = JSON.stringify(obj);
+      } catch (err) {
+        json = JSON.stringify(obj, replaceCircularReferences);
+      }
+      if (json && json.length > 4096) {
+        return json.substr(0, 4096) + "...[trunc]";
       }
       return json;
     }
