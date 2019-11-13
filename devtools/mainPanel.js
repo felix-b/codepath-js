@@ -241,9 +241,13 @@ requirejs(['codepath', 'codePathTreeGrid', 'objectAssignDeep'], function(CodePat
       ? buildDetailsObject()
       : undefined;
 
+    if (selectedNode && !detailsObject) {
+      return;
+    }
+
     entryJsonText.innerHTML = 
       detailsObject 
-        ? `[${selectedNode.id}]: ${JSON.stringify(detailsObject, null, 2)}` 
+        ? `${selectedNode.entry.messageId} [${selectedNode.id}]: ${JSON.stringify(detailsObject, null, 2)}` 
         : ''; 
   }
 
