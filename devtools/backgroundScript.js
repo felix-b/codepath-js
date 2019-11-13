@@ -54,6 +54,14 @@
               }
             );
             break;
+          case 'fetchTags': 
+            chrome.tabs.executeScript(
+              message.tabId, 
+              { 
+                code: `window.postMessage({type: 'codePath/devTools/fetchTagsRequest', tagsIds: [${message.tagsIds.join(',')}]},'*')`
+              }
+            );
+            break;
           case 'clearAll': 
             chrome.tabs.executeScript(
               message.tabId, 

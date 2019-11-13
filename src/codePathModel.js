@@ -94,7 +94,20 @@ export function createCodePathModel(options) {
     bubbleMetrics(newNode, insertQueue, updateQueue);
   };
 
-  const handleSpanTagsEntry = (entry, insertQueue, updateQueue) => {};
+  const handleSpanTagsEntry = (entry, insertQueue, updateQueue) => {
+    const node = traceNodeMap.getSpanNode(entry.traceId, entry.spanId);
+    if (node && entry.tags && entry.tags.$$id) {
+      const currentTagsIds = node.entry.tags.$$id;
+      const newTagsIds = Array.isArray(currentTagsIds)
+        ? currentTagsIds
+        : currentTagsIds
+        ? [currentTagsIds]
+        : [];
+      newTagsIds.push(entry.tags.$$id);
+      node.entry.tags = { $$id: newTagsIds };
+      updateQueue.push(node);
+    }
+  };
 
   const handleEndSpanEntry = (entry, insertQueue, updateQueue) => {
     const node = traceNodeMap.getSpanNode(entry.traceId, entry.spanId);

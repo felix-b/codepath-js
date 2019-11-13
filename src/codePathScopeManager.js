@@ -1,93 +1,101 @@
 import { LOG_LEVEL } from "./logLevel";
 
-let currentScopeManager = createInternalScopeManager();
+//let currentScopeManager = createInternalScopeManager();
 
-export function trace(promiseOrFunc) {
+// export function trace(promiseOrFunc) {
+//   const logToActiveSpan = tags => {
+//     const activeSpan = currentScopeManager.getActiveSpan();
+//     if (activeSpan) {
+//       activeSpan.log(tags);
+//     }
+//   };
+
+//   const callerScopeManager = currentScopeManager.clone();
+
+//   const originalPromise =
+//     typeof promiseOrFunc === "function" ? promiseOrFunc() : promiseOrFunc;
+
+//   const saveScopeManager = currentScopeManager;
+
+//   const wrapperPromise = new Promise((resolve, reject) => {
+//     originalPromise
+//       .then(value => {
+//         currentScopeManager = saveScopeManager;
+//         logToActiveSpan({
+//           $id: "async-then",
+//           $async: "then",
+//           level: LOG_LEVEL.debug,
+//           value
+//         });
+//         resolve(value);
+//       })
+//       .catch(err => {
+//         currentScopeManager = saveScopeManager;
+//         logToActiveSpan({
+//           $id: "async-catch",
+//           $async: "catch",
+//           level: LOG_LEVEL.error,
+//           error: {
+//             message: err.message,
+//             stack: err.stack
+//           }
+//         });
+//         reject(err);
+//       });
+//   });
+
+//   currentScopeManager = callerScopeManager;
+//   return wrapperPromise;
+// }
+
+export function createDefaultScopeManager(asyncLocalProvider) {
+  const activeTracer = asyncLocalProvider.createAsyncLocal();
+  const activeSpan = asyncLocalProvider.createAsyncLocal();
+
   const logToActiveSpan = tags => {
-    const activeSpan = currentScopeManager.getActiveSpan();
-    if (activeSpan) {
-      activeSpan.log(tags);
+    const span = activeSpan.get();
+    if (span) {
+      span.log(tags);
     }
   };
 
-  const callerScopeManager = currentScopeManager.clone();
-
-  const originalPromise =
-    typeof promiseOrFunc === "function" ? promiseOrFunc() : promiseOrFunc;
-
-  const saveScopeManager = currentScopeManager;
-
-  const wrapperPromise = new Promise((resolve, reject) => {
-    originalPromise
-      .then(value => {
-        currentScopeManager = saveScopeManager;
-        logToActiveSpan({
-          $id: "async-then",
-          $async: "then",
-          level: LOG_LEVEL.debug,
-          value
-        });
-        resolve(value);
-      })
-      .catch(err => {
-        currentScopeManager = saveScopeManager;
-        logToActiveSpan({
-          $id: "async-catch",
-          $async: "catch",
-          level: LOG_LEVEL.error,
-          error: {
-            message: err.message,
-            stack: err.stack
-          }
-        });
-        reject(err);
-      });
+  asyncLocalProvider.addPromiseCompletionHook(value => {
+    //console.log('COMPLETION-HOOK!');
+    logToActiveSpan({
+      $id: "async-then",
+      $async: "then",
+      level: LOG_LEVEL.debug,
+      value
+    });
   });
 
-  currentScopeManager = callerScopeManager;
-  return wrapperPromise;
-}
+  asyncLocalProvider.addPromiseRejectionHook(err => {
+    //console.log('REJECTION-HOOK!');
+    logToActiveSpan({
+      $id: "async-catch",
+      $async: "catch",
+      level: LOG_LEVEL.error,
+      error: {
+        message: err.message,
+        stack: err.stack
+      }
+    });
+  });
 
-export function createDefaultScopeManager() {
   return {
     getActiveTracer() {
-      return currentScopeManager.getActiveTracer();
+      return activeTracer.get();
     },
     getActiveSpan() {
-      return currentScopeManager.getActiveSpan();
+      return activeSpan.get();
     },
     setActiveTracer(tracer) {
-      currentScopeManager.setActiveTracer(tracer);
+      activeTracer.set(tracer);
     },
     setActiveSpan(span) {
-      currentScopeManager.setActiveSpan(span);
+      activeSpan.set(span);
     }
   };
 }
 
-export function resetCurrentScope() {
-  currentScopeManager = createInternalScopeManager();
-}
-
-function createInternalScopeManager(source) {
-  let activeTracer = source ? source.getActiveTracer() : undefined;
-  let activeSpan = source ? source.getActiveSpan() : undefined;
-  const thisScopeManager = {
-    getActiveTracer() {
-      return activeTracer;
-    },
-    getActiveSpan() {
-      return activeSpan;
-    },
-    setActiveTracer(tracer) {
-      activeTracer = tracer;
-    },
-    setActiveSpan(span) {
-      activeSpan = span;
-    },
-    clone() {
-      return createInternalScopeManager(thisScopeManager);
-    }
-  };
-  return thisScopeManager;
-}
+export function resetCurrentScope() {}

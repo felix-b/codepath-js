@@ -1,8 +1,12 @@
 import { REFERENCE_FOLLOWS_FROM, REFERENCE_CHILD_OF } from "opentracing";
+import { isTagSerializable, addTagMetaStringify } from "./serializable";
 
 export function createCodePathStream(options) {
+  const isStripTagsMode = options && options.stripTags;
   let entries = [];
   let isEnabled = options ? !!options.enabled : true;
+  let strippedTagsById = {};
+  let nextStrippedTagsId = 1;
 
   return {
     writeStartTracer(time, traceId, tags) {
@@ -13,7 +17,7 @@ export function createCodePathStream(options) {
         time,
         token: "StartTracer",
         traceId,
-        tags: tags || {}
+        tags: includeOrStripTags(tags)
       });
     },
     writeStartSpan(time, traceId, spanId, messageId, references, tags, epoch) {
@@ -30,7 +34,7 @@ export function createCodePathStream(options) {
         childOf,
         followsFrom,
         messageId,
-        tags: tags || {}
+        tags: includeOrStripTags(tags)
       });
     },
     writeEndSpan(time, traceId, spanId, tags) {
@@ -42,7 +46,7 @@ export function createCodePathStream(options) {
         token: "EndSpan",
         traceId,
         spanId,
-        tags: tags || {}
+        tags: includeOrStripTags(tags)
       });
     },
     writeLog(time, traceId, spanId, messageId, tags) {
@@ -55,7 +59,7 @@ export function createCodePathStream(options) {
         traceId,
         spanId,
         messageId,
-        tags: tags || {}
+        tags: includeOrStripTags(tags)
       });
     },
     writeSpanTags(time, traceId, spanId, tags) {
@@ -67,7 +71,7 @@ export function createCodePathStream(options) {
         token: "SpanTags",
         traceId,
         spanId,
-        tags: tags || {}
+        tags: includeOrStripTags(tags)
       });
     },
     enable(value) {
@@ -80,22 +84,53 @@ export function createCodePathStream(options) {
     takeEntries() {
       const copyOfEntries = entries;
       entries = [];
-      copyOfEntries.forEach(normalizeTags);
+      if (!isStripTagsMode) {
+        copyOfEntries.forEach(entry => normalizeTags(entry.tags));
+      }
       return copyOfEntries;
     },
     clearAll() {
       entries = [];
+      strippedTagsById = {};
+    },
+    getStrippedTags(ids) {
+      if (!isStripTagsMode) {
+        throw new Error("CodePathStream is not in stripped tags mode");
+      }
+
+      let result = {};
+      ids.forEach(id => {
+        result[id] = strippedTagsById[id];
+        normalizeTags(strippedTagsById[id]);
+      });
+      return result;
     }
   };
 
-  function normalizeTags(entry) {
-    let visitedObjects = new Set();
+  function includeOrStripTags(tags) {
+    if (!tags) {
+      return {};
+    }
+    if (isStripTagsMode && Object.keys(tags).length > 0) {
+      const $$id = nextStrippedTagsId++;
+      strippedTagsById[$$id] = tags;
+      return { $$id };
+    }
+    return tags;
+  }
 
-    if (entry.tags) {
-      const meta = entry.tags.$meta;
-      if (meta && meta.stringify) {
-        for (let tag of meta.stringify) {
-          entry.tags[tag] = safeStringify(entry.tags[tag]);
+  function normalizeTags(tags) {
+    let visitedObjects;
+
+    if (typeof tags === "object") {
+      visitedObjects = new Set();
+
+      for (let key in tags) {
+        const value = tags[key];
+
+        if (!isTagSerializable(value)) {
+          addTagMetaStringify(tags, key);
+          tags[key] = safeStringify(value);
         }
       }
     }
@@ -107,8 +142,8 @@ export function createCodePathStream(options) {
       } catch (err) {
         json = JSON.stringify(obj, replaceCircularReferences);
       }
-      if (json && json.length > 4096) {
-        return json.substr(0, 4096) + "...[trunc]";
+      if (json && json.length > 16384) {
+        return json.substr(0, 16384) + "...[trunc]";
       }
       return json;
     }

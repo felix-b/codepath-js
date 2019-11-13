@@ -7,6 +7,7 @@ import {
 
 import { createCodePathTracer } from "./codePathTracer";
 import { createCodePathStream } from "./codePathStream";
+import { createAsyncLocalProvider } from "./asyncLocalProvider";
 import { createDefaultScopeManager } from "./codePathScopeManager";
 import { LOG_LEVEL } from "./logLevel";
 
@@ -73,9 +74,17 @@ export const GlobalCodePath = {
 };
 
 export function createCodePath(options) {
+  const getAsyncLocalProvider = () => {
+    if (options && options.asyncLocalProvider) {
+      return options.asyncLocalProvider;
+    }
+    return createAsyncLocalProvider();
+  };
+
   const clock = (options && options.clock) || createRealClock();
   const scopeManager =
-    (options && options.scopeManager) || createDefaultScopeManager();
+    (options && options.scopeManager) ||
+    createDefaultScopeManager(getAsyncLocalProvider());
   const tracerFactory =
     (options && options.tracerFactory) || defaultTracerFactory;
   const outputStream =

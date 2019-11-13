@@ -2,7 +2,7 @@ requirejs.config({ });
 
 let backgroundConnection = undefined;
 
-requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid) {
+requirejs(['codepath', 'codePathTreeGrid', 'objectAssignDeep'], function(CodePath, CodePathTreeGrid, objectAssignDeep) {
   backgroundConnection = chrome.runtime.connect({
     name: 'codePathMainPanel'
   });
@@ -87,6 +87,7 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   });
 
   let selectedNode = undefined;
+  let nodesTagsByTagsIds = {};
   
   clearAllButton.onclick = (e) => {
     treeGridController.clearAll();
@@ -94,6 +95,9 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
       name: 'clearAll',
       tabId: chrome.devtools.inspectedWindow.tabId
     });
+    nodesTagsByTagsIds = {};
+    selectedNode = undefined;
+    onNodeSelectedDebounced();
   };
   startButton.onclick = (e) => {
     backgroundConnection.postMessage({
@@ -151,6 +155,13 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
       case 'codePath/devTools/publishEntries':
         CodePathTreeGrid.receiveEntries(message.entries);
         break;
+      case 'codePath/devTools/fetchTagsReply':
+        const { tagsById } = message;
+        for (let tagId in tagsById) {
+          nodesTagsByTagsIds[tagId] = tagsById[tagId];
+        }
+        onNodeSelectedDebounced();
+        break;
     }
   });
 
@@ -180,17 +191,59 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
   }
 
   function onNodeSelectedDebounced() {
-    const createDetailsObject = () => {
-      return {
-        entry: selectedNode.entry,
-        metrics: selectedNode.metrics,
-        parentNodeId: selectedNode.parent.id
+
+    const deserializeTags = (tags) => {
+      if (tags.$meta && tags.$meta.stringify) {
+        if (tags.$meta.deserialized === true) {
+          return;
+        }
+        for (let i = 0 ; i < tags.$meta.stringify.length ; i++) {
+          const id = tags.$meta.stringify[i];
+          try {
+            tags[id] = JSON.parse(tags[id]);
+          } catch(err) {
+            if (!tags.$meta.errors) {
+              tags.$meta.errors = {};
+            }
+            tags.$meta.errors[id] = err.message;
+          }
+        }
+        tags.$meta.deserialized = true;
       }
     };
 
+    const buildTagsObject = (tagsIds) => {
+      const tagsObjects = tagsIds
+        .map(id => nodesTagsByTagsIds[id])
+        .filter(tagsObj => !!tagsObj);
+      let result = objectAssignDeep({}, tagsObjects);
+      deserializeTags(result);
+      return result;
+    };
+
+    const buildDetailsObject = () => {
+      const tagsIds = getNormalizedTagsIds(selectedNode.entry);
+      const missingTagsIds = tagsIds.filter(id => !nodesTagsByTagsIds[id]);
+      if (missingTagsIds.length > 0) {
+        requestStrippedTags(missingTagsIds);
+        return undefined;
+      }
+      const details = {
+        tags: buildTagsObject(tagsIds),
+        metrics: selectedNode.metrics,
+        entry: selectedNode.entry,
+        parentNodeId: selectedNode.parent.id,
+      };
+      return details;
+    };
+
+    const detailsObject = selectedNode
+      ? buildDetailsObject()
+      : undefined;
+
     entryJsonText.innerHTML = 
-      selectedNode 
-        ? `[${selectedNode.id}]: ${JSON.stringify(createDetailsObject(), null, 2)}` 
+      detailsObject 
+        ? `[${selectedNode.id}]: ${JSON.stringify(detailsObject, null, 2)}` 
         : ''; 
   }
 
@@ -218,6 +271,20 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
     }
   }
 
+  function getNormalizedTagsIds(entry) {
+    return typeof entry.tags.$$id === 'number' 
+      ? [entry.tags.$$id] 
+      : entry.tags.$$id;
+  }
+
+  function requestStrippedTags(tagsIds) {
+    backgroundConnection.postMessage({
+      name: 'fetchTags',
+      tabId: chrome.devtools.inspectedWindow.tabId,
+      tagsIds
+    });
+  }
+
   function requestReplayCall(entry, prepareOnly) {
     const { $api, $apiFunc, $args } = entry.tags;
     if (typeof $api !== 'string' || typeof $apiFunc !== 'string') {
@@ -228,7 +295,7 @@ requirejs(['codepath', 'codePathTreeGrid'], function(CodePath, CodePathTreeGrid)
       typeof $args === 'string'
       ? JSON.parse($args)
       : $args);
-    
+
     const apiCall = {
       api: $api,
       apiFunc: $apiFunc,

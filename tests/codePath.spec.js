@@ -2,6 +2,7 @@ import { childOf, followsFrom } from 'opentracing';
 import { 
   createCodePath, 
   createDefaultScopeManager, 
+  createAsyncLocalProvider, 
   resetCurrentScope,
   contextToPlain, 
   plainToContext 
@@ -77,7 +78,7 @@ const setupCodePath = () => {
   const tracers = [];
   const spans = [];
   const clock = createTestClock();
-  const scopeManager = createDefaultScopeManager();
+  const scopeManager = createDefaultScopeManager(createAsyncLocalProvider());
   const { input, output } = createCodePath({
     clock,
     tracerFactory: (stream, options) => {

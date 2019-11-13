@@ -1,0 +1,41 @@
+
+Promise.prototype.then = (oldThen=>{
+    return function then(_successHandler, _rejectHandler){
+        console.log('MY-PROMISE-THEN-1!!!');
+        return oldThen.call(this, _successHandler, _rejectHandler);
+    }
+})(Promise.prototype.then);
+
+
+class SubPromise extends Promise {
+    constructor(executor) {
+        super(function(_resolve, _reject) {
+           /* your code goes here */
+           console.log('MY-PROMISE-CTOR!!!');
+           return executor(_resolve, _reject);
+        });
+    }
+
+    then(success, reject) {
+        console.log('MY-PROMISE-THEN-2!!!');
+        return super.then(success, reject);
+    }
+}
+window.Promise = SubPromise;
+
+const delay = (ms) => {
+    return new Promise((resolve) => {
+        window.setTimeout(() => resolve(123), ms);
+    });
+};
+
+const f1 = async () => { 
+    console.log('f1-BEFORE'); 
+    const x = await delay(3000); 
+    console.log('f1-AFTER', x); 
+};
+
+
+
+
+

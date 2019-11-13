@@ -1,8 +1,9 @@
 import { 
   createCodePath,
   createDefaultScopeManager, 
+  createAsyncLocalProvider,
   resetCurrentScope,
-  trace
+  restoreOriginalPromise,
 } from '../src/index';
 import { CustomConsole } from '@jest/console';
 
@@ -22,7 +23,7 @@ const createdDeferredPromise = () => {
 
 const delay = (ms) => {
   const { promise, resolve } = createdDeferredPromise();
-  setTimeout(resolve, ms);
+  setTimeout(() => resolve(`delay(${ms})`), ms);
   return promise;
 }
 
@@ -30,6 +31,11 @@ describe('DefaultScopeManager', () => {
 
   beforeEach(() => {
     resetCurrentScope();
+    restoreOriginalPromise();
+  });
+
+  afterEach(() => {
+    restoreOriginalPromise();
   });
 
   it('flows scope across await', async () => {
@@ -37,13 +43,34 @@ describe('DefaultScopeManager', () => {
 
     input.spanChild('S1');
 
-    delay(10).then(() => {
-      input.spanChild('S2');
-    });
+    console.log('---A---');
 
-    await trace(delay(100));
+    const p1 = delay(200);
+    
+    console.log('---A1---');
+   
+    const f1 = () => {
+      console.log('---B---');
+      input.spanChild('S2');
+    };
+
+    console.log('---A2---');
+
+    p1.then(f1);
+
+    console.log('---C---');
+    const p2 = delay(100);
+    console.log('---C1---');
+
+    await p2;
+
+    console.log('---D---');
+
+    await p1;
+    console.log('---E---');
 
     input.logEvent('E1');
+
     console.log(output.peekEntries().map(e => `[${e.spanId}]${e.token}:${e.messageId||''}`))
 
     expect(output.peekEntries()).toMatchObject([
@@ -53,7 +80,6 @@ describe('DefaultScopeManager', () => {
       { token: 'Log', messageId: 'async-then', spanId: 1 },
       { token: 'Log', spanId: 1 }
     ]);
-
   })
 
   it('flows scope inside async functions', async () => {
@@ -61,18 +87,18 @@ describe('DefaultScopeManager', () => {
 
     const asyncTask = async () => {
       input.spanChild('ATS1');
-      await trace(delay(10));
+      await delay(10);
       input.logEvent('ATE1');
       input.finishSpan();
     }
 
     input.spanChild('S1');
     
-    const asyncTaskPromise = trace(() => asyncTask());
+    const asyncTaskPromise = asyncTask();
     
     input.spanChild('S2');
 
-    await trace(asyncTaskPromise);
+    await asyncTaskPromise;
 
     input.logEvent('E1');
 
@@ -91,12 +117,12 @@ describe('DefaultScopeManager', () => {
   });
 
   it('flows scope to promise then', async () => {
-    const scopeManager = createDefaultScopeManager();
+    const scopeManager = createDefaultScopeManager(createAsyncLocalProvider());
     const { input, output } = createCodePath({ scopeManager });
 
     const asyncTaskOne = async () => {
       input.spanChild('AT1-S1');
-      await trace(delay(100));
+      await delay(100);
       input.logEvent('AT1-E1');
       input.finishSpan();
       return 111;
@@ -104,7 +130,7 @@ describe('DefaultScopeManager', () => {
 
     const asyncTaskTwo = async () => {
       input.spanChild('AT2-S1');
-      await trace(delay(10));
+      await delay(10);
       input.logEvent('AT2-E1');
       input.finishSpan();
       return 222;
@@ -112,22 +138,22 @@ describe('DefaultScopeManager', () => {
     
     input.spanChild('R0');
 
-    const taskPromiseOne = trace(() => asyncTaskOne()).then(value => {
+    const taskPromiseOne = asyncTaskOne().then(value => {
       input.spanChild('AT1-S2');
       input.logEvent('AT1-E2', {value});
       input.finishSpan();
       return value;
     });
 
-    const taskPromiseTwo = trace(() => asyncTaskTwo()).then(value => {
+    const taskPromiseTwo = asyncTaskTwo().then(value => {
       input.spanChild('AT2-S2');
       input.logEvent('AT2-E2', {value});
       input.finishSpan();
       return value;
     });
 
-    const valueOne = await trace(taskPromiseOne);
-    const valueTwo = await trace(taskPromiseTwo);
+    const valueOne = await taskPromiseOne;
+    const valueTwo = await taskPromiseTwo;
 
     input.logEvent('E1', {valueOne, valueTwo});
 
@@ -164,9 +190,9 @@ describe('DefaultScopeManager', () => {
 
     input.spanRoot('R0');
 
-    await trace(delay(10).then(() => {
+    await delay(10).then(() => {
       throw new Error('TEST-REJECT');
-    })).catch(err => {
+    }).catch(err => {
       expect(err.message).toBe('TEST-REJECT');
     });
 

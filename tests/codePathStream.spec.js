@@ -202,7 +202,8 @@ describe("codePathStream", () => {
       bool: true,
       func: () => {},
       obj: { x: 1, y: 2 },
-      arr: [ 1, 2, 3 ],
+      arr1: [ 1, "two", true ],
+      arr2: [ 1, {x:1, y:2}, 3 ],
       date: new Date("2019-10-01T10:30:00.000Z")
     };
 
@@ -221,7 +222,8 @@ describe("codePathStream", () => {
         bool: true,
         func: undefined,
         obj: '{"x":1,"y":2}',
-        arr: '[1,2,3]',
+        arr1: [1,"two",true],
+        arr2: "[1,{\"x\":1,\"y\":2},3]",
         date: '"2019-10-01T10:30:00.000Z"'
       } 
     ]);
@@ -254,6 +256,85 @@ describe("codePathStream", () => {
         obj2: '"[circ]"',
       } 
     ]);
+
+  });
+
+  describe('stripped tags flow', () => {
+
+    const writeSomeEntries = (stream) => {
+      stream.writeStartTracer(120, 'T#1', { a: 1, b: 2 });
+      stream.writeStartSpan(121, 'T#1', 'S#11', 'M#11', {}, { c: 3, d: 4 });
+      stream.writeLog(122, 'T#1', 'S#22', 'M#33', { e: 5, f: 6 });
+      stream.writeStartSpan(123, 'T#1', 'S#11', 'M#11', {});
+      stream.writeLog(124, 'T#1', 'S#11', 'M#44');
+      stream.writeEndSpan(125, 'T#1', 'S#22', { g: 7, h: 8 });
+      stream.writeLog(126, 'T#1', 'S#11', 'M#44');
+      stream.writeEndSpan(127, 'T#1', 'S#11');
+    };
+
+    it("can strip tags from entries", () => {
+      const stream = createCodePathStream({ 
+        enabled: true, 
+        stripTags: true 
+      });
+
+      writeSomeEntries(stream);
+
+      const takeEntriesTags = stream.takeEntries().map(e => ({ 
+        time: e.time, 
+        tags: e.tags 
+      }));
+
+      expect(takeEntriesTags).toMatchObject([ 
+        { time: 120, tags: { $$id: 1 } },
+        { time: 121, tags: { $$id: 2 } },
+        { time: 122, tags: { $$id: 3 } },
+        { time: 123, tags: { } },
+        { time: 124, tags: { } },
+        { time: 125, tags: { $$id: 4 } },
+        { time: 126, tags: { } },
+        { time: 127, tags: { } },
+      ]);
+    });
+
+    it("can fetch stripped tags by id", () => {
+      const stream = createCodePathStream({ 
+        enabled: true, 
+        stripTags: true 
+      });
+
+      writeSomeEntries(stream);
+
+      expect(stream.getStrippedTags([ 1 ])).toMatchObject({ 
+        1: { a: 1, b: 2 }
+      });
+
+      expect(stream.getStrippedTags([ 2, 4 ])).toMatchObject({ 
+        2: { c: 3, d: 4 },
+        4: { g: 7, h: 8 },
+      });
+
+      expect(stream.getStrippedTags([ 123 ])).toMatchObject({ 
+        123: undefined
+      });
+    });
+
+    it("can clear stripped tags with clearAll", () => {
+      const stream = createCodePathStream({ 
+        enabled: true, 
+        stripTags: true 
+      });
+
+      writeSomeEntries(stream);
+      stream.clearAll();
+
+      expect(stream.getStrippedTags([ 1, 2, 3, 4 ])).toMatchObject({ 
+        1: undefined,
+        2: undefined,
+        3: undefined,
+        4: undefined,
+      });
+    });
 
   });
 

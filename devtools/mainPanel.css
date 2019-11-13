@@ -57,6 +57,7 @@ body {
   background-color: #fdfdfd;
   display: grid;
   grid-template-rows: 20px auto;  
+  overflow: scroll;
 }
 
 .panel-right h1 {

@@ -34,9 +34,8 @@
           }, '*');
           break;
         case 'codePath/devTools/requestRunAdapterOnPage':
-          relayMessageToBackground(event.data);
-          break;
         case 'codePath/devTools/publishEntries':
+        case 'codePath/devTools/fetchTagsReply':
           relayMessageToBackground(event.data);
           break;
       }
@@ -59,6 +58,12 @@
             type: request.type,
             apiCall: request.apiCall,
             prepareOnly: request.prepareOnly
+          }, '*');
+          break;
+        case 'codePath/devTools/fetchTagsRequest':
+          window.postMessage({
+            type: request.type,
+            tagsIds: request.tagsIds
           }, '*');
           break;
       }

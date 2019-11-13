@@ -81,7 +81,8 @@
     
       const { input, output } = CodePath.createCodePath({ 
         stream: { 
-          enabled: false 
+          enabled: false,
+          stripTags: true
         }
       });
 
@@ -91,6 +92,13 @@
             case 'codePath/devTools/clearAll':
               input.clearAll();
               output.clearAll();
+              break;
+            case 'codePath/devTools/fetchTagsRequest':
+              const tagsById = output.getStrippedTags(event.data.tagsIds);
+              window.postMessage({
+                type: 'codePath/devTools/fetchTagsReply',
+                tagsById  
+              }, '*');
               break;
           }
         }
@@ -112,10 +120,14 @@
     function publishEntries() {
       if (entryStream.peekEntries().length > 0) {
         const entries = entryStream.takeEntries();
-        window.postMessage({
-          type: 'codePath/devTools/publishEntries',
-          entries
-        }, '*');
+        try {
+          window.postMessage({
+            type: 'codePath/devTools/publishEntries',
+            entries
+          }, '*');
+        } catch(err) {
+          console.error('FAILED TO PUBLISH ENTRIES', entries);
+        }
       }
     }
 
