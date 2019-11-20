@@ -1,4 +1,5 @@
 import { createCodePathModel } from '../src';
+import { createWatchModel } from '../src';
 import { createTreeGridController } from '../src';
 
 describe('TreeGridController', () => {
@@ -429,6 +430,41 @@ describe('TreeGridController', () => {
 
     expect(controller.getIsExpanded(1)).toBe(true);
     expect(controller.getIsExpanded(3)).toBe(false);
+  });
+
+  it('can remove collapsed root node', () => {
+    const watchContext = { x: 1, y: [2,3,4], z: 5 };
+    const watchModel = createWatchModel();
+    watchModel.addWatch(watchContext, 'x');
+    const { id } = watchModel.addWatch(watchContext, 'y');
+    watchModel.addWatch(watchContext, 'z');
+
+    setupMvc(() => {
+      model = watchModel;
+    });
+    resetViewCalls();
+
+    watchModel.removeWatchNode(id);
+
+    expectCalls(view.removeNodes, [1, 1]);
+  });
+
+  it('can remove expanded root node', () => {
+    const watchContext = { x: 1, y: [2,3,4], z: 5 };
+    const watchModel = createWatchModel();
+    watchModel.addWatch(watchContext, 'x');
+    const { id } = watchModel.addWatch(watchContext, 'y');
+    watchModel.addWatch(watchContext, 'z');
+
+    setupMvc(() => {
+      model = watchModel;
+    });
+    controller.expand(id);
+    resetViewCalls();
+
+    watchModel.removeWatchNode(id);
+
+    expectCalls(view.removeNodes, [1, 4]);
   });
 
 });

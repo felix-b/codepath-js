@@ -22,6 +22,7 @@ export {
 } from "./codePathModel";
 export { createCodePathSearchModel } from "./codePathSearchModel";
 export { createCodePathFlatFilterModel } from "./codePathFlatFilterModel";
+export { createWatchModel } from "./watchModel";
 export { createTreeGridController, createTreeGridView } from "./treeGrid";
 export { createMulticastDelegate } from "./multicastDelegate";
 export { createDebounce } from "./debounce";

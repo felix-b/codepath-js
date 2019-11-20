@@ -14,6 +14,9 @@ export function createWatchModel() {
   let nextNodeId = 1;
   
   const model = {
+    getRootNode() {
+      return rootNode;
+    },
     getTopLevelNodes() {
       return topLevelNodes;
     },
@@ -29,7 +32,8 @@ export function createWatchModel() {
       return nextNodeId++;
     },
     addWatch(context, path) {
-      const node = createWatchTreeNode(model, rootNode, path, context[path]);
+      const value = evaluateExpression(context, path);
+      const node = createWatchTreeNode(model, rootNode, path, value);
       const lastNode = topLevelNodes[topLevelNodes.length - 1];
       node.prevSibling = lastNode;
       if (lastNode) {
@@ -37,9 +41,11 @@ export function createWatchModel() {
       }
       topLevelNodes.push(node);
       insertNodesCallbacks.invoke([node]);
+      return node;
     },
-    removeWatchAtIndex(index) {
-      if (index >= 0 && index < topLevelNodes.length) {
+    removeWatchNode(topLevelNodeId) {
+      const index = topLevelNodes.findIndex(node => node.id === topLevelNodeId);
+      if (index >= 0) {
         const node = topLevelNodes[index];
         const prevSibling = topLevelNodes[index - 1];
         const nextSibling = topLevelNodes[index + 1];
@@ -181,4 +187,14 @@ function createProxyNode(id, parent, createRealNode) {
     node.top = node;
   }
   return node;
+}
+
+function evaluateExpression(context, expression) {
+  const func = Function('context', `"use strict";return context.${expression}`);
+  try {
+    const value = func(context);
+    return value;
+  } catch(err) {
+    return err;
+  }
 }

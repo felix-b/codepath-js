@@ -74,10 +74,10 @@ describe("WatchModel", () => {
       const context = { num: 123, str: 'abc', flag: true };
       
       model.addWatch(context, 'num');
-      model.addWatch(context, 'flag');
+      const { id } = model.addWatch(context, 'flag');
       model.addWatch(context, 'str');
 
-      model.removeWatchAtIndex(1);
+      model.removeWatchNode(id);
 
       const topLevelNodes = model.getTopLevelNodes();
       expect(topLevelNodes.length).toBe(2);
@@ -126,10 +126,24 @@ describe("WatchModel", () => {
       model.addWatch(context, 'str');
       
       const watchNodeToRemove = model.getTopLevelNodes()[1];
-      model.removeWatchAtIndex(1);
+      model.removeWatchNode(2);
 
       expect(subscriber.removeNodes).toHaveBeenCalledTimes(1);
       expect(subscriber.removeNodes).toHaveBeenCalledWith([watchNodeToRemove]);
+    });
+
+    it('can evaluate complex expressions', () => {
+      const model = createWatchModel();
+      const context = { num: 123, arr: [1, {x:111, y:222}, 3], flag: true };
+      
+      const node = model.addWatch(context, 'arr[1].x');
+
+      expect(node.entry).toMatchObject({
+        label: 'arr[1].x',
+        type: 'scalar',
+        value: 111
+      });
+
     });
 
   });

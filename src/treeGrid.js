@@ -9,7 +9,8 @@ export function createTreeGridController(view, model) {
 
   const subscriber = {
     insertNodes: handleInsertedNodes,
-    updateNodes: handleUpdatedNodes
+    updateNodes: handleUpdatedNodes,
+    removeNodes: handleRemovedNodes,
   };
 
   const controller = {
@@ -27,6 +28,9 @@ export function createTreeGridController(view, model) {
     },
     collapse(id) {
       rowById[id].collapse();
+    },
+    removeNode(id) {
+      rowById[id].remove();
     },
     selectNode(node) {
       controller.expandToNode(node);
@@ -191,6 +195,13 @@ export function createTreeGridController(view, model) {
       isExpanded = false;
       hideSubNodes();
     };
+    const remove = () => {
+      const thisRowIndex = findAbsoluteIndex();
+      const removedNodeIds = view.removeNodes(thisRowIndex, subTreeHeight + 1);
+      removedNodeIds && removedNodeIds.forEach(id => delete rowById[id]);
+      masterIndexVersion++;
+      updateSubTreeHeight(-(subTreeHeight + 1));
+    };
 
     return {
       getNode,
@@ -207,6 +218,7 @@ export function createTreeGridController(view, model) {
       toggle,
       expand,
       collapse,
+      remove,
       showSubNodes
     };
   }
@@ -281,6 +293,15 @@ export function createTreeGridController(view, model) {
       if (row) {
         const index = row.findAbsoluteIndex();
         view.updateNode(index, node);
+      }
+    });
+  }
+
+  function handleRemovedNodes(removedNodes) {
+    removedNodes.forEach(node => {
+      const row = rowById[node.id];
+      if (row) {
+        row.remove();
       }
     });
   }
