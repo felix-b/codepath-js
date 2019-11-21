@@ -10,7 +10,7 @@ export function createTreeGridController(view, model) {
   const subscriber = {
     insertNodes: handleInsertedNodes,
     updateNodes: handleUpdatedNodes,
-    removeNodes: handleRemovedNodes,
+    removeNodes: handleRemovedNodes
   };
 
   const controller = {

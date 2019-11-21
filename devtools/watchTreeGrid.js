@@ -4,9 +4,11 @@ define(function (require) {
 
   debug.log("CODEPATH.DEVTOOLS.WATCH-TREEGRID>", "loaded");
 
+  const expressions = [];
   let model = undefined;
   let controller = undefined;
   let selectedNode = undefined;
+  let currentContext = {};
 
   return {
     initMvc(gridTableElement) {
@@ -22,16 +24,32 @@ define(function (require) {
           //nodeKeyPressHandler(event, selectedNode);
         }
       });
-      return controller;
+      return () => ({ model, view, controller });
     },
     setContext(context) {
-
+      debug.log("CODEPATH.DEVTOOLS.WATCH-TREEGRID>", "setContext", context);
+      currentContext = context || {};
+      replaceModel();
     },
     addWatch(expression) {
-      debug.log("CODEPATH.DEVTOOLS.WATCH-TREEGRID>", "receiveEntries", entries);
-      model.publish(entries);
+      debug.log("CODEPATH.DEVTOOLS.WATCH-TREEGRID>", "addWatch", expression);
+      expressions.push(expression);
+      model.addWatch(currentContext, expression);
     },
   };
+
+  function replaceModel() {
+    model = CodePath.createWatchModel();
+    expressions.forEach(expr => model.addWatch(expr));
+    controller.replaceModel(model);
+  }
+
+  function removeNode(id) {
+    const expressionIndex = model.removeWatchNode(id);
+    if (expressionIndex >= 0) {
+      expressions.splice(expressionIndex, 1);
+    }
+  }
 
   function createColumns() {
     const columns = [
@@ -75,6 +93,14 @@ define(function (require) {
     function createLabelColumn() {
       return {
         renderCell(node, controller, rowIndex) {
+          const renderRemoveIcon = () => {
+            const span = document.createElement('span');
+            span.classList.add('remove-icon');
+            span.onclick = () => {
+              removeNode(node.id);
+            };
+            return [span];
+          };
           const renderIndents = (size) => {
             const indents = [];
             for (let i = 0 ; i < size ; i++) {
@@ -90,23 +116,19 @@ define(function (require) {
             span.onclick = () => {
               controller.toggle(node.id);
             };
-            return span;
-          };
-          const renderRowIcon = () => {
-            const span = document.createElement('span');
-            span.classList.add('row-icon');
-            return span;
+            return [span];
           };
           const renderText = () => {
             return renderDataSpan(
-              `${node.entry.messageId}`, 
+              node.entry.label, 
               undefined, 
               undefined, 
               node.matchHighlight);
           };
           return [
+            ...(node.depth === 0 ? renderRemoveIcon() : renderIndents(1)),
             ...renderIndents(node.depth),
-            node.firstChild ? renderToggleAnchor() : renderRowIcon(),
+            ...(node.firstChild ? renderToggleAnchor() : renderIndents(1)),
             renderText()
           ];
         }
@@ -115,48 +137,15 @@ define(function (require) {
 
     function createValueColumn() {
       return {
-        getTdClass(node, controller, trIndex) {
-          if (!node.entry.epoch) {
-            return 'align-right';
-          }
-        },
         renderCell(node, controller, trIndex) {
-          if (node.entry.epoch) {
-            const decodedTime = new Date(node.entry.epoch);
-            return [renderDataSpan(`${timeFormat.format(decodedTime)}.${pad(decodedTime.getMilliseconds(), 3)}`)];
-          } else {
-            const deltaTime = node.entry.time - node.top.entry.time;
-            return [
-              renderDataSpan('+', undefined, 
-                renderDataSpan(deltaTime.toFixed(3), 'time-offset')
-              )
-            ];
-          }
+          renderDataSpan(`${node.entry.value}`); 
         }
       };
     }
   }
 
   function createRows() {
-    return {
-      getTrClasses(node, rowIndex) {
-        const classNames = (node.parent.id !== 0 ? [] : ['root-span']);
-        const { metrics } = node;
-        if (metrics) {
-          if (metrics.error > 0) {
-            classNames.push('error');
-          } else if (metrics.warning > 0) {
-            classNames.push('warning');
-          } else if (metrics.event > 0) {
-            classNames.push('event');
-          }
-          if (classNames.length > 0 && node.entry.token === 'Log') {
-            classNames.push('root-cause');
-          }
-        }
-        return classNames;
-      }
-    }
+    return { };
   }
 
 });

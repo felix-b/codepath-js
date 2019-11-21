@@ -2,7 +2,11 @@ requirejs.config({ });
 
 let backgroundConnection = undefined;
 
-requirejs(['codepath', 'codePathTreeGrid', 'objectAssignDeep'], function(CodePath, CodePathTreeGrid, objectAssignDeep) {
+requirejs([
+  'codepath', 'codePathTreeGrid', 'WatchTreeGrid', 'objectAssignDeep'
+], function(
+  CodePath, CodePathTreeGrid, WatchTreeGrid, objectAssignDeep
+) {
   backgroundConnection = chrome.runtime.connect({
     name: 'codePathMainPanel'
   });
@@ -10,7 +14,7 @@ requirejs(['codepath', 'codePathTreeGrid', 'objectAssignDeep'], function(CodePat
   const debug = CodePath.createDebugLog('devtool', { backgroundConnection });
   debug.info('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'loaded, initializing...');
 
-  const treeGridTable = document.querySelector('#trace-grid');
+  const traceGridTable = document.querySelector('#trace-grid');
   const startButton = document.querySelector('#start-button');
   const stopButton = document.querySelector('#stop-button');
   const clearAllButton = document.querySelector('#clear-all-button');
@@ -37,13 +41,17 @@ requirejs(['codepath', 'codePathTreeGrid', 'objectAssignDeep'], function(CodePat
     filterExcludeText2, 
     filterExcludeText3
   ];
+  const watchGridTable = document.querySelector('#watch-grid');
+  const watchExpressionTextInput = document.querySelector('#watch-expression-text');
+  const watchAddButton = document.querySelector('#watch-add-button');
 
   const configuration = loadConfiguration();
   CodePathTreeGrid.configure(configuration);
 
-  const treeGridController = CodePathTreeGrid.initMvc(treeGridTable, handleKeyPressEvent);
+  const treeGridController = CodePathTreeGrid.initMvc(traceGridTable, handleKeyPressEvent);
   const filterTextDebounce = CodePath.createDebounce(applyFilter, 500);
   const nodeSelectedDebounce = CodePath.createDebounce(onNodeSelectedDebounced, 100);
+  const getWatchGridMvc = WatchTreeGrid.initMvc(watchGridTable);
   
   CodePath.createResizer({
     gripElement: panelResizerDiv,
@@ -84,6 +92,17 @@ requirejs(['codepath', 'codePathTreeGrid', 'objectAssignDeep'], function(CodePat
     gripElement: document.getElementById('details-column-resizer-right'),
     leftSideElement: document.getElementById('details-column-header'),
     rightSideElement: undefined//document.getElementById('details-column-header')
+  });
+
+  CodePath.createResizer({
+    gripElement: document.getElementById('watch-label-column-resizer-right'),
+    leftSideElement: document.getElementById('watch-label-column-header'),
+    rightSideElement: undefined
+  });
+  CodePath.createResizer({
+    gripElement: document.getElementById('watch-value-column-resizer-right'),
+    leftSideElement: document.getElementById('watch-value-column-header'),
+    rightSideElement: undefined
   });
 
   let selectedNode = undefined;
@@ -136,6 +155,15 @@ requirejs(['codepath', 'codePathTreeGrid', 'objectAssignDeep'], function(CodePat
     selectedNode = node;
     nodeSelectedDebounce.bounce();
   });
+
+  watchAddButton.onclick = () => {
+    const expressionText = watchExpressionTextInput.value.trim();
+    if (expressionText.length > 0) {
+      const { model } = getWatchGridMvc();
+      const context = selectedNode ? selectedNode.entry : {};
+      model.addWatch(context, expressionText);
+    }
+  };
 
   backgroundConnection.onMessage.addListener(function(message) {
     if (typeof message !== 'object' || typeof message.type !== 'string') {
@@ -241,14 +269,15 @@ requirejs(['codepath', 'codePathTreeGrid', 'objectAssignDeep'], function(CodePat
       ? buildDetailsObject()
       : undefined;
 
-    if (selectedNode && !detailsObject) {
-      return;
-    }
+    // if (selectedNode && !detailsObject) {
+    //   return;
+    // }
 
-    entryJsonText.innerHTML = 
-      detailsObject 
-        ? `${selectedNode.entry.messageId} [${selectedNode.id}]: ${JSON.stringify(detailsObject, null, 2)}` 
-        : ''; 
+    // entryJsonText.innerHTML = 
+    //   detailsObject 
+    //     ? `${selectedNode.entry.messageId} [${selectedNode.id}]: ${JSON.stringify(detailsObject, null, 2)}` 
+    //     : ''; 
+    WatchTreeGrid.setContext(detailsObject);
   }
 
   function loadConfiguration() {

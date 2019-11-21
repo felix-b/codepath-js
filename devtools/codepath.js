@@ -2476,7 +2476,11 @@ function createRegularNode(id, parent, entry, extractEntryMetrics) {
     lastChild: undefined,
     prevSibling: undefined,
     nextSibling: undefined,
-    metrics: extractEntryMetrics ? extractEntryMetrics(entry) : entry.metrics };
+    metrics: extractEntryMetrics ?
+    extractEntryMetrics(entry) :
+    entry ?
+    entry.metrics :
+    undefined };
 
   if (!node.top) {
     node.top = node;
@@ -3594,7 +3598,7 @@ function createSetEnabled(component, globalVars) {
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
-/*! exports provided: createCodePath, createRealClock, createAsyncLocalProvider, restoreOriginalPromise, createDefaultScopeManager, resetCurrentScope, createCodePathStream, createCodePathTracer, contextToPlain, plainToContext, createCodePathModel, walkNodesDepthFirst, walkImmediateSubNodes, findNextMatchingNode, findPrevMatchingNode, createCodePathSearchModel, createCodePathFlatFilterModel, createTreeGridController, createTreeGridView, createMulticastDelegate, createDebounce, createResizer, LOG_LEVEL, createDebugLog, enableDebugLog, isTagSerializable, addTagMetaStringify */
+/*! exports provided: createCodePath, createRealClock, createAsyncLocalProvider, restoreOriginalPromise, createDefaultScopeManager, resetCurrentScope, createCodePathStream, createCodePathTracer, contextToPlain, plainToContext, createCodePathModel, walkNodesDepthFirst, walkImmediateSubNodes, findNextMatchingNode, findPrevMatchingNode, createCodePathSearchModel, createCodePathFlatFilterModel, createWatchModel, createTreeGridController, createTreeGridView, createMulticastDelegate, createDebounce, createResizer, LOG_LEVEL, createDebugLog, enableDebugLog, isTagSerializable, addTagMetaStringify */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3641,32 +3645,36 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _codePathFlatFilterModel__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./codePathFlatFilterModel */ "./src/codePathFlatFilterModel.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createCodePathFlatFilterModel", function() { return _codePathFlatFilterModel__WEBPACK_IMPORTED_MODULE_7__["createCodePathFlatFilterModel"]; });
 
-/* harmony import */ var _treeGrid__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./treeGrid */ "./src/treeGrid.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createTreeGridController", function() { return _treeGrid__WEBPACK_IMPORTED_MODULE_8__["createTreeGridController"]; });
+/* harmony import */ var _watchModel__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./watchModel */ "./src/watchModel.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createWatchModel", function() { return _watchModel__WEBPACK_IMPORTED_MODULE_8__["createWatchModel"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createTreeGridView", function() { return _treeGrid__WEBPACK_IMPORTED_MODULE_8__["createTreeGridView"]; });
+/* harmony import */ var _treeGrid__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./treeGrid */ "./src/treeGrid.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createTreeGridController", function() { return _treeGrid__WEBPACK_IMPORTED_MODULE_9__["createTreeGridController"]; });
 
-/* harmony import */ var _multicastDelegate__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./multicastDelegate */ "./src/multicastDelegate.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createMulticastDelegate", function() { return _multicastDelegate__WEBPACK_IMPORTED_MODULE_9__["createMulticastDelegate"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createTreeGridView", function() { return _treeGrid__WEBPACK_IMPORTED_MODULE_9__["createTreeGridView"]; });
 
-/* harmony import */ var _debounce__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./debounce */ "./src/debounce.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createDebounce", function() { return _debounce__WEBPACK_IMPORTED_MODULE_10__["createDebounce"]; });
+/* harmony import */ var _multicastDelegate__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./multicastDelegate */ "./src/multicastDelegate.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createMulticastDelegate", function() { return _multicastDelegate__WEBPACK_IMPORTED_MODULE_10__["createMulticastDelegate"]; });
 
-/* harmony import */ var _resizer__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./resizer */ "./src/resizer.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createResizer", function() { return _resizer__WEBPACK_IMPORTED_MODULE_11__["createResizer"]; });
+/* harmony import */ var _debounce__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./debounce */ "./src/debounce.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createDebounce", function() { return _debounce__WEBPACK_IMPORTED_MODULE_11__["createDebounce"]; });
 
-/* harmony import */ var _logLevel__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./logLevel */ "./src/logLevel.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "LOG_LEVEL", function() { return _logLevel__WEBPACK_IMPORTED_MODULE_12__["LOG_LEVEL"]; });
+/* harmony import */ var _resizer__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./resizer */ "./src/resizer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createResizer", function() { return _resizer__WEBPACK_IMPORTED_MODULE_12__["createResizer"]; });
 
-/* harmony import */ var _debugLog__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./debugLog */ "./src/debugLog.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createDebugLog", function() { return _debugLog__WEBPACK_IMPORTED_MODULE_13__["createDebugLog"]; });
+/* harmony import */ var _logLevel__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./logLevel */ "./src/logLevel.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "LOG_LEVEL", function() { return _logLevel__WEBPACK_IMPORTED_MODULE_13__["LOG_LEVEL"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "enableDebugLog", function() { return _debugLog__WEBPACK_IMPORTED_MODULE_13__["enableDebugLog"]; });
+/* harmony import */ var _debugLog__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./debugLog */ "./src/debugLog.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "createDebugLog", function() { return _debugLog__WEBPACK_IMPORTED_MODULE_14__["createDebugLog"]; });
 
-/* harmony import */ var _serializable__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./serializable */ "./src/serializable.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "isTagSerializable", function() { return _serializable__WEBPACK_IMPORTED_MODULE_14__["isTagSerializable"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "enableDebugLog", function() { return _debugLog__WEBPACK_IMPORTED_MODULE_14__["enableDebugLog"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "addTagMetaStringify", function() { return _serializable__WEBPACK_IMPORTED_MODULE_14__["addTagMetaStringify"]; });
+/* harmony import */ var _serializable__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./serializable */ "./src/serializable.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "isTagSerializable", function() { return _serializable__WEBPACK_IMPORTED_MODULE_15__["isTagSerializable"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "addTagMetaStringify", function() { return _serializable__WEBPACK_IMPORTED_MODULE_15__["addTagMetaStringify"]; });
+
 
 
 
@@ -3906,7 +3914,8 @@ function createTreeGridController(view, model) {
 
   var subscriber = {
     insertNodes: handleInsertedNodes,
-    updateNodes: handleUpdatedNodes };
+    updateNodes: handleUpdatedNodes,
+    removeNodes: handleRemovedNodes };
 
 
   var controller = {
@@ -3924,6 +3933,9 @@ function createTreeGridController(view, model) {
     },
     collapse: function collapse(id) {
       rowById[id].collapse();
+    },
+    removeNode: function removeNode(id) {
+      rowById[id].remove();
     },
     selectNode: function selectNode(node) {
       controller.expandToNode(node);
@@ -4088,6 +4100,13 @@ function createTreeGridController(view, model) {
       isExpanded = false;
       hideSubNodes();
     };
+    var remove = function remove() {
+      var thisRowIndex = findAbsoluteIndex();
+      var removedNodeIds = view.removeNodes(thisRowIndex, subTreeHeight + 1);
+      removedNodeIds && removedNodeIds.forEach(function (id) {return delete rowById[id];});
+      masterIndexVersion++;
+      updateSubTreeHeight(-(subTreeHeight + 1));
+    };
 
     return {
       getNode: getNode,
@@ -4104,6 +4123,7 @@ function createTreeGridController(view, model) {
       toggle: toggle,
       expand: expand,
       collapse: collapse,
+      remove: remove,
       showSubNodes: showSubNodes };
 
   }
@@ -4178,6 +4198,15 @@ function createTreeGridController(view, model) {
       if (row) {
         var index = row.findAbsoluteIndex();
         view.updateNode(index, node);
+      }
+    });
+  }
+
+  function handleRemovedNodes(removedNodes) {
+    removedNodes.forEach(function (node) {
+      var row = rowById[node.id];
+      if (row) {
+        row.remove();
       }
     });
   }
@@ -4435,6 +4464,243 @@ function createTreeGridView(table, columns, rows) {
         return childTr;
       }
     }
+  }
+}
+
+/***/ }),
+
+/***/ "./src/watchModel.js":
+/*!***************************!*\
+  !*** ./src/watchModel.js ***!
+  \***************************/
+/*! exports provided: createWatchModel, createWatchTreeNode */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createWatchModel", function() { return createWatchModel; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createWatchTreeNode", function() { return createWatchTreeNode; });
+/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/typeof */ "./node_modules/@babel/runtime/helpers/typeof.js");
+/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js");
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _codePathModel__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./codePathModel */ "./src/codePathModel.js");
+/* harmony import */ var _multicastDelegate__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./multicastDelegate */ "./src/multicastDelegate.js");
+function ownKeys(object, enumerableOnly) {var keys = Object.keys(object);if (Object.getOwnPropertySymbols) {var symbols = Object.getOwnPropertySymbols(object);if (enumerableOnly) symbols = symbols.filter(function (sym) {return Object.getOwnPropertyDescriptor(object, sym).enumerable;});keys.push.apply(keys, symbols);}return keys;}function _objectSpread(target) {for (var i = 1; i < arguments.length; i++) {var source = arguments[i] != null ? arguments[i] : {};if (i % 2) {ownKeys(source, true).forEach(function (key) {_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_1___default()(target, key, source[key]);});} else if (Object.getOwnPropertyDescriptors) {Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));} else {ownKeys(source).forEach(function (key) {Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));});}}return target;}
+
+
+function createWatchModel() {
+  var insertNodesCallbacks = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_3__["createMulticastDelegate"])(
+  "WatchModel.insertNodes");
+
+  var removeNodesCallbacks = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_3__["createMulticastDelegate"])(
+  "WatchModel.removeNodes");
+
+
+  var rootNode = Object(_codePathModel__WEBPACK_IMPORTED_MODULE_2__["createRootNode"])();
+  var topLevelNodes = [];
+  var nextNodeId = 1;
+
+  var model = {
+    getRootNode: function getRootNode() {
+      return rootNode;
+    },
+    getTopLevelNodes: function getTopLevelNodes() {
+      return topLevelNodes;
+    },
+    subscribe: function subscribe(subscriber) {
+      if (subscriber.insertNodes) {
+        insertNodesCallbacks.add(subscriber.insertNodes);
+      }
+      if (subscriber.removeNodes) {
+        removeNodesCallbacks.add(subscriber.removeNodes);
+      }
+    },
+    unsubscribe: function unsubscribe(subscriber) {
+      if (subscriber.insertNodes) {
+        insertNodesCallbacks.remove(subscriber.insertNodes);
+      }
+      if (subscriber.removeNodes) {
+        removeNodesCallbacks.remove(subscriber.removeNodes);
+      }
+    },
+    takeNodeId: function takeNodeId() {
+      return nextNodeId++;
+    },
+    addWatch: function addWatch(context, expression) {
+      var value = evaluateExpression(context, expression);
+      var node = createWatchTreeNode(model, rootNode, expression, value);
+      var lastNode = topLevelNodes[topLevelNodes.length - 1];
+      node.prevSibling = lastNode;
+      if (lastNode) {
+        lastNode.nextSibling = node;
+      }
+      topLevelNodes.push(node);
+      insertNodesCallbacks.invoke([node]);
+      return node;
+    },
+    removeWatchNode: function removeWatchNode(topLevelNodeId) {
+      var index = topLevelNodes.findIndex(function (node) {return node.id === topLevelNodeId;});
+      if (index >= 0) {
+        var node = topLevelNodes[index];
+        var prevSibling = topLevelNodes[index - 1];
+        var nextSibling = topLevelNodes[index + 1];
+        topLevelNodes.splice(index, 1);
+        if (prevSibling) {
+          prevSibling.nextSibling = nextSibling;
+        }
+        if (nextSibling) {
+          nextSibling.prevSibling = prevSibling;
+        }
+        removeNodesCallbacks.invoke([node]);
+      }
+      return index;
+    } };
+
+
+  return model;
+}
+
+function createWatchTreeNode(model, parent, label, value) {
+  var entry = { label: label, value: value };
+  var node = Object(_codePathModel__WEBPACK_IMPORTED_MODULE_2__["createRegularNode"])(model.takeNodeId(), parent, entry);
+  var nodeOverride = createNodeOverride(node, model, value);
+
+  Object.assign(node, _objectSpread({},
+  nodeOverride, {
+    entry: _objectSpread({},
+    node.entry, {},
+    nodeOverride.entry || {}) }));
+
+
+
+  return node;
+}
+
+function createNodeOverride(node, model, value) {
+  if (_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0___default()(value) === "object" && !!value) {
+    return Array.isArray(value) ?
+    createArrayNodeOverride(node, model, value) :
+    createObjectNodeOverride(node, model, value);
+  }
+  return createScalarNodeOverride(node, model, value);
+}
+
+function createScalarNodeOverride(node, model, value) {
+  return {
+    entry: {
+      type: "scalar" } };
+
+
+}
+
+function createObjectNodeOverride(node, model, value) {
+  var override = {
+    entry: {
+      type: "object" } };
+
+
+  if (Object.keys(value).length > 0) {
+    override.firstChild = createFirstChildProxyNode(
+    node,
+    model.takeNodeId(),
+    function () {
+      return createRealChildNodes(node, model, value);
+    });
+
+  }
+  return override;
+}
+
+function createArrayNodeOverride(node, model, value) {
+  var override = {
+    entry: {
+      type: "array" } };
+
+
+  if (value.length > 0) {
+    override.firstChild = createFirstChildProxyNode(
+    node,
+    model.takeNodeId(),
+    function () {
+      return createRealChildNodes(node, model, value, function (key) {return "[".concat(key, "]");});
+    });
+
+  }
+  return override;
+}
+
+function createRealChildNodes(parent, model, value, getLabel) {
+  var nodes = [];
+  for (var key in value) {
+    var lastSibling = nodes.length > 0 ? nodes[nodes.length - 1] : undefined;
+    var label = getLabel ? getLabel(key) : key;
+    var newSibling = createWatchTreeNode(model, parent, label, value[key]);
+    newSibling.prevSibling = lastSibling;
+    if (lastSibling) {
+      lastSibling.nextSibling = newSibling;
+    }
+    nodes.push(newSibling);
+  }
+  return nodes;
+}
+
+function createFirstChildProxyNode(parent, firstChildId, createRealChildNodes) {
+  var proxyNode = undefined;
+  var replaceWithRealNode = function replaceWithRealNode() {
+    var propNodes = createRealChildNodes();
+    parent.firstChild = propNodes[0];
+    parent.lastChild = propNodes[propNodes.length - 1];
+    return parent.firstChild;
+  };
+  proxyNode = createProxyNode(firstChildId, parent, replaceWithRealNode);
+  return proxyNode;
+}
+
+function createProxyNode(id, parent, createRealNode) {
+  var realNode = undefined;
+  var getRealNode = function getRealNode() {
+    if (!realNode) {
+      realNode = createRealNode();
+    }
+    return realNode;
+  };
+  var node = {
+    id: id,
+    parent: parent,
+    depth: parent.depth + 1,
+    top: parent.top,
+    get entry() {
+      return getRealNode().entry;
+    },
+    get firstChild() {
+      return getRealNode().firstChild;
+    },
+    get lastChild() {
+      return getRealNode().lastChild;
+    },
+    get prevSibling() {
+      return getRealNode().prevSibling;
+    },
+    get nextSibling() {
+      return getRealNode().nextSibling;
+    },
+    metrics: undefined,
+    isProxy: true };
+
+  if (!node.top) {
+    node.top = node;
+  }
+  return node;
+}
+
+function evaluateExpression(context, expression) {
+  var func = Function("context", "\"use strict\";return context.".concat(expression));
+  try {
+    var value = func(context);
+    return value;
+  } catch (err) {
+    return err;
   }
 }
 

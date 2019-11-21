@@ -270,8 +270,7 @@ describe("WatchModel", () => {
       expect(node.firstChild).toBeUndefined();
       expect(node.lastChild).toBeUndefined();
     });
-  
+    
   });
 
 });
-

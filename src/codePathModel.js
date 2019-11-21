@@ -215,9 +215,11 @@ export function createRegularNode(id, parent, entry, extractEntryMetrics) {
     lastChild: undefined,
     prevSibling: undefined,
     nextSibling: undefined,
-    metrics: extractEntryMetrics 
-      ? extractEntryMetrics(entry) 
-      : (entry ? entry.metrics : undefined)
+    metrics: extractEntryMetrics
+      ? extractEntryMetrics(entry)
+      : entry
+      ? entry.metrics
+      : undefined
   };
   if (!node.top) {
     node.top = node;

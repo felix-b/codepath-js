@@ -96,8 +96,38 @@
     <div id="panel-resizer" class="panel-resizer-h"></div>
     <div id="panel-right" class="panel-right" style="width:250px;">
       <h1>Details</h1>
-      <pre id="entry-json-text">
-      </pre>
+      <table id="watch-grid" tabindex="1">
+        <thead>
+          <tr>
+            <th id="watch-label-column-header" style="width:100px">
+              <div>
+                <div class="column-title">Expression</div>
+                <div id="watch-label-column-resizer-right" class="column-resizer-right"></div>
+              </div>
+            </th>
+            <th id="watch-value-column-header" style="width:150px">
+              <div>
+                <div id="watch-value-column-resizer-left" class="column-resizer-left"></div>
+                <div class="column-title">Value</div>
+                <div id="watch-value-column-resizer-right" class="column-resizer-right"></div>
+              </div>
+            </th>
+            <th id="watch-filler-column-header" style="width:100%">
+              <div>
+                <div class="column-title"></div>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tfoot>
+          <tr>
+            <td colspan="2">
+              <input id="watch-expression-text" type="text"/>
+              <button id="watch-add-button">Add</button>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
   </div>
 </body>

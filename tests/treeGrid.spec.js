@@ -444,8 +444,9 @@ describe('TreeGridController', () => {
     });
     resetViewCalls();
 
-    watchModel.removeWatchNode(id);
+    const topLevelNodeIndex = watchModel.removeWatchNode(id);
 
+    expect(topLevelNodeIndex).toBe(1);
     expectCalls(view.removeNodes, [1, 1]);
   });
 
@@ -462,7 +463,8 @@ describe('TreeGridController', () => {
     controller.expand(id);
     resetViewCalls();
 
-    watchModel.removeWatchNode(id);
+    const topLevelNodeIndex = watchModel.removeWatchNode(id);
+    expect(topLevelNodeIndex).toBe(1);
 
     expectCalls(view.removeNodes, [1, 4]);
   });

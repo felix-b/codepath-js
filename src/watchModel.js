@@ -3,16 +3,16 @@ import { createMulticastDelegate } from "./multicastDelegate";
 
 export function createWatchModel() {
   const insertNodesCallbacks = createMulticastDelegate(
-    'WatchModel.insertNodes'
+    "WatchModel.insertNodes"
   );
   const removeNodesCallbacks = createMulticastDelegate(
-    'WatchModel.removeNodes'
+    "WatchModel.removeNodes"
   );
 
-  const rootNode = createRootNode();
-  const topLevelNodes = [];
+  let rootNode = createRootNode();
+  let topLevelNodes = [];
   let nextNodeId = 1;
-  
+
   const model = {
     getRootNode() {
       return rootNode;
@@ -28,12 +28,20 @@ export function createWatchModel() {
         removeNodesCallbacks.add(subscriber.removeNodes);
       }
     },
+    unsubscribe(subscriber) {
+      if (subscriber.insertNodes) {
+        insertNodesCallbacks.remove(subscriber.insertNodes);
+      }
+      if (subscriber.removeNodes) {
+        removeNodesCallbacks.remove(subscriber.removeNodes);
+      }
+    },
     takeNodeId() {
       return nextNodeId++;
     },
-    addWatch(context, path) {
-      const value = evaluateExpression(context, path);
-      const node = createWatchTreeNode(model, rootNode, path, value);
+    addWatch(context, expression) {
+      const value = evaluateExpression(context, expression);
+      const node = createWatchTreeNode(model, rootNode, expression, value);
       const lastNode = topLevelNodes[topLevelNodes.length - 1];
       node.prevSibling = lastNode;
       if (lastNode) {
@@ -58,6 +66,7 @@ export function createWatchModel() {
         }
         removeNodesCallbacks.invoke([node]);
       }
+      return index;
     }
   };
 
@@ -70,19 +79,19 @@ export function createWatchTreeNode(model, parent, label, value) {
   const nodeOverride = createNodeOverride(node, model, value);
 
   Object.assign(node, {
-    ...nodeOverride, 
+    ...nodeOverride,
     entry: {
       ...node.entry,
       ...(nodeOverride.entry || {})
     }
   });
-  
+
   return node;
 }
 
 function createNodeOverride(node, model, value) {
-  if (typeof value === 'object' && !!value) {
-    return Array.isArray(value) 
+  if (typeof value === "object" && !!value) {
+    return Array.isArray(value)
       ? createArrayNodeOverride(node, model, value)
       : createObjectNodeOverride(node, model, value);
   }
@@ -90,9 +99,9 @@ function createNodeOverride(node, model, value) {
 }
 
 function createScalarNodeOverride(node, model, value) {
-  return { 
+  return {
     entry: {
-      type: 'scalar'
+      type: "scalar"
     }
   };
 }
@@ -100,13 +109,17 @@ function createScalarNodeOverride(node, model, value) {
 function createObjectNodeOverride(node, model, value) {
   let override = {
     entry: {
-      type: 'object'
-    },
-  }; 
+      type: "object"
+    }
+  };
   if (Object.keys(value).length > 0) {
-    override.firstChild = createFirstChildProxyNode(node, model.takeNodeId(), () => {
-      return createRealChildNodes(node, model, value);
-    });
+    override.firstChild = createFirstChildProxyNode(
+      node,
+      model.takeNodeId(),
+      () => {
+        return createRealChildNodes(node, model, value);
+      }
+    );
   }
   return override;
 }
@@ -114,13 +127,17 @@ function createObjectNodeOverride(node, model, value) {
 function createArrayNodeOverride(node, model, value) {
   let override = {
     entry: {
-      type: 'array'
-    },
-  }; 
+      type: "array"
+    }
+  };
   if (value.length > 0) {
-    override.firstChild = createFirstChildProxyNode(node, model.takeNodeId(), () => {
-      return createRealChildNodes(node, model, value, key => `[${key}]`);
-    });
+    override.firstChild = createFirstChildProxyNode(
+      node,
+      model.takeNodeId(),
+      () => {
+        return createRealChildNodes(node, model, value, key => `[${key}]`);
+      }
+    );
   }
   return override;
 }
@@ -159,10 +176,10 @@ function createProxyNode(id, parent, createRealNode) {
       realNode = createRealNode();
     }
     return realNode;
-  }
+  };
   const node = {
     id,
-    parent, 
+    parent,
     depth: parent.depth + 1,
     top: parent.top,
     get entry() {
@@ -190,11 +207,11 @@ function createProxyNode(id, parent, createRealNode) {
 }
 
 function evaluateExpression(context, expression) {
-  const func = Function('context', `"use strict";return context.${expression}`);
+  const func = Function("context", `"use strict";return context.${expression}`);
   try {
     const value = func(context);
     return value;
-  } catch(err) {
+  } catch (err) {
     return err;
   }
 }
