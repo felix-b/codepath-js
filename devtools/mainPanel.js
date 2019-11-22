@@ -18,7 +18,7 @@ requirejs([
   const startButton = document.querySelector('#start-button');
   const stopButton = document.querySelector('#stop-button');
   const clearAllButton = document.querySelector('#clear-all-button');
-  const entryJsonText = document.querySelector('#entry-json-text');
+  //const entryJsonText = document.querySelector('#entry-json-text');
   const filterIncludeText1 = document.querySelector('#filter-text');
   const filterIncludeText2 = document.querySelector('#filter-text-2');
   const filterIncludeText3 = document.querySelector('#filter-text-3');
@@ -27,7 +27,7 @@ requirejs([
   const filterExcludeText3 = document.querySelector('#filter-exclude-text-3');
   const filterClearButton = document.querySelector('#filter-clear-button');
   const filterFlatCheckbox = document.querySelector('#filter-flat-check');
-  const findTextInput = document.querySelector('#find-text');
+  //const findTextInput = document.querySelector('#find-text');
   const findPrevButton = document.querySelector('#find-prev-button');
   const findNextButton = document.querySelector('#find-next-button');
   const panelResizerDiv = document.querySelector('#panel-resizer');
@@ -52,7 +52,11 @@ requirejs([
   const filterTextDebounce = CodePath.createDebounce(applyFilter, 500);
   const nodeSelectedDebounce = CodePath.createDebounce(onNodeSelectedDebounced, 100);
   const getWatchGridMvc = WatchTreeGrid.initMvc(watchGridTable);
-  
+  getWatchGridMvc().model.addWatch(undefined, 'tags.$api');
+  getWatchGridMvc().model.addWatch(undefined, 'tags.$apiFunc');
+  getWatchGridMvc().model.addWatch(undefined, 'tags.$args');
+  getWatchGridMvc().model.addWatch(undefined, 'tags.$retVal');
+
   CodePath.createResizer({
     gripElement: panelResizerDiv,
     leftSideElement: mainPanelDiv,

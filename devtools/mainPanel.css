@@ -139,7 +139,7 @@ body {
   -webkit-mask-image: url(icons/prev.svg);
 }
 
-#trace-grid {
+.tree-grid {
   width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
@@ -147,7 +147,7 @@ body {
   outline: none;
 }
 
-#trace-grid td, #trace-grid th  {
+.tree-grid td, .tree-grid th  {
   white-space: nowrap;
   overflow: hidden;
   font-size: 12px;
@@ -156,7 +156,7 @@ body {
   cursor: default;
 }
 
-#trace-grid th {
+.tree-grid th {
   position: sticky;
   top: 0;
   background-color: #f3f3f3;
@@ -164,7 +164,7 @@ body {
   height: 18px;
 }
 
-#trace-grid th div {
+.tree-grid th div {
   height: 100%;
   border-bottom: 1px solid #cfcfcf;
   padding: 0;
@@ -174,7 +174,7 @@ body {
   grid-template-rows: 18px;
 }
 
-#trace-grid th div div.column-title {
+.tree-grid th div div.column-title {
   grid-column: 2;
   grid-row: 1;  
   padding: 0;
@@ -182,35 +182,35 @@ body {
   text-align: center;
 }
 
-#trace-grid th div div.column-resizer-left,
-#trace-grid th div div.column-resizer-right {
+.tree-grid th div div.column-resizer-left,
+.tree-grid th div div.column-resizer-right {
   grid-row: 1;  
   padding: 0;
   cursor: ew-resize;
 }
 
-#trace-grid th div div.column-resizer-left {
+.tree-grid th div div.column-resizer-left {
   grid-column: 1;
 }
 
-#trace-grid th div div.column-resizer-right {
+.tree-grid th div div.column-resizer-right {
   grid-column: 3;
 }
 
-#trace-grid td  {
+.tree-grid td  {
   padding: 0;
   line-height: 19px;
 }
 
-#trace-grid td.align-right {
+.tree-grid td.align-right {
   text-align: right;
 }
 
-#trace-grid td.align-center {
+.tree-grid td.align-center {
   text-align: center;
 }
 
-#trace-grid span.toggle {
+.tree-grid span.toggle {
   display: inline-block;
   width:18px; 
   height: 18px; 
@@ -218,7 +218,7 @@ body {
   background-color: white;
 }
 
-#trace-grid span.row-icon {
+.tree-grid span.row-icon {
   display: inline-block;
   width: 18px;
   height: 18px;
@@ -233,100 +233,100 @@ body {
   background-position-x: center;
 }
 
-#trace-grid span.indent {
+.tree-grid span.indent {
   display: inline-block;
   background-color: white;
   width: 18px;
   height: 18px;
 }
 
-#trace-grid span.data {
+.tree-grid span.data {
   display: inline-block;
   vertical-align: bottom;
   padding: 0 3px 0 3px;
 }
 
-#trace-grid span.data span.hl {
+.tree-grid span.data span.hl {
   background-color: yellow;
   color: brown;
 }
 
-#trace-grid span.data.time-offset {
+.tree-grid span.data.time-offset {
   width: 42px;
 }
 
-#trace-grid tr.collapsed td span.toggle {
+.tree-grid tr.collapsed td span.toggle {
   background-image: url(icons/collapsed.svg);
 }
 
-#trace-grid tr.expanded td span.toggle {
+.tree-grid tr.expanded td span.toggle {
   background-image: url(icons/expanded.svg);
 }
 
-#trace-grid td a:hover {
+.tree-grid td a:hover {
   color: blue;
 }
 
-#trace-grid tbody tr {
+.tree-grid tbody tr {
   cursor: default;
   color: #afb6bd;
   border-bottom: 1px solid #eeeeee;
 }
 
-#trace-grid tbody tr.root-span {
+.tree-grid tbody tr.root-span {
   color: #474c52;
   background-color: #fafafa;
 }
 
-#trace-grid tbody tr:hover td {
+.tree-grid tbody tr:hover td {
   background-color: lightyellow;
 }
 
-#trace-grid tbody tr.error {
+.tree-grid tbody tr.error {
   color: rgb(208, 0, 73);
 }
 
-#trace-grid tbody tr.warning {
+.tree-grid tbody tr.warning {
   color: rgb(205, 147, 0);
 }
 
-#trace-grid tbody tr.event {
+.tree-grid tbody tr.event {
   color: rgb(31, 87, 184);
 }
 
-#trace-grid tbody tr.error.root-cause td span.row-icon {
+.tree-grid tbody tr.error.root-cause td span.row-icon {
   /*background-color: rgb(208, 0, 73);
   -webkit-mask-image: url(icons/error.svg);*/
   background-image: url(icons/error.svg);
 }
 
-#trace-grid tbody tr.warning.root-cause td span.row-icon {
+.tree-grid tbody tr.warning.root-cause td span.row-icon {
   /*background-color: rgb(205, 147, 0);
   -webkit-mask-image: url(icons/warning.svg);*/
   background-image: url(icons/warning.svg);
 }
 
-#trace-grid tbody tr.event.root-cause td span.row-icon {
+.tree-grid tbody tr.event.root-cause td span.row-icon {
   /*background-color: rgb(31, 87, 184);
   -webkit-mask-image: url(icons/event.svg);*/
   background-image: url(icons/event.svg);
 }
 
-#trace-grid tbody tr.root-cause {
+.tree-grid tbody tr.root-cause {
   font-weight: bold;
 }
 
-#trace-grid tbody tr.highlighted td,
-#trace-grid tbody tr.highlighted:hover td {
+.tree-grid tbody tr.highlighted td,
+.tree-grid tbody tr.highlighted:hover td {
   color: black;
   background-color: yellow;
 }
 
-#trace-grid tbody tr.selected td, 
-#trace-grid tbody tr.selected:hover td, 
-#trace-grid tbody tr.highlighted.selected td, 
-#trace-grid tbody tr.highlighted.selected:hover td,
-#trace-grid tbody tr.highlighted.selected td span.data span.hl {
+.tree-grid tbody tr.selected td, 
+.tree-grid tbody tr.selected:hover td, 
+.tree-grid tbody tr.highlighted.selected td, 
+.tree-grid tbody tr.highlighted.selected:hover td,
+.tree-grid tbody tr.highlighted.selected td span.data span.hl {
   color: white;
   background-color: rgb(0, 117, 242);
 }
