@@ -4491,15 +4491,19 @@ function ownKeys(object, enumerableOnly) {var keys = Object.keys(object);if (Obj
 
 function createWatchModel() {
   var insertNodesCallbacks = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_3__["createMulticastDelegate"])(
-  "WatchModel.insertNodes");
+  'WatchModel.insertNodes');
 
   var removeNodesCallbacks = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_3__["createMulticastDelegate"])(
-  "WatchModel.removeNodes");
+  'WatchModel.removeNodes');
+
+  var updateNodesCallbacks = Object(_multicastDelegate__WEBPACK_IMPORTED_MODULE_3__["createMulticastDelegate"])(
+  'WatchModel.updateNodes');
 
 
   var rootNode = Object(_codePathModel__WEBPACK_IMPORTED_MODULE_2__["createRootNode"])();
   var topLevelNodes = [];
   var nextNodeId = 1;
+  var currentContext = {};
 
   var model = {
     getRootNode: function getRootNode() {
@@ -4515,6 +4519,9 @@ function createWatchModel() {
       if (subscriber.removeNodes) {
         removeNodesCallbacks.add(subscriber.removeNodes);
       }
+      if (subscriber.updateNodes) {
+        updateNodesCallbacks.add(subscriber.updateNodes);
+      }
     },
     unsubscribe: function unsubscribe(subscriber) {
       if (subscriber.insertNodes) {
@@ -4523,13 +4530,31 @@ function createWatchModel() {
       if (subscriber.removeNodes) {
         removeNodesCallbacks.remove(subscriber.removeNodes);
       }
+      if (subscriber.updateNodes) {
+        updateNodesCallbacks.remove(subscriber.updateNodes);
+      }
     },
     takeNodeId: function takeNodeId() {
       return nextNodeId++;
     },
-    addWatch: function addWatch(context, expression) {
-      var value = evaluateExpression(context, expression);
-      var node = createWatchTreeNode(model, rootNode, expression, value);
+    setContext: function setContext(newContext) {
+      currentContext = newContext || {};
+      var queues = {
+        insert: [],
+        update: [],
+        remove: [] };
+
+      topLevelNodes.forEach(function (node, index) {
+        var newValue = evaluateExpression(currentContext, node.entry.key);
+        topLevelNodes[index] = updateWatchTreeNode(model, node, newValue, queues);
+      });
+      invokeQueueCallbacks(queues.remove, removeNodesCallbacks);
+      invokeQueueCallbacks(queues.update, updateNodesCallbacks);
+      invokeQueueCallbacks(queues.insert, insertNodesCallbacks);
+    },
+    addWatch: function addWatch(expression) {
+      var value = evaluateExpression(currentContext, expression);
+      var node = createWatchTreeNode(model, rootNode, expression, expression, value);
       var lastNode = topLevelNodes[topLevelNodes.length - 1];
       node.prevSibling = lastNode;
       if (lastNode) {
@@ -4561,7 +4586,7 @@ function createWatchModel() {
   return model;
 }
 
-function createWatchTreeNode(model, parent, label, value) {
+function createWatchTreeNode(model, parent, label, key, value) {
   var entry = { label: label, value: value };
   var node = Object(_codePathModel__WEBPACK_IMPORTED_MODULE_2__["createRegularNode"])(model.takeNodeId(), parent, entry);
   var nodeOverride = createNodeOverride(node, model, value);
@@ -4570,26 +4595,41 @@ function createWatchTreeNode(model, parent, label, value) {
   nodeOverride, {
     entry: _objectSpread({},
     node.entry, {},
-    nodeOverride.entry || {}) }));
+    nodeOverride.entry || {}, {
+      key: key }) }));
 
 
 
   return node;
 }
 
-function createNodeOverride(node, model, value) {
+function getValueType(value) {
   if (_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0___default()(value) === "object" && !!value) {
     return Array.isArray(value) ?
-    createArrayNodeOverride(node, model, value) :
-    createObjectNodeOverride(node, model, value);
+    'array' :
+    'object';
   }
-  return createScalarNodeOverride(node, model, value);
+  return 'scalar';
+}
+
+function createNodeOverride(node, model, value) {
+  var type = getValueType(value);
+  switch (type) {
+    case 'scalar':
+      return createScalarNodeOverride(node, model, value);
+    case 'array':
+      return createArrayNodeOverride(node, model, value);
+    case 'object':
+      return createObjectNodeOverride(node, model, value);
+    default:
+      throw new Error('value type not recognized: ' + type);}
+
 }
 
 function createScalarNodeOverride(node, model, value) {
   return {
     entry: {
-      type: "scalar" } };
+      type: 'scalar' } };
 
 
 }
@@ -4597,15 +4637,22 @@ function createScalarNodeOverride(node, model, value) {
 function createObjectNodeOverride(node, model, value) {
   var override = {
     entry: {
-      type: "object" } };
+      type: 'object',
+      getSubKeys: function getSubKeys(obj) {
+        return Object.keys(obj || {}).sort();
+      },
+      getSubLabel: function getSubLabel(key) {
+        return "".concat(key);
+      } } };
 
 
-  if (Object.keys(value).length > 0) {
+  var keys = Object.keys(value);
+  if (keys.length > 0) {
     override.firstChild = createFirstChildProxyNode(
     node,
     model.takeNodeId(),
     function () {
-      return createRealChildNodes(node, model, value);
+      return createRealChildNodes(node, model, value, function () {return keys.sort();});
     });
 
   }
@@ -4615,7 +4662,13 @@ function createObjectNodeOverride(node, model, value) {
 function createArrayNodeOverride(node, model, value) {
   var override = {
     entry: {
-      type: "array" } };
+      type: 'array',
+      getSubKeys: function getSubKeys(arr) {
+        return Object.keys(arr);
+      },
+      getSubLabel: function getSubLabel(key) {
+        return "[".concat(key, "]");
+      } } };
 
 
   if (value.length > 0) {
@@ -4623,25 +4676,26 @@ function createArrayNodeOverride(node, model, value) {
     node,
     model.takeNodeId(),
     function () {
-      return createRealChildNodes(node, model, value, function (key) {return "[".concat(key, "]");});
+      return createRealChildNodes(node, model, value, function () {return Object.keys(value);}, function (key) {return "[".concat(key, "]");});
     });
 
   }
   return override;
 }
 
-function createRealChildNodes(parent, model, value, getLabel) {
+function createRealChildNodes(parent, model, value, getKeys, getLabel) {
   var nodes = [];
-  for (var key in value) {
+  var keys = getKeys();
+  keys.forEach(function (key) {
     var lastSibling = nodes.length > 0 ? nodes[nodes.length - 1] : undefined;
     var label = getLabel ? getLabel(key) : key;
-    var newSibling = createWatchTreeNode(model, parent, label, value[key]);
+    var newSibling = createWatchTreeNode(model, parent, label, key, value[key]);
     newSibling.prevSibling = lastSibling;
     if (lastSibling) {
       lastSibling.nextSibling = newSibling;
     }
     nodes.push(newSibling);
-  }
+  });
   return nodes;
 }
 
@@ -4695,12 +4749,136 @@ function createProxyNode(id, parent, createRealNode) {
 }
 
 function evaluateExpression(context, expression) {
-  var func = Function("context", "\"use strict\";return context.".concat(expression));
   try {
+    var func = Function("context", "\"use strict\";return context.".concat(expression));
     var value = func(context);
     return value;
   } catch (err) {
-    return err;
+    return err.message;
+  }
+}
+
+function updateWatchTreeNode(model, node, value, queues) {
+  var type = getValueType(value);
+
+  if (type !== node.entry.type) {
+    var newNode = createWatchTreeNode(model, node.parent, node.entry.label, node.entry.key, value);
+    var beforeSibling = node.nextSibling;
+    removeNode(node, queues);
+    insertNode(newNode, beforeSibling, queues);
+    return newNode;
+  }
+
+  node.entry.value = value;
+  queues.update.push(node);
+
+  if (node.firstChild && !node.firstChild.isProxy) {
+    var oldNodes = getSubNodesArray(node);
+    var newKeys = node.entry.getSubKeys(value);
+
+    for (var iOld = 0, iNew = 0; iOld < oldNodes.length || iNew < newKeys.length;) {
+      if (iOld < oldNodes.length && iNew < newKeys.length) {
+        var oldKey = oldNodes[iOld].entry.key;
+        var newKey = newKeys[iNew];
+        if (oldKey < newKey) {
+          removeNode(oldNodes[iOld], queues);
+          iOld++;
+        } else if (oldKey > newKey) {
+          var newValue = value[newKey];
+          var _newNode = createWatchTreeNode(model, node, node.entry.getSubLabel(newKey), newKey, newValue);
+          insertNode(_newNode, oldNodes[iOld], queues);
+          iNew++;
+        } else {
+          var _newValue = value[newKey];
+          updateWatchTreeNode(model, oldNodes[iOld], _newValue, queues);
+          iNew++;
+          iOld++;
+        }
+      } else if (iOld < oldNodes.length) {
+        removeNode(oldNodes[iOld], queues);
+        iOld++;
+      } else if (iNew < newKeys.length) {
+        var _newKey = newKeys[iNew];
+        var _newValue2 = value[_newKey];
+        var _newNode2 = createWatchTreeNode(model, node, node.entry.getSubLabel(_newKey), _newKey, _newValue2);
+        insertNode(_newNode2, undefined, queues);
+        iNew++;
+      }
+    }
+
+    // for (let child = node.firstChild ; !!child ; child = child.nextSibling) {
+    //   const childValue = value[child.entry.key];
+    //   if (typeof childValue !== 'undefined') {
+    //     updateWatchTreeNode(model, child, childValue, queues);
+    //   } else {
+    //     queues.remove.push(removeNode(child, queues));
+    //   }
+    // }
+  }
+
+  return node;
+}
+
+function removeNode(node, queues, isThrowaway) {
+  queues.remove.push(node);
+
+  if (!isThrowaway) {
+    if (node === node.parent.firstChild) {
+      node.parent.firstChild = node.nextSibling;
+    }
+    if (node === node.parent.lastChild) {
+      node.parent.lastChild = node.prevSibling;
+    }
+    if (node.prevSibling) {
+      node.prevSibling.nextSibling = node.nextSibling;
+    }
+    if (node.nextSibling) {
+      node.nextSibling.prevSibling = node.prevSibling;
+    }
+  }
+
+  if (node.firstChild && !node.firstChild.isProxy) {
+    for (var child = node.firstChild; !!child; child = child.nextSibling) {
+      removeNode(node, queues, true);
+    }
+  }
+}
+
+function insertNode(node, beforeSibling, queues) {
+  if (beforeSibling) {
+    node.nextSibling = beforeSibling;
+    node.prevSibling = beforeSibling.prevSibling;
+  } else {
+    node.prevSibling = node.parent.lastChild;
+  }
+
+  if (node.prevSibling) {
+    node.prevSibling.nextSibling = node;
+  } else {
+    node.parent.firstChild = node;
+  }
+
+  if (node.nextSibling) {
+    node.nextSibling.prevSibling = node;
+  } else {
+    node.parent.lastChild = node;
+  }
+
+  queues.insert.push(node);
+}
+
+function getSubNodesArray(node) {
+  var subNodes = [];
+  for (var child = node.firstChild; !!child; child = child.nextSibling) {
+    subNodes.push(child);
+  }
+  return subNodes;
+};
+
+
+function invokeQueueCallbacks(queue, delegate) {
+  if (queue.length > 0) {
+    delegate.invoke(queue);
   }
 }
 

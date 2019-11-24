@@ -4,11 +4,9 @@ define(function (require) {
 
   debug.log("CODEPATH.DEVTOOLS.WATCH-TREEGRID>", "loaded");
 
-  const expressions = [];
   let model = undefined;
   let controller = undefined;
   let selectedNode = undefined;
-  let currentContext = {};
 
   return {
     initMvc(gridTableElement) {
@@ -28,27 +26,26 @@ define(function (require) {
     },
     setContext(context) {
       debug.log("CODEPATH.DEVTOOLS.WATCH-TREEGRID>", "setContext", context);
-      currentContext = context || {};
-      replaceModel();
+      model.setContext(context);
     },
     addWatch(expression) {
       debug.log("CODEPATH.DEVTOOLS.WATCH-TREEGRID>", "addWatch", expression);
-      expressions.push(expression);
-      model.addWatch(currentContext, expression);
+      model.addWatch(expression);
     },
   };
 
-  function replaceModel() {
-    model = CodePath.createWatchModel();
-    expressions.forEach(expr => model.addWatch(expr));
-    controller.replaceModel(model);
-  }
+  // function replaceModel() {
+  //   model = CodePath.createWatchModel();
+  //   expressions.forEach(expr => model.addWatch(expr));
+  //   controller.replaceModel(model);
+  // }
 
   function removeNode(id) {
-    const expressionIndex = model.removeWatchNode(id);
-    if (expressionIndex >= 0) {
-      expressions.splice(expressionIndex, 1);
-    }
+    model.removeWatchNode(id);
+    // const expressionIndex = model.removeWatchNode(id);
+    // if (expressionIndex >= 0) {
+    //   expressions.splice(expressionIndex, 1);
+    // }
   }
 
   function createColumns() {

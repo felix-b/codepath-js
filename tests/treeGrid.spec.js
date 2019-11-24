@@ -451,11 +451,11 @@ describe('TreeGridController', () => {
   });
 
   it('can remove expanded root node', () => {
-    const watchContext = { x: 1, y: [2,3,4], z: 5 };
     const watchModel = createWatchModel();
-    watchModel.addWatch(watchContext, 'x');
-    const { id } = watchModel.addWatch(watchContext, 'y');
-    watchModel.addWatch(watchContext, 'z');
+    watchModel.setContext({ x: 1, y: [2,3,4], z: 5 });
+    watchModel.addWatch('x');
+    const { id } = watchModel.addWatch('y');
+    watchModel.addWatch('z');
 
     setupMvc(() => {
       model = watchModel;

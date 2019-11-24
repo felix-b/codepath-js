@@ -51,11 +51,12 @@ requirejs([
   const treeGridController = CodePathTreeGrid.initMvc(traceGridTable, handleKeyPressEvent);
   const filterTextDebounce = CodePath.createDebounce(applyFilter, 500);
   const nodeSelectedDebounce = CodePath.createDebounce(onNodeSelectedDebounced, 100);
-  const getWatchGridMvc = WatchTreeGrid.initMvc(watchGridTable);
-  getWatchGridMvc().model.addWatch(undefined, 'tags.$api');
-  getWatchGridMvc().model.addWatch(undefined, 'tags.$apiFunc');
-  getWatchGridMvc().model.addWatch(undefined, 'tags.$args');
-  getWatchGridMvc().model.addWatch(undefined, 'tags.$retVal');
+  
+  WatchTreeGrid.initMvc(watchGridTable);
+  WatchTreeGrid.addWatch('tags.$api');
+  WatchTreeGrid.addWatch('tags.$apiFunc');
+  WatchTreeGrid.addWatch('tags.$args');
+  WatchTreeGrid.addWatch('tags.$retVal');
 
   CodePath.createResizer({
     gripElement: panelResizerDiv,
@@ -163,9 +164,7 @@ requirejs([
   watchAddButton.onclick = () => {
     const expressionText = watchExpressionTextInput.value.trim();
     if (expressionText.length > 0) {
-      const { model } = getWatchGridMvc();
-      const context = selectedNode ? selectedNode.entry : {};
-      model.addWatch(context, expressionText);
+      WatchTreeGrid.addWatch(expressionText);
     }
   };
 

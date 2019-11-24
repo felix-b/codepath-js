@@ -8,10 +8,14 @@ export function createWatchModel() {
   const removeNodesCallbacks = createMulticastDelegate(
     "WatchModel.removeNodes"
   );
+  const updateNodesCallbacks = createMulticastDelegate(
+    "WatchModel.updateNodes"
+  );
 
   let rootNode = createRootNode();
   let topLevelNodes = [];
   let nextNodeId = 1;
+  let currentContext = {};
 
   const model = {
     getRootNode() {
@@ -27,6 +31,9 @@ export function createWatchModel() {
       if (subscriber.removeNodes) {
         removeNodesCallbacks.add(subscriber.removeNodes);
       }
+      if (subscriber.updateNodes) {
+        updateNodesCallbacks.add(subscriber.updateNodes);
+      }
     },
     unsubscribe(subscriber) {
       if (subscriber.insertNodes) {
@@ -35,13 +42,42 @@ export function createWatchModel() {
       if (subscriber.removeNodes) {
         removeNodesCallbacks.remove(subscriber.removeNodes);
       }
+      if (subscriber.updateNodes) {
+        updateNodesCallbacks.remove(subscriber.updateNodes);
+      }
     },
     takeNodeId() {
       return nextNodeId++;
     },
-    addWatch(context, expression) {
-      const value = evaluateExpression(context, expression);
-      const node = createWatchTreeNode(model, rootNode, expression, value);
+    setContext(newContext) {
+      currentContext = newContext || {};
+      const queues = {
+        insert: [],
+        update: [],
+        remove: []
+      };
+      topLevelNodes.forEach((node, index) => {
+        const newValue = evaluateExpression(currentContext, node.entry.key);
+        topLevelNodes[index] = updateWatchTreeNode(
+          model,
+          node,
+          newValue,
+          queues
+        );
+      });
+      invokeQueueCallbacks(queues.remove, removeNodesCallbacks);
+      invokeQueueCallbacks(queues.update, updateNodesCallbacks);
+      invokeQueueCallbacks(queues.insert, insertNodesCallbacks);
+    },
+    addWatch(expression) {
+      const value = evaluateExpression(currentContext, expression);
+      const node = createWatchTreeNode(
+        model,
+        rootNode,
+        expression,
+        expression,
+        value
+      );
       const lastNode = topLevelNodes[topLevelNodes.length - 1];
       node.prevSibling = lastNode;
       if (lastNode) {
@@ -73,7 +109,7 @@ export function createWatchModel() {
   return model;
 }
 
-export function createWatchTreeNode(model, parent, label, value) {
+export function createWatchTreeNode(model, parent, label, key, value) {
   const entry = { label, value };
   const node = createRegularNode(model.takeNodeId(), parent, entry);
   const nodeOverride = createNodeOverride(node, model, value);
@@ -82,20 +118,33 @@ export function createWatchTreeNode(model, parent, label, value) {
     ...nodeOverride,
     entry: {
       ...node.entry,
-      ...(nodeOverride.entry || {})
+      ...(nodeOverride.entry || {}),
+      key
     }
   });
 
   return node;
 }
 
-function createNodeOverride(node, model, value) {
+function getValueType(value) {
   if (typeof value === "object" && !!value) {
-    return Array.isArray(value)
-      ? createArrayNodeOverride(node, model, value)
-      : createObjectNodeOverride(node, model, value);
+    return Array.isArray(value) ? "array" : "object";
   }
-  return createScalarNodeOverride(node, model, value);
+  return "scalar";
+}
+
+function createNodeOverride(node, model, value) {
+  const type = getValueType(value);
+  switch (type) {
+    case "scalar":
+      return createScalarNodeOverride(node, model, value);
+    case "array":
+      return createArrayNodeOverride(node, model, value);
+    case "object":
+      return createObjectNodeOverride(node, model, value);
+    default:
+      throw new Error("value type not recognized: " + type);
+  }
 }
 
 function createScalarNodeOverride(node, model, value) {
@@ -109,15 +158,22 @@ function createScalarNodeOverride(node, model, value) {
 function createObjectNodeOverride(node, model, value) {
   let override = {
     entry: {
-      type: "object"
+      type: "object",
+      getSubKeys(obj) {
+        return Object.keys(obj || {}).sort();
+      },
+      getSubLabel(key) {
+        return `${key}`;
+      }
     }
   };
-  if (Object.keys(value).length > 0) {
+  const keys = Object.keys(value);
+  if (keys.length > 0) {
     override.firstChild = createFirstChildProxyNode(
       node,
       model.takeNodeId(),
       () => {
-        return createRealChildNodes(node, model, value);
+        return createRealChildNodes(node, model, value, () => keys.sort());
       }
     );
   }
@@ -127,7 +183,13 @@ function createObjectNodeOverride(node, model, value) {
 function createArrayNodeOverride(node, model, value) {
   let override = {
     entry: {
-      type: "array"
+      type: "array",
+      getSubKeys(arr) {
+        return Object.keys(arr);
+      },
+      getSubLabel(key) {
+        return `[${key}]`;
+      }
     }
   };
   if (value.length > 0) {
@@ -135,25 +197,38 @@ function createArrayNodeOverride(node, model, value) {
       node,
       model.takeNodeId(),
       () => {
-        return createRealChildNodes(node, model, value, key => `[${key}]`);
+        return createRealChildNodes(
+          node,
+          model,
+          value,
+          () => Object.keys(value),
+          key => `[${key}]`
+        );
       }
     );
   }
   return override;
 }
 
-function createRealChildNodes(parent, model, value, getLabel) {
+function createRealChildNodes(parent, model, value, getKeys, getLabel) {
   const nodes = [];
-  for (let key in value) {
+  const keys = getKeys();
+  keys.forEach(key => {
     const lastSibling = nodes.length > 0 ? nodes[nodes.length - 1] : undefined;
     const label = getLabel ? getLabel(key) : key;
-    const newSibling = createWatchTreeNode(model, parent, label, value[key]);
+    const newSibling = createWatchTreeNode(
+      model,
+      parent,
+      label,
+      key,
+      value[key]
+    );
     newSibling.prevSibling = lastSibling;
     if (lastSibling) {
       lastSibling.nextSibling = newSibling;
     }
     nodes.push(newSibling);
-  }
+  });
   return nodes;
 }
 
@@ -207,11 +282,159 @@ function createProxyNode(id, parent, createRealNode) {
 }
 
 function evaluateExpression(context, expression) {
-  const func = Function("context", `"use strict";return context.${expression}`);
   try {
+    const func = Function(
+      "context",
+      `"use strict";return context.${expression}`
+    );
     const value = func(context);
     return value;
   } catch (err) {
-    return err;
+    return err.message;
+  }
+}
+
+function updateWatchTreeNode(model, node, value, queues) {
+  const type = getValueType(value);
+
+  if (type !== node.entry.type) {
+    const newNode = createWatchTreeNode(
+      model,
+      node.parent,
+      node.entry.label,
+      node.entry.key,
+      value
+    );
+    const beforeSibling = node.nextSibling;
+    removeNode(node, queues);
+    insertNode(newNode, beforeSibling, queues);
+    return newNode;
+  }
+
+  node.entry.value = value;
+  queues.update.push(node);
+
+  if (node.firstChild && !node.firstChild.isProxy) {
+    const oldNodes = getSubNodesArray(node);
+    const newKeys = node.entry.getSubKeys(value);
+
+    for (
+      let iOld = 0, iNew = 0;
+      iOld < oldNodes.length || iNew < newKeys.length;
+
+    ) {
+      if (iOld < oldNodes.length && iNew < newKeys.length) {
+        const oldKey = oldNodes[iOld].entry.key;
+        const newKey = newKeys[iNew];
+        if (oldKey < newKey) {
+          removeNode(oldNodes[iOld], queues);
+          iOld++;
+        } else if (oldKey > newKey) {
+          const newValue = value[newKey];
+          const newNode = createWatchTreeNode(
+            model,
+            node,
+            node.entry.getSubLabel(newKey),
+            newKey,
+            newValue
+          );
+          insertNode(newNode, oldNodes[iOld], queues);
+          iNew++;
+        } else {
+          const newValue = value[newKey];
+          updateWatchTreeNode(model, oldNodes[iOld], newValue, queues);
+          iNew++;
+          iOld++;
+        }
+      } else if (iOld < oldNodes.length) {
+        removeNode(oldNodes[iOld], queues);
+        iOld++;
+      } else if (iNew < newKeys.length) {
+        const newKey = newKeys[iNew];
+        const newValue = value[newKey];
+        const newNode = createWatchTreeNode(
+          model,
+          node,
+          node.entry.getSubLabel(newKey),
+          newKey,
+          newValue
+        );
+        insertNode(newNode, undefined, queues);
+        iNew++;
+      }
+    }
+
+    // for (let child = node.firstChild ; !!child ; child = child.nextSibling) {
+    //   const childValue = value[child.entry.key];
+    //   if (typeof childValue !== 'undefined') {
+    //     updateWatchTreeNode(model, child, childValue, queues);
+    //   } else {
+    //     queues.remove.push(removeNode(child, queues));
+    //   }
+    // }
+  }
+
+  return node;
+}
+
+function removeNode(node, queues, isThrowaway) {
+  queues.remove.push(node);
+
+  if (!isThrowaway) {
+    if (node === node.parent.firstChild) {
+      node.parent.firstChild = node.nextSibling;
+    }
+    if (node === node.parent.lastChild) {
+      node.parent.lastChild = node.prevSibling;
+    }
+    if (node.prevSibling) {
+      node.prevSibling.nextSibling = node.nextSibling;
+    }
+    if (node.nextSibling) {
+      node.nextSibling.prevSibling = node.prevSibling;
+    }
+  }
+
+  if (node.firstChild && !node.firstChild.isProxy) {
+    for (let child = node.firstChild; !!child; child = child.nextSibling) {
+      removeNode(node, queues, true);
+    }
+  }
+}
+
+function insertNode(node, beforeSibling, queues) {
+  if (beforeSibling) {
+    node.nextSibling = beforeSibling;
+    node.prevSibling = beforeSibling.prevSibling;
+  } else {
+    node.prevSibling = node.parent.lastChild;
+  }
+
+  if (node.prevSibling) {
+    node.prevSibling.nextSibling = node;
+  } else {
+    node.parent.firstChild = node;
+  }
+
+  if (node.nextSibling) {
+    node.nextSibling.prevSibling = node;
+  } else {
+    node.parent.lastChild = node;
+  }
+
+  queues.insert.push(node);
+}
+
+function getSubNodesArray(node) {
+  const subNodes = [];
+  for (let child = node.firstChild; !!child; child = child.nextSibling) {
+    subNodes.push(child);
+  }
+  return subNodes;
+}
+
+function invokeQueueCallbacks(queue, delegate) {
+  if (queue.length > 0) {
+    delegate.invoke(queue);
   }
 }
