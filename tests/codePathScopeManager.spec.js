@@ -5,7 +5,10 @@ import {
   resetCurrentScope,
   restoreOriginalPromise,
 } from '../src/index';
-import { CustomConsole } from '@jest/console';
+import { 
+  setDebugCurrentStep,
+  getDebugPromiseLifecycle
+} from "../src/asyncLocalProvider";
 
 const createdDeferredPromise = () => {
   let resolve = undefined;
@@ -22,8 +25,12 @@ const createdDeferredPromise = () => {
 };
 
 const delay = (ms) => {
+  console.log('delay-enter');
+  setDebugCurrentStep('DELAY-ENTER');
   const { promise, resolve } = createdDeferredPromise();
   setTimeout(() => resolve(`delay(${ms})`), ms);
+  console.log('delay-exit');
+  setDebugCurrentStep('DELAY-EXIT');
   return promise;
 }
 
@@ -38,7 +45,218 @@ describe('DefaultScopeManager', () => {
     restoreOriginalPromise();
   });
 
+  const toAssertableEntryStrings = (output, options) => {
+    return output.peekEntries()
+      .filter(e => e.token !== 'StartTracer')
+      .filter(e => !options || !options.excludeAsync || e.messageId !== 'async-then')
+      .map(e => `[${e.spanId}]${e.token}:${e.messageId||''}`);
+  }
+
   it('flows scope across await', async () => {
+    const { input, output } = createCodePath();
+
+    const spanS1 = input.spanChild('S1');
+    input.logEvent('E1');
+
+    const f1 = async () => {
+      console.log('f1-enter');
+      const spanS2 = input.spanChild('S2');
+      input.logEvent('E2');
+      console.log('f1-before-await');
+      await delay(10);
+      console.log('f1-after-await');
+      input.logEvent('E3');
+      console.log('f1-exit');
+    };
+
+    console.log('before-await-f1');
+    await f1();
+    console.log('after-await-f1');
+
+    input.logEvent('E4');
+
+    const actualEntries = toAssertableEntryStrings(output);
+
+    // console.log(actualEntries.length); 
+    // console.log(actualEntries[0]); 
+    // console.log(actualEntries[1]); 
+    // console.log(actualEntries[2]); 
+    // console.log(actualEntries[3]); 
+    // console.log(actualEntries[4]); 
+    // console.log(actualEntries[5]); 
+    // console.log(actualEntries[6]); 
+    // console.log(actualEntries[7]); 
+    // console.log(actualEntries[8]); 
+    // console.log(actualEntries[9]); 
+    // console.log(actualEntries[10]); 
+    // console.log(actualEntries[11]); 
+    //output.peekEntries().map(e => `[${e.spanId}]${e.token}:${e.messageId||''}`))
+
+    console.log('end-of-test');
+
+    expect(actualEntries).toMatchObject([
+      '[1]StartSpan:S1',
+      '[1]Log:E1',
+      '[2]StartSpan:S2',
+      '[2]Log:E2',
+      '[2]Log:async-then',
+      '[2]Log:E3',
+      '[1]Log:async-then',
+      '[1]Log:E4',
+    ]);
+  });
+
+  it('flows scope across multiple nested awaits', async () => {
+    const { input, output } = createCodePath();
+
+    input.spanChild('R');
+    input.logEvent('E1');
+
+    const task2 = async () => {
+      input.spanChild('S2');
+      input.logEvent('E3');
+      await delay(10);
+      input.logEvent('E4');
+    };
+
+    const task1 = async () => {
+      input.spanChild('S1');
+      input.logEvent('E2');
+      await task2();
+      input.logEvent('E5');
+    };
+
+    await task1();
+
+    input.logEvent('E6');
+
+    const actualEntries = toAssertableEntryStrings(output);
+
+    expect(actualEntries).toMatchObject([
+      '[1]StartSpan:R',
+      '[1]Log:E1',
+      '[2]StartSpan:S1',
+      '[2]Log:E2',
+      '[3]StartSpan:S2',
+      '[3]Log:E3',
+      '[3]Log:async-then',
+      '[3]Log:E4',
+      '[2]Log:async-then',
+      '[2]Log:E5',
+      '[1]Log:async-then',
+      '[1]Log:E6',
+    ]);
+  });
+
+  it('flows scope across multiple parallel tasks', async () => {
+    const { input, output } = createCodePath();
+
+    input.spanChild('R');
+    input.logEvent('R1');
+
+    const task1 = async () => {
+      input.spanChild('S1');
+      input.logEvent('E11');
+      await delay(100);
+      input.logEvent('E12');
+    };
+
+    const task2 = async () => {
+      input.spanChild('S2');
+      input.logEvent('E21');
+      await delay(10);
+      input.logEvent('E22');
+    };
+
+    const task1Promise = task1();
+    const task2Promise = task2();
+
+    await task1Promise;
+    await task2Promise;
+
+    input.logEvent('R2');
+
+    const actualEntries = toAssertableEntryStrings(output);
+
+    expect(actualEntries).toMatchObject([
+      '[1]StartSpan:R',
+      '[1]Log:R1',
+      '[2]StartSpan:S1',
+      '[2]Log:E11',
+      '[3]StartSpan:S2',
+      '[3]Log:E21',
+      '[3]Log:async-then',
+      '[3]Log:E22',
+      '[2]Log:async-then',
+      '[2]Log:E12',
+      '[1]Log:async-then',
+      '[1]Log:async-then',
+      '[1]Log:R2',
+    ]);
+  });
+
+  it('flows scope across multiple parallel tasks with Promise.all', async () => {
+    const { input, output } = createCodePath();
+
+    input.spanChild('R');
+    input.logEvent('R1');
+
+    const task1 = async () => {
+      setDebugCurrentStep('TASK1-ENTER');
+      input.spanChild('S1');
+      input.logEvent('E11');
+      setDebugCurrentStep('TASK1-BEFORE-AWAIT');
+      await delay(100);
+      setDebugCurrentStep('TASK1-AFTER-AWAIT');
+      input.logEvent('E12');
+      setDebugCurrentStep('TASK1-EXIT');
+    };
+
+    const task2 = async () => {
+      setDebugCurrentStep('TASK2-ENTER');
+      input.spanChild('S2');
+      input.logEvent('E21');
+      setDebugCurrentStep('TASK2-BEFORE-AWAIT');
+      await delay(10);
+      setDebugCurrentStep('TASK2-AFTER-AWAIT');
+      input.logEvent('E22');
+      setDebugCurrentStep('TASK2-EXIT');
+    };
+
+  
+    setDebugCurrentStep('ROOT-BEFORE-CREATE-PROMISES-ARRAY');
+
+    const promisesArray = [
+      task1(),
+      task2()
+    ];
+
+    setDebugCurrentStep('ROOT-BEFORE-PROMISE-ALL');
+
+    await Promise.all(promisesArray);
+
+    setDebugCurrentStep('ROOT-AFTER-PROMISE-ALL');
+
+    input.logEvent('R2');
+
+    const debugLifecycle = getDebugPromiseLifecycle();
+
+    const actualEntries = toAssertableEntryStrings(output, { excludeAsync: true });
+
+    expect(actualEntries).toMatchObject([
+      '[1]StartSpan:R',
+      '[1]Log:R1',
+      '[2]StartSpan:S1',
+      '[2]Log:E11',
+      '[3]StartSpan:S2',
+      '[3]Log:E21',
+      '[3]Log:E22',
+      '[2]Log:E12',
+      '[1]Log:R2',
+    ]);
+  });
+
+  it('flows scope across await 2', async () => {
     const { input, output } = createCodePath();
 
     input.spanChild('S1');
@@ -51,7 +269,7 @@ describe('DefaultScopeManager', () => {
    
     const f1 = () => {
       console.log('---B---');
-      input.spanChild('S2');
+      input.spanChild('S2').finish();
     };
 
     console.log('---A2---');
@@ -71,14 +289,21 @@ describe('DefaultScopeManager', () => {
 
     input.logEvent('E1');
 
-    console.log(output.peekEntries().map(e => `[${e.spanId}]${e.token}:${e.messageId||''}`))
+    const actualEntries = output.peekEntries()
+      .filter(e => e.token !== 'StartTracer' && e.messageId !== 'async-then')
+      .map(e => `[${e.spanId}]${e.token}:${e.messageId||''}`);
+    console.log(actualEntries.length); 
+    console.log(actualEntries[0]); 
+    console.log(actualEntries[1]); 
+    console.log(actualEntries[2]); 
+    console.log(actualEntries[3]); 
+    //output.peekEntries().map(e => `[${e.spanId}]${e.token}:${e.messageId||''}`))
 
-    expect(output.peekEntries()).toMatchObject([
-      { token: 'StartTracer' },
-      { token: 'StartSpan', spanId: 1 },
-      { token: 'StartSpan', spanId: 2, childOf: { spanId: 1 } },
-      { token: 'Log', messageId: 'async-then', spanId: 1 },
-      { token: 'Log', spanId: 1 }
+    expect(actualEntries).toMatchObject([
+      '[1]StartSpan:S1',
+      '[2]StartSpan:S2',
+      '[2]EndSpan:',
+      '[1]Log:E1'
     ]);
   })
 
@@ -209,7 +434,7 @@ describe('DefaultScopeManager', () => {
 
     expect(typeof entries[2].tags.error.message).toBe('string');
     expect(typeof entries[2].tags.error.stack).toBe('string');
-  })
+  });
 
 });
 
