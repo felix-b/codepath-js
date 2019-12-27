@@ -4,11 +4,20 @@ const originalPromise = window.Promise;
 
 let debugCurrentStep = 'INIT';
 const debugPromiseLifecycle = [];
+let globalGetCurrentLocals = undefined;
+
+const formatLocals = (locals) => {
+  return `#${locals.__INSTANCE_ID__} ${[...locals.values()].join(';')}`;
+}
 
 export function setDebugCurrentStep(step) {
+  const locals = globalGetCurrentLocals
+    ? formatLocals(globalGetCurrentLocals())
+    : 'N/A';
   debugCurrentStep = step;
   debugPromiseLifecycle.push({
-    step
+    step,
+    locals
   });
 }
 
@@ -24,16 +33,39 @@ export const pushLifecycleEntry = (instanceId, phase, currentLocals) => {
   debugPromiseLifecycle.push({
     instance: instanceId,
     phase,
-    locals: `${currentLocals}`,
+    locals: formatLocals(currentLocals),
     step: debugCurrentStep
   });
 }
 
+export const pushCloneEntry = (instanceId, fromLocals, toLocals) => {
+  debugPromiseLifecycle.push({
+    instance: instanceId,
+    clone: `${fromLocals.__INSTANCE_ID__ || 'empty'}->${toLocals.__INSTANCE_ID__}`,
+  });
+}
+
+export const pushAssignEntry = (toLocals, key, value) => {
+  debugPromiseLifecycle.push({
+    assign: `#${toLocals.__INSTANCE_ID__}[${key}]<-${value}`,
+  });
+}
+
 export function createAsyncLocalProvider() {
-  let currentLocals = new Map();
+  let nextLocalsInstanceId = 1;
+  const cloneLocals = (instanceId, source) => {
+    const clone = new Map(source.entries());
+    clone.__INSTANCE_ID__ = nextLocalsInstanceId++;
+    pushCloneEntry(instanceId, source, clone);
+    return clone;
+  }
+
+  let currentLocals = cloneLocals('N/A', new Map());
 
   const getCurrentLocals = () => currentLocals;
-  const cloneCurrentLocals = () => new Map(currentLocals.entries());
+  globalGetCurrentLocals = getCurrentLocals;
+
+  const cloneCurrentLocals = (instanceId) => cloneLocals(instanceId, currentLocals);
   const completionHooks = createMulticastDelegate(
     "AsyncLocalProvider.PromiseCompletion"
   );
@@ -50,8 +82,8 @@ export function createAsyncLocalProvider() {
 
     constructor(executor) {
       const parentLocals = currentLocals;
-      const thisLocals = cloneCurrentLocals();
       const thisInstanceId = nextInstanceId++;
+      const thisLocals = cloneCurrentLocals(thisInstanceId);
 
       console.log(`PrmoseWrapper[${thisInstanceId}].ctor`);
       pushLifecycleEntry(thisInstanceId, '.ctor-enter', currentLocals);
@@ -60,7 +92,9 @@ export function createAsyncLocalProvider() {
         pushLifecycleEntry(thisInstanceId, 'super-enter', currentLocals);
 
         const wrapperResolve = value => {
-          currentLocals = parentLocals;
+          pushLifecycleEntry(thisInstanceId, 'resolve-before-save-locals', currentLocals);
+          const saveLocals = currentLocals;
+          currentLocals = thisLocals;
           try {
             console.log(`PromiseWrapper[${thisInstanceId}].resolve(${value})`);
             //completionHooks.invoke(value, thisInstanceId);
@@ -68,11 +102,14 @@ export function createAsyncLocalProvider() {
             resolve(value);
             pushLifecycleEntry(thisInstanceId, 'resolve-after', currentLocals);
           } finally {
-            currentLocals = parentLocals;
+            currentLocals = saveLocals;
+            pushLifecycleEntry(thisInstanceId, 'resolve-after-restore-locals', currentLocals);
           }
         };
         const wrapperReject = error => {
-          currentLocals = parentLocals;
+          pushLifecycleEntry(thisInstanceId, 'reject-before-save-locals', currentLocals);
+          const saveLocals = currentLocals;
+          currentLocals = thisLocals;
           try {
             console.log(`PromiseWrapper[${thisInstanceId}].reject(${error})`);
             //rejectionHooks.invoke(error, thisInstanceId);
@@ -80,7 +117,8 @@ export function createAsyncLocalProvider() {
             reject(error);
             pushLifecycleEntry(thisInstanceId, 'reject-after', currentLocals);
           } finally {
-            currentLocals = parentLocals;
+            currentLocals = saveLocals;
+            pushLifecycleEntry(thisInstanceId, 'reject-after-restore-locals', currentLocals);
           }
         };
         currentLocals = thisLocals;
@@ -91,6 +129,7 @@ export function createAsyncLocalProvider() {
           return executorResult;
         } finally {
           currentLocals = parentLocals;
+          pushLifecycleEntry(thisInstanceId, 'executor-after-restore-locals', currentLocals);
           pushLifecycleEntry(thisInstanceId, 'super-exit', currentLocals);
         }
       });
@@ -106,32 +145,39 @@ export function createAsyncLocalProvider() {
       const thisInstanceId = this._thisInstanceId;
       const parentLocals = this._parentLocals;
       const thisLocals = this._thisLocals;
-
+      const thenLocals = cloneLocals(thisInstanceId, currentLocals);
+      
       pushLifecycleEntry(thisInstanceId, 'then-set-before-super', currentLocals);
       const thenResult = super.then(
         (result) => {
-          currentLocals = parentLocals;
+          pushLifecycleEntry(thisInstanceId, 'then-success-before-save-locals', currentLocals);
+          const saveLocals = currentLocals;
+          currentLocals = thenLocals;
           pushLifecycleEntry(thisInstanceId, 'then-success-before', currentLocals);
           try {
             console.log(`PromiseWrapper[${thisInstanceId}].then(${result})`);
             completionHooks.invoke(result, thisInstanceId);
             success(result);
           } finally {
-            currentLocals = parentLocals;
             pushLifecycleEntry(thisInstanceId, 'then-success-after', currentLocals);
+            currentLocals = saveLocals;
+            pushLifecycleEntry(thisInstanceId, 'then-success-after-restore-locals', currentLocals);
           }
 
         }, 
         (error) => {
-          currentLocals = parentLocals;
+          pushLifecycleEntry(thisInstanceId, 'then-reject-before-save-locals', currentLocals);
+          const saveLocals = currentLocals;
+          currentLocals = thenLocals;
           pushLifecycleEntry(thisInstanceId, 'then-reject-before', currentLocals);
           try {
             console.log(`PromiseWrapper[${thisInstanceId}].catch(${error})`);
             rejectionHooks.invoke(error, thisInstanceId);
             reject(error);
           } finally {
-            currentLocals = parentLocals;
             pushLifecycleEntry(thisInstanceId, 'then-reject-after', currentLocals);
+            currentLocals = saveLocals;
+            pushLifecycleEntry(thisInstanceId, 'then-reject-after-restore-locals', currentLocals);
           }
         }
       );
@@ -153,6 +199,7 @@ export function createAsyncLocalProvider() {
         },
         set(newValue) {
           getCurrentLocals().set(key, newValue);
+          pushAssignEntry(getCurrentLocals(), key, newValue);
         },
         remove() {
           getCurrentLocals().delete(key);

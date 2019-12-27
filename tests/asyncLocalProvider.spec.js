@@ -5,6 +5,21 @@ import {
   getDebugPromiseLifecycle
 } from "../src/asyncLocalProvider";
 
+const createdDeferredPromise = () => {
+  let resolve = undefined;
+  let reject = undefined;
+  const promise = new Promise((theResolve, theReject) => {
+    setDebugCurrentStep('createdDeferredPromise() executor');
+    resolve = theResolve;
+    reject = theReject;
+  });
+  return {
+    promise,
+    resolve,
+    reject
+  };
+};
+
 const delay = (milliseconds) => {
   setDebugCurrentStep('DELAY-ENTER');
   console.log('delay-enter');
@@ -365,6 +380,106 @@ describe('asyncLocalProvider', () => {
       'async-task-1-before-await': 'B1',
       'async-task-1-after-await': 'B1',
       'after-promise-all': 'A2',
+    });
+  });
+
+  it.only('can flow locals over to concurrent async tasks', async () => {
+    const provider = createAsyncLocalProvider();
+    const local = provider.createAsyncLocal('R1');
+
+    setDebugCurrentStep('ROOT-ENTER');
+
+    const stepsDone = [
+      createdDeferredPromise(),
+      createdDeferredPromise(),
+    ];
+
+    setDebugCurrentStep('ROOT-CREATED-DEFERRED-PROMISES');
+    let log = {};
+
+    console.log(log['root-init'] = local.get());
+    local.set('R2');
+
+    const asyncTask1 = async () => {
+      setDebugCurrentStep('AT1-ENTER');
+      
+      console.log(log['async-task-1-start'] = local.get());
+      local.set('AT1-1');
+      console.log(log['async-task-1-before-await'] = local.get());
+      
+      setDebugCurrentStep('AT1-WILL-AWAIT-STEP-0');
+      
+      await stepsDone[0].promise;
+
+      setDebugCurrentStep('AT1-CONTINUE-AFTER-STEP-0');
+
+      console.log(log['async-task-1-after-await'] = local.get());
+      local.set('AT1-2');
+      setDebugCurrentStep('AT1-WILL-RESOLVE-STEP-1');
+      stepsDone[1].resolve();
+      console.log(log['async-task-1-after-resolve-step-1'] = local.get());
+      setDebugCurrentStep('AT1-EXIT');
+    };
+
+    const asyncTask2 = async () => {
+      setDebugCurrentStep('AT2-ENTER');
+      
+      console.log(log['async-task-2-start'] = local.get());
+      local.set('AT2-1');
+      console.log(log['async-task-2-before-resolve-step-0'] = local.get());
+
+      setDebugCurrentStep('AT2-WILL-RESOLVE-STEP-0');
+      stepsDone[0].resolve();
+      setDebugCurrentStep('AT2-AFTER-RESOLVE-STEP-0');
+      
+      console.log(log['async-task-2-after-resolve-step-0'] = local.get());
+      local.set('AT2-2');
+      setDebugCurrentStep('AT2-WILL-AWAIT-STEP-1');
+      console.log(log['async-task-2-before-await-step-1'] = local.get());
+
+      await stepsDone[1].promise;
+
+      console.log(log['async-task-2-after-await-step-1'] = local.get());
+      local.set('AT2-3');
+      setDebugCurrentStep('AT2-EXIT');
+    };
+
+    console.log(log['root-before-await'] = local.get());
+
+    setDebugCurrentStep('ROOT-BEFORE-RUN-AT1');
+    const promiseAT1 = asyncTask1();
+
+    setDebugCurrentStep('ROOT-BEFORE-RUN-AT2');
+    const promiseAT2 = asyncTask2();
+
+    setDebugCurrentStep('ROOT-BEFORE-PROMISE-ALL');
+    const promiseAll = Promise.all([
+      promiseAT1, 
+      promiseAT2
+    ]);
+
+    setDebugCurrentStep('ROOT-BEFORE-AWAIT-PROMISE-ALL');
+
+    await promiseAll;
+    
+    setDebugCurrentStep('ROOT-AFTER-AWAIT-PROMISE-ALL');
+    console.log(log['root-after-await'] = local.get());
+
+    const debugLifecycle = getDebugPromiseLifecycle();
+
+    expect(log).toMatchObject({
+      'root-init': 'R1',
+      'root-before-await': 'R2',
+      'root-after-await': 'R2',
+      'async-task-1-start': 'R2',
+      'async-task-1-before-await': 'AT1-1',
+      'async-task-1-after-await': 'AT1-1',
+      'async-task-1-after-resolve-step-1': 'AT1-2',
+      'async-task-2-start': 'R2',
+      'async-task-2-before-resolve-step-0': 'AT2-1',
+      'async-task-2-after-resolve-step-0': 'AT2-1',
+      'async-task-2-before-await-step-1': 'AT2-2',
+      'async-task-2-after-await-step-1': 'AT2-2',
     });
   });
 
