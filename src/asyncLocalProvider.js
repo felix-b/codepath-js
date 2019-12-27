@@ -157,7 +157,7 @@ export function createAsyncLocalProvider() {
           try {
             console.log(`PromiseWrapper[${thisInstanceId}].then(${result})`);
             completionHooks.invoke(result, thisInstanceId);
-            success(result);
+            return success(result);
           } finally {
             pushLifecycleEntry(thisInstanceId, 'then-success-after', currentLocals);
             currentLocals = saveLocals;
@@ -173,7 +173,7 @@ export function createAsyncLocalProvider() {
           try {
             console.log(`PromiseWrapper[${thisInstanceId}].catch(${error})`);
             rejectionHooks.invoke(error, thisInstanceId);
-            reject(error);
+            return reject(error);
           } finally {
             pushLifecycleEntry(thisInstanceId, 'then-reject-after', currentLocals);
             currentLocals = saveLocals;

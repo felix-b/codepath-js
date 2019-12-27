@@ -97,7 +97,7 @@ describe('asyncLocalProvider', () => {
     expect([...allLocals.values()]).toEqual([456]);
   });
 
-  it.skip('can flow locals to Promise.then', async () => {
+  it('can flow locals to Promise.then', async () => {
     const provider = createAsyncLocalProvider();
     const local = provider.createAsyncLocal('A1');
     let log = {};
@@ -383,7 +383,7 @@ describe('asyncLocalProvider', () => {
     });
   });
 
-  it.only('can flow locals over to concurrent async tasks', async () => {
+  it('can flow locals over to concurrent async tasks', async () => {
     const provider = createAsyncLocalProvider();
     const local = provider.createAsyncLocal('R1');
 

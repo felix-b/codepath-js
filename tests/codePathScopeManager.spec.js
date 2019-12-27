@@ -335,7 +335,6 @@ describe('DefaultScopeManager', () => {
       { token: 'Log', messageId: 'async-then', spanId: 2 },
       { token: 'Log', spanId: 2, messageId: 'ATE1' },
       { token: 'EndSpan', spanId: 2 },
-      { token: 'Log', messageId: 'async-then', spanId: 2 },
       { token: 'Log', messageId: 'async-then', spanId: 3 },
       { token: 'Log', spanId: 3, messageId: 'E1' },
     ]);
@@ -392,15 +391,15 @@ describe('DefaultScopeManager', () => {
       { token: 'Log', messageId: 'async-then', spanId: 3 },
       { token: 'Log', spanId: 3, messageId: 'AT2-E1' },
       { token: 'EndSpan', spanId: 3 },
-      { token: 'Log', messageId: 'async-then', spanId: 3 },
-      { token: 'StartSpan', spanId: 4, childOf: { spanId: 3 }, messageId: 'AT2-S2', },
+      { token: 'Log', messageId: 'async-then', spanId: 1 },
+      { token: 'StartSpan', spanId: 4, childOf: { spanId: 1 }, messageId: 'AT2-S2', },
       { token: 'Log', spanId: 4, messageId: 'AT2-E2', tags: { value: 222 } },
       { token: 'EndSpan', spanId: 4 },
       { token: 'Log', messageId: 'async-then', spanId: 2 },
       { token: 'Log', spanId: 2, messageId: 'AT1-E1' },
       { token: 'EndSpan', spanId: 2 },
-      { token: 'Log', messageId: 'async-then', spanId: 2 },
-      { token: 'StartSpan', spanId: 5, childOf: { spanId: 2 }, messageId: 'AT1-S2' },
+      { token: 'Log', messageId: 'async-then', spanId: 1 },
+      { token: 'StartSpan', spanId: 5, childOf: { spanId: 1 }, messageId: 'AT1-S2' },
       { token: 'Log', spanId: 5, messageId: 'AT1-E2', tags: { value: 111 } },
       { token: 'EndSpan', spanId: 5 },
       { token: 'Log', messageId: 'async-then', spanId: 1 },
@@ -428,12 +427,11 @@ describe('DefaultScopeManager', () => {
     expect(entries).toMatchObject([
       { token: 'StartTracer' },
       { token: 'StartSpan', messageId: 'R0' },
+      { token: 'Log', messageId: 'async-then', spanId: 1 },
       { token: 'Log', messageId: 'async-catch', tags: { error: { message: 'TEST-REJECT' } } },
+      { token: 'Log', messageId: 'async-then', spanId: 1 },
       { token: 'Log', spanId: 1 }
     ]);
-
-    expect(typeof entries[2].tags.error.message).toBe('string');
-    expect(typeof entries[2].tags.error.stack).toBe('string');
   });
 
 });
