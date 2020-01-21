@@ -29,3 +29,4 @@ export { createResizer } from "./resizer";
 export { LOG_LEVEL } from "./logLevel";
 export { createDebugLog, enableDebugLog } from "./debugLog";
 export { isTagSerializable, addTagMetaStringify } from "./serializable";
+export { aggregateSpanStats } from "./codePathSpanStats";

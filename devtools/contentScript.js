@@ -60,6 +60,13 @@
             prepareOnly: request.prepareOnly
           }, '*');
           break;
+        case 'codePath/devTools/printTable':
+          window.postMessage({
+            type: request.type,
+            title: request.title,
+            table: request.table
+          }, '*');
+          break;
         case 'codePath/devTools/fetchTagsRequest':
           window.postMessage({
             type: request.type,

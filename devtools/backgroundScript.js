@@ -54,6 +54,16 @@
               }
             );
             break;
+          case 'printTable':
+            chrome.tabs.sendMessage(
+              message.tabId, 
+              { 
+                type: 'codePath/devTools/printTable',
+                title: message.title,
+                table: message.table
+              }
+            );
+            break;
           case 'fetchTags': 
             chrome.tabs.executeScript(
               message.tabId, 
