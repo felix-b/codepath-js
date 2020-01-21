@@ -60,6 +60,12 @@ define(function (require) {
         }
       }
     },
+    aggregateStats() {
+      const rootNode = model.getRootNode();
+      const stats = CodePath.aggregateSpanStats(rootNode);
+      console.log('STATS>', stats);
+      return stats;
+    },
     goToNode(text, nextOrPrev) {
       const getNextMatchedNode = () => {
         switch (nextOrPrev) {
@@ -78,7 +84,7 @@ define(function (require) {
         const nextNode = getNextMatchedNode() || selectedNode;
         controller.selectNode(nextNode);
       }
-    }
+    },
   };
 
   function createSearchPredicate(definition) {

@@ -50,6 +50,9 @@
           case 'codePath/devTools/replayApiCall':
             prepareReplayApiCall(event.data.apiCall, event.data.prepareOnly);
             break;
+          case 'codePath/devTools/printTable':
+            printTable(event.data.title, event.data.table);
+            break;
         }
       }
     });
@@ -170,6 +173,11 @@
         console.log('--- executing ---');
         console.log(eval(callExpression));
       }
+    }
+
+    function printTable(title, data) {
+      console.log(title);
+      console.table(data);
     }
   }
 })();

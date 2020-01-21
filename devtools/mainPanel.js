@@ -26,6 +26,7 @@ requirejs(['codepath', 'codePathTreeGrid', 'objectAssignDeep'], function(CodePat
   const findTextInput = document.querySelector('#find-text');
   const findPrevButton = document.querySelector('#find-prev-button');
   const findNextButton = document.querySelector('#find-next-button');
+  const printStatsButton = document.querySelector('#print-stats-button');
   const panelResizerDiv = document.querySelector('#panel-resizer');
   const mainPanelDiv = document.querySelector('#panel-main');
   const rightPanelDiv = document.querySelector('#panel-right');
@@ -131,6 +132,10 @@ requirejs(['codepath', 'codePathTreeGrid', 'objectAssignDeep'], function(CodePat
   };
   findPrevButton.onclick = (e) => {
     CodePathTreeGrid.goToNode('', 'prev');
+  };
+  printStatsButton.onclick = (e) => {
+    const stats = CodePathTreeGrid.aggregateStats();
+    requestPrintTable('Span Statistics', stats);
   };
   treeGridController.onNodeSelected((node) => {
     selectedNode = node;
@@ -333,6 +338,15 @@ requirejs(['codepath', 'codePathTreeGrid', 'objectAssignDeep'], function(CodePat
       tabId: chrome.devtools.inspectedWindow.tabId,
       apiCall,
       prepareOnly
+    });
+  }
+
+  function requestPrintTable(title, table) {
+    backgroundConnection.postMessage({
+      name: 'printTable',
+      tabId: chrome.devtools.inspectedWindow.tabId,
+      title,
+      table
     });
   }
 
