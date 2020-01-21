@@ -1,17 +1,23 @@
 {
-  "name": "codepath dev tools extension",
-  "version": "0.1.0",
-  "description": "Records and visualizes code paths reported by codepath-js",
   "manifest_version": 2,
+  "name": "codepath-js dev tools extension",
+  "version": "0.1.0",
+  "version_name": "alpha 1",
+  "description": "Records and visualizes code paths reported by codepath-js",
+  "icons": {
+    "16": "icons/codepath-16.png",
+    "24": "icons/codepath-24.png",
+    "32": "icons/codepath-32.png",
+    "64": "icons/codepath-64.png",
+    "128": "icons/codepath-128.png"
+  },
   "minimum_chrome_version": "10.0",
   "devtools_page": "devtools.html",
   "content_scripts": [
     {
       "matches": [
-        "http://localhost:9090/*",
-        "http://localhost:3000/*",
-        "http://localhost:3333/*",
-        "https://local.wix.com:3500/*"
+        "https://local.wix.com:3500/*",
+        "https://editor.wix.com/html/editor/web/renderer/*"
       ],
       "js": [
         "codepath.js",
@@ -30,8 +36,8 @@
     "tabs",
     "notifications",
     "storage",
-    "http://*/",
-    "https://*/"
+    "https://local.wix.com:3500/*",
+    "https://editor.wix.com/html/editor/web/renderer/*"
   ],
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
   "web_accessible_resources" : [

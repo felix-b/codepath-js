@@ -252,7 +252,29 @@ requirejs(['codepath', 'codePathTreeGrid', 'objectAssignDeep'], function(CodePat
   }
 
   function loadConfiguration() {
-    const configScript = localStorage.getItem('codePath/devTools/configScript');
+    const defaultConfigScript = `
+      const { LOG_LEVEL } = codePathLib; 
+      return { 
+        treeGrid: { }, 
+        codePathModel: { 
+          extractEntryMetrics: (entry) => { 
+            switch (entry.tags.level) { 
+              case LOG_LEVEL.event: return { event: 1 }; 
+              case LOG_LEVEL.warning: return { warning: 1 }; 
+              case LOG_LEVEL.error: return { error: 1 }; 
+              case LOG_LEVEL.critical: return { error: 1 }; 
+              default: return undefined; 
+            } 
+          } 
+        }, 
+        pageInit: '!function(){}()' 
+      };
+    `;
+
+    const configScript = 
+      localStorage.getItem('codePath/devTools/configScript') || 
+      defaultConfigScript;
+
     console.log('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'loaded config script', configScript);
 
     if (configScript) {
@@ -262,7 +284,7 @@ requirejs(['codepath', 'codePathTreeGrid', 'objectAssignDeep'], function(CodePat
       return configuration;
     }
 
-    console.warn('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'config script not found, using defaults');
+    console.warn('CODEPATH.DEVTOOLS.MAIN-PANEL>', 'config script not found! using defaults');
   }
 
   function handleKeyPressEvent(event, node) {

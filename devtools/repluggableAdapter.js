@@ -37,12 +37,12 @@
       },
       spanRoot(id, keyValuePairs) {
         const tracerSpan = codePathObject.spanRoot(id, keyValuePairs);
-        return createShellLoggerSpan(tracerSpan);
+        return createShellLoggerSpan(tracerSpan, CodePathLib);
       },
       spanChild(id, keyValuePairs) {
         if (codePathObject.getActiveSpan()) {
           const tracerSpan = codePathObject.spanChild(id, keyValuePairs);
-          return createShellLoggerSpan(tracerSpan);
+          return createShellLoggerSpan(tracerSpan, CodePathLib);
         } else {
           return noopSpan;
         }
